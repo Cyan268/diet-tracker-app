@@ -1,5 +1,6 @@
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 const mealOptions = [
   { key: "breakfast", label: "早餐", icon: "sunny" as const, color: "#FF9800" },
@@ -10,8 +11,12 @@ const mealOptions = [
 ];
 
 export default function AddScreen() {
-  const handlePress = (key: string, label: string) => {
-    Alert.alert(`${label}记录`, "此功能将在后续阶段实现，敬请期待！");
+  const handlePress = (key: string) => {
+    if (key === "drink") {
+      router.push("/add-drink");
+    } else {
+      router.push({ pathname: "/add-food", params: { mealType: key } });
+    }
   };
 
   return (
@@ -24,7 +29,7 @@ export default function AddScreen() {
           <TouchableOpacity
             key={option.key}
             style={styles.optionCard}
-            onPress={() => handlePress(option.key, option.label)}
+            onPress={() => handlePress(option.key)}
           >
             <View style={[styles.iconCircle, { backgroundColor: option.color + "20" }]}>
               <Ionicons name={option.icon} size={32} color={option.color} />
