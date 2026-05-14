@@ -116,3 +116,48 @@ export async function deleteLog(id: string): Promise<void> {
   const db = await getDatabase();
   await db.runAsync("DELETE FROM food_logs WHERE id = ?", id);
 }
+
+export async function getSummariesByDateRange(
+  startDate: string,
+  endDate: string
+): Promise<DailySummary[]> {
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<any>(
+    `SELECT date,
+       COALESCE(SUM(kcal), 0) as total_kcal,
+       COALESCE(SUM(protein), 0) as total_protein,
+       COALESCE(SUM(fat), 0) as total_fat,
+       COALESCE(SUM(carbs), 0) as total_carbs,
+       COALESCE(SUM(sugar), 0) as total_sugar,
+       COALESCE(SUM(sodium), 0) as total_sodium,
+       COALESCE(SUM(caffeine), 0) as total_caffeine
+     FROM food_logs WHERE date >= ? AND date <= ?
+     GROUP BY date ORDER BY date`,
+    startDate,
+    endDate
+  );
+
+  return rows.map((row) => ({
+    date: row.date,
+    totalKcal: row.total_kcal,
+    totalProtein: row.total_protein,
+    totalFat: row.total_fat,
+    totalCarbs: row.total_carbs,
+    totalSugar: row.total_sugar,
+    totalSodium: row.total_sodium,
+    totalCaffeine: row.total_caffeine,
+    mealBreakdown: { breakfast: 0, lunch: 0, dinner: 0, snack: 0, drink: 0 },
+  }));
+}
+
+export async function getMealBreakdownByDate(
+  date: string
+): Promise<{ mealType: string; kcal: number }[]> {
+  const db = await getDatabase();
+  const rows = await db.getAllAsync<any>(
+    `SELECT meal_type, COALESCE(SUM(kcal), 0) as total
+     FROM food_logs WHERE date = ? GROUP BY meal_type`,
+    date
+  );
+  return rows.map((r) => ({ mealType: r.meal_type, kcal: r.total }));
+}
