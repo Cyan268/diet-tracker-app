@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 const mealOptions = [
@@ -10,6 +10,10 @@ const mealOptions = [
 ];
 
 export default function AddScreen() {
+  const handlePress = (key: string, label: string) => {
+    Alert.alert(`${label}记录`, "此功能将在后续阶段实现，敬请期待！");
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>选择记录类型</Text>
@@ -17,7 +21,11 @@ export default function AddScreen() {
 
       <View style={styles.grid}>
         {mealOptions.map((option) => (
-          <TouchableOpacity key={option.key} style={styles.optionCard}>
+          <TouchableOpacity
+            key={option.key}
+            style={styles.optionCard}
+            onPress={() => handlePress(option.key, option.label)}
+          >
             <View style={[styles.iconCircle, { backgroundColor: option.color + "20" }]}>
               <Ionicons name={option.icon} size={32} color={option.color} />
             </View>
@@ -37,27 +45,10 @@ export default function AddScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-    padding: 20,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
-    marginBottom: 24,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
+  container: { flex: 1, backgroundColor: "#f5f5f5", padding: 20 },
+  title: { fontSize: 24, fontWeight: "bold", color: "#333" },
+  subtitle: { fontSize: 14, color: "#666", marginTop: 4, marginBottom: 24 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   optionCard: {
     width: "47%",
     backgroundColor: "#fff",
@@ -78,11 +69,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  optionLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#333",
-  },
+  optionLabel: { fontSize: 16, fontWeight: "600", color: "#333" },
   tipCard: {
     flexDirection: "row",
     backgroundColor: "#E3F2FD",
@@ -92,10 +79,5 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     gap: 8,
   },
-  tipText: {
-    flex: 1,
-    fontSize: 13,
-    color: "#555",
-    lineHeight: 18,
-  },
+  tipText: { flex: 1, fontSize: 13, color: "#555", lineHeight: 18 },
 });
