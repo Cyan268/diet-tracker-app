@@ -18,12 +18,13 @@ app/                  # expo-router 页面
   _layout.tsx         # 根布局（含数据库初始化）
   add-food.tsx        # 添加食物页面
   add-drink.tsx       # 添加饮品页面
+  edit-profile.tsx    # 编辑个人资料
   (tabs)/             # 底部 Tab 导航
     _layout.tsx       # Tab 配置
-    index.tsx         # 今日总览（已接入数据库）
+    index.tsx         # 今日总览（含提醒）
     add.tsx           # 添加记录入口
     stats.tsx         # 统计
-    profile.tsx       # 我的
+    profile.tsx       # 我的（含目标展示）
 
 src/
   components/         # 通用组件
@@ -38,7 +39,8 @@ src/
   features/           # 功能模块
     food/             # 食物计算
     drink/            # 饮品计算
-    summary/          # 每日汇总
+    profile/          # 用户资料计算（BMR/TDEE）
+    summary/          # 每日汇总 + 提醒服务
   types/              # TypeScript 类型
   utils/              # 工具函数
 
@@ -58,15 +60,15 @@ npx tsc --noEmit   # 类型检查
 
 ## 开发阶段
 
-按开发计划文件分阶段执行，当前进度：阶段 4 完成。
+按开发计划文件分阶段执行，当前进度：阶段 6 完成。
 
 - [x] 阶段 0：项目初始化
 - [x] 阶段 1：基础 UI 组件（MetricCard、ReminderCard、FoodLogItem）
 - [x] 阶段 2：数据库（SQLite 建表、种子数据、Repository 层）
 - [x] 阶段 3：饮食记录（食物搜索、克数输入、营养素计算、保存）
 - [x] 阶段 4：饮品记录（品牌/饮品/杯型/糖度/小料选择、热量计算）
-- [ ] 阶段 5：用户资料
-- [ ] 阶段 6：提醒系统
+- [x] 阶段 5：用户资料（BMR/TDEE 计算、目标热量估算）
+- [x] 阶段 6：提醒系统（热量/蛋白质/糖/钠/咖啡因提醒）
 - [ ] 阶段 7：统计图表
 - [ ] 阶段 8：联网搜索
 - [ ] 阶段 9：打磨展示版
