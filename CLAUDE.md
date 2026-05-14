@@ -23,7 +23,7 @@ app/                  # expo-router 页面
     _layout.tsx       # Tab 配置
     index.tsx         # 今日总览（含提醒）
     add.tsx           # 添加记录入口
-    stats.tsx         # 统计
+    stats.tsx         # 统计（图表展示）
     profile.tsx       # 我的（含目标展示）
 
 src/
@@ -40,6 +40,7 @@ src/
     food/             # 食物计算
     drink/            # 饮品计算
     profile/          # 用户资料计算（BMR/TDEE）
+    stats/            # 统计数据聚合
     summary/          # 每日汇总 + 提醒服务
   types/              # TypeScript 类型
   utils/              # 工具函数
@@ -60,7 +61,7 @@ npx tsc --noEmit   # 类型检查
 
 ## 开发阶段
 
-按开发计划文件分阶段执行，当前进度：阶段 6 完成。
+按开发计划文件分阶段执行，当前进度：阶段 7 完成。
 
 - [x] 阶段 0：项目初始化
 - [x] 阶段 1：基础 UI 组件（MetricCard、ReminderCard、FoodLogItem）
@@ -69,6 +70,7 @@ npx tsc --noEmit   # 类型检查
 - [x] 阶段 4：饮品记录（品牌/饮品/杯型/糖度/小料选择、热量计算）
 - [x] 阶段 5：用户资料（BMR/TDEE 计算、目标热量估算）
 - [x] 阶段 6：提醒系统（热量/蛋白质/糖/钠/咖啡因提醒）
+- [x] 阶段 7：统计图表（一周趋势折线图、三餐占比饼图、饮品热量占比）
 - [ ] 阶段 7：统计图表
 - [ ] 阶段 8：联网搜索
 - [ ] 阶段 9：打磨展示版
