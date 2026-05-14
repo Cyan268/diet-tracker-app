@@ -16,10 +16,12 @@
 ```
 app/                  # expo-router 页面
   _layout.tsx         # 根布局（含数据库初始化）
+  add-food.tsx        # 添加食物页面
+  add-drink.tsx       # 添加饮品页面
   (tabs)/             # 底部 Tab 导航
     _layout.tsx       # Tab 配置
     index.tsx         # 今日总览（已接入数据库）
-    add.tsx           # 添加记录
+    add.tsx           # 添加记录入口
     stats.tsx         # 统计
     profile.tsx       # 我的
 
@@ -34,6 +36,8 @@ src/
     seed.ts           # 种子数据插入
     repositories/     # 数据访问层
   features/           # 功能模块
+    food/             # 食物计算
+    drink/            # 饮品计算
     summary/          # 每日汇总
   types/              # TypeScript 类型
   utils/              # 工具函数
@@ -54,13 +58,13 @@ npx tsc --noEmit   # 类型检查
 
 ## 开发阶段
 
-按开发计划文件分阶段执行，当前进度：阶段 2 完成。
+按开发计划文件分阶段执行，当前进度：阶段 4 完成。
 
 - [x] 阶段 0：项目初始化
 - [x] 阶段 1：基础 UI 组件（MetricCard、ReminderCard、FoodLogItem）
 - [x] 阶段 2：数据库（SQLite 建表、种子数据、Repository 层）
-- [ ] 阶段 3：饮食记录（早餐/午餐/晚餐/加餐记录）
-- [ ] 阶段 4：饮品记录
+- [x] 阶段 3：饮食记录（食物搜索、克数输入、营养素计算、保存）
+- [x] 阶段 4：饮品记录（品牌/饮品/杯型/糖度/小料选择、热量计算）
 - [ ] 阶段 5：用户资料
 - [ ] 阶段 6：提醒系统
 - [ ] 阶段 7：统计图表
