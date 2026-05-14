@@ -1,15 +1,71 @@
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { router, useFocusEffect } from "expo-router";
+import { useState, useCallback } from "react";
+import { getProfile } from "../../src/db/repositories/profileRepository";
+import { calcDailyTargets } from "../../src/features/profile/profileCalculator";
+import type { UserProfile, DailyTargets } from "../../src/types/profile";
 
-const menuItems = [
-  { icon: "person-outline" as const, label: "个人资料", desc: "性别、年龄、身高、体重" },
-  { icon: "flag-outline" as const, label: "目标设置", desc: "减脂 / 维持 / 增肌" },
-  { icon: "notifications-outline" as const, label: "提醒设置", desc: "热量、糖、咖啡因提醒" },
-  { icon: "download-outline" as const, label: "数据导出", desc: "导出饮食记录" },
-  { icon: "information-circle-outline" as const, label: "关于", desc: "版本信息与免责声明" },
-];
+const ACTIVITY_LABELS: Record<string, string> = {
+  sedentary: "久坐",
+  light: "轻度活动",
+  moderate: "中度活动",
+  active: "高度活动",
+  very_active: "极高活动",
+};
+
+const GOAL_LABELS: Record<string, string> = {
+  lose: "减脂",
+  maintain: "维持",
+  gain: "增肌",
+};
 
 export default function ProfileScreen() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [targets, setTargets] = useState<DailyTargets | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      getProfile().then((p) => {
+        setProfile(p);
+        if (p) setTargets(calcDailyTargets(p));
+      });
+    }, [])
+  );
+
+  const menuItems = [
+    {
+      icon: "person-outline" as const,
+      label: "个人资料",
+      desc: profile ? `${profile.gender === "male" ? "男" : "女"} · ${profile.age}岁 · ${profile.heightCm}cm · ${profile.weightKg}kg` : "点击填写",
+      onPress: () => router.push("/edit-profile"),
+    },
+    {
+      icon: "flag-outline" as const,
+      label: "目标设置",
+      desc: profile ? `${GOAL_LABELS[profile.goal] ?? profile.goal} · ${ACTIVITY_LABELS[profile.activityLevel] ?? profile.activityLevel}` : "点击设置",
+      onPress: () => router.push("/edit-profile"),
+    },
+    {
+      icon: "notifications-outline" as const,
+      label: "提醒设置",
+      desc: "热量、糖、咖啡因提醒",
+      onPress: () => {},
+    },
+    {
+      icon: "download-outline" as const,
+      label: "数据导出",
+      desc: "导出饮食记录",
+      onPress: () => {},
+    },
+    {
+      icon: "information-circle-outline" as const,
+      label: "关于",
+      desc: "版本信息与免责声明",
+      onPress: () => {},
+    },
+  ];
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -20,9 +76,33 @@ export default function ProfileScreen() {
         <Text style={styles.desc}>记录健康饮食，享受美好生活</Text>
       </View>
 
+      {targets && (
+        <View style={styles.targetCard}>
+          <Text style={styles.targetTitle}>每日目标</Text>
+          <View style={styles.targetGrid}>
+            <View style={styles.targetItem}>
+              <Text style={styles.targetValue}>{targets.kcal}</Text>
+              <Text style={styles.targetLabel}>热量(kcal)</Text>
+            </View>
+            <View style={styles.targetItem}>
+              <Text style={styles.targetValue}>{targets.protein}g</Text>
+              <Text style={styles.targetLabel}>蛋白质</Text>
+            </View>
+            <View style={styles.targetItem}>
+              <Text style={styles.targetValue}>{targets.fat}g</Text>
+              <Text style={styles.targetLabel}>脂肪</Text>
+            </View>
+            <View style={styles.targetItem}>
+              <Text style={styles.targetValue}>{targets.carbs}g</Text>
+              <Text style={styles.targetLabel}>碳水</Text>
+            </View>
+          </View>
+        </View>
+      )}
+
       <View style={styles.menuList}>
         {menuItems.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.menuItem}>
+          <TouchableOpacity key={index} style={styles.menuItem} onPress={item.onPress}>
             <View style={styles.menuLeft}>
               <Ionicons name={item.icon} size={22} color="#4CAF50" />
               <View style={styles.menuText}>
@@ -43,15 +123,8 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  header: {
-    backgroundColor: "#4CAF50",
-    padding: 30,
-    alignItems: "center",
-  },
+  container: { flex: 1, backgroundColor: "#f5f5f5" },
+  header: { backgroundColor: "#4CAF50", padding: 30, alignItems: "center" },
   avatar: {
     width: 70,
     height: 70,
@@ -61,23 +134,26 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 10,
   },
-  username: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  desc: {
-    fontSize: 13,
-    color: "rgba(255,255,255,0.8)",
-    marginTop: 4,
-  },
-  menuList: {
+  username: { fontSize: 20, fontWeight: "bold", color: "#fff" },
+  desc: { fontSize: 13, color: "rgba(255,255,255,0.8)", marginTop: 4 },
+  targetCard: {
     backgroundColor: "#fff",
-    marginTop: 16,
     marginHorizontal: 16,
+    marginTop: 16,
+    padding: 16,
     borderRadius: 12,
-    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
+  targetTitle: { fontSize: 14, fontWeight: "600", color: "#333", marginBottom: 12 },
+  targetGrid: { flexDirection: "row", justifyContent: "space-around" },
+  targetItem: { alignItems: "center" },
+  targetValue: { fontSize: 18, fontWeight: "bold", color: "#4CAF50" },
+  targetLabel: { fontSize: 11, color: "#999", marginTop: 2 },
+  menuList: { backgroundColor: "#fff", marginTop: 16, marginHorizontal: 16, borderRadius: 12, overflow: "hidden" },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -87,22 +163,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: "#f0f0f0",
   },
-  menuLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
+  menuLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
   menuText: {},
-  menuLabel: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#333",
-  },
-  menuDesc: {
-    fontSize: 12,
-    color: "#999",
-    marginTop: 2,
-  },
+  menuLabel: { fontSize: 15, fontWeight: "500", color: "#333" },
+  menuDesc: { fontSize: 12, color: "#999", marginTop: 2 },
   disclaimer: {
     fontSize: 12,
     color: "#999",
