@@ -1,4 +1,9 @@
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
+import { useRef } from "react";
+import { deleteLog } from "@/db/repositories/logRepository";
 import type { FoodLog } from "@/types/log";
 
 const MEAL_LABELS: Record<string, string> = {
@@ -19,27 +24,56 @@ const MEAL_COLORS: Record<string, string> = {
 
 interface FoodLogItemProps {
   log: FoodLog;
+  onDeleted?: () => void;
 }
 
-export function FoodLogItem({ log }: FoodLogItemProps) {
+export function FoodLogItem({ log, onDeleted }: FoodLogItemProps) {
+  const swipeableRef = useRef<Swipeable>(null);
   const label = MEAL_LABELS[log.mealType] ?? log.mealType;
   const color = MEAL_COLORS[log.mealType] ?? "#999";
 
+  const handlePress = () => {
+    router.push({ pathname: "/edit-log", params: { logId: log.id } });
+  };
+
+  const handleDelete = () => {
+    Alert.alert("删除记录", `确定要删除「${log.customName ?? "未知食物"}」吗？`, [
+      { text: "取消", style: "cancel" },
+      {
+        text: "删除",
+        style: "destructive",
+        onPress: async () => {
+          await deleteLog(log.id);
+          onDeleted?.();
+        },
+      },
+    ]);
+  };
+
+  const renderRightActions = () => (
+    <TouchableOpacity style={styles.deleteAction} onPress={handleDelete}>
+      <Ionicons name="trash-outline" size={20} color="#fff" />
+      <Text style={styles.deleteText}>删除</Text>
+    </TouchableOpacity>
+  );
+
   return (
-    <View style={styles.container}>
-      <View style={[styles.badge, { backgroundColor: color + "20" }]}>
-        <Text style={[styles.badgeText, { color }]}>{label}</Text>
-      </View>
-      <View style={styles.content}>
-        <Text style={styles.name}>{log.customName ?? "未知食物"}</Text>
-        <Text style={styles.detail}>
-          {log.amount}{log.unit} · {Math.round(log.kcal)} kcal
+    <Swipeable ref={swipeableRef} renderRightActions={renderRightActions} overshootRight={false}>
+      <TouchableOpacity style={styles.container} onPress={handlePress} activeOpacity={0.7}>
+        <View style={[styles.badge, { backgroundColor: color + "20" }]}>
+          <Text style={[styles.badgeText, { color }]}>{label}</Text>
+        </View>
+        <View style={styles.content}>
+          <Text style={styles.name}>{log.customName ?? "未知食物"}</Text>
+          <Text style={styles.detail}>
+            {log.amount}{log.unit} · {Math.round(log.kcal)} kcal
+          </Text>
+        </View>
+        <Text style={styles.macro}>
+          P{Math.round(log.protein)}g F{Math.round(log.fat)}g C{Math.round(log.carbs)}g
         </Text>
-      </View>
-      <Text style={styles.macro}>
-        P{Math.round(log.protein)}g F{Math.round(log.fat)}g C{Math.round(log.carbs)}g
-      </Text>
-    </View>
+      </TouchableOpacity>
+    </Swipeable>
   );
 }
 
@@ -78,5 +112,21 @@ const styles = StyleSheet.create({
   macro: {
     fontSize: 11,
     color: "#999",
+  },
+  deleteAction: {
+    backgroundColor: "#F44336",
+    justifyContent: "center",
+    alignItems: "center",
+    width: 72,
+    borderRadius: 10,
+    marginBottom: 8,
+    marginLeft: 8,
+    flexDirection: "column",
+    gap: 2,
+  },
+  deleteText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "600",
   },
 });

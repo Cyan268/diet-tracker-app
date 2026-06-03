@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { getDatabase } from "../src/db/database";
 import { createTables } from "../src/db/schema";
 import { seedDatabase } from "../src/db/seed";
@@ -25,7 +26,11 @@ export default function RootLayout() {
     );
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Stack screenOptions={{ headerShown: false }} />
+    </GestureHandlerRootView>
+  );
 }
 
 const styles = StyleSheet.create({

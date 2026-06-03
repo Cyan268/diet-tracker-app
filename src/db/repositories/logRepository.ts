@@ -56,6 +56,12 @@ export async function addLog(
   return { ...log, id, createdAt: now, updatedAt: now };
 }
 
+export async function getLogById(id: string): Promise<FoodLog | null> {
+  const db = await getDatabase();
+  const row = await db.getFirstAsync<any>("SELECT * FROM food_logs WHERE id = ?", id);
+  return row ? rowToFoodLog(row) : null;
+}
+
 export async function getLogsByDate(date: string): Promise<FoodLog[]> {
   const db = await getDatabase();
   const rows = await db.getAllAsync<any>(
@@ -110,6 +116,44 @@ export async function getDailySummary(date: string): Promise<DailySummary> {
     totalCaffeine: row?.total_caffeine ?? 0,
     mealBreakdown,
   };
+}
+
+export async function updateLog(
+  id: string,
+  updates: Partial<Pick<FoodLog, "amount" | "unit" | "kcal" | "protein" | "fat" | "carbs" | "sugar" | "sodium" | "caffeine" | "note">>
+): Promise<FoodLog | null> {
+  const db = await getDatabase();
+  const existing = await db.getFirstAsync<any>("SELECT * FROM food_logs WHERE id = ?", id);
+  if (!existing) return null;
+
+  const now = new Date().toISOString();
+  const fields: string[] = [];
+  const values: any[] = [];
+
+  if (updates.amount !== undefined) { fields.push("amount = ?"); values.push(updates.amount); }
+  if (updates.unit !== undefined) { fields.push("unit = ?"); values.push(updates.unit); }
+  if (updates.kcal !== undefined) { fields.push("kcal = ?"); values.push(updates.kcal); }
+  if (updates.protein !== undefined) { fields.push("protein = ?"); values.push(updates.protein); }
+  if (updates.fat !== undefined) { fields.push("fat = ?"); values.push(updates.fat); }
+  if (updates.carbs !== undefined) { fields.push("carbs = ?"); values.push(updates.carbs); }
+  if (updates.sugar !== undefined) { fields.push("sugar = ?"); values.push(updates.sugar); }
+  if (updates.sodium !== undefined) { fields.push("sodium = ?"); values.push(updates.sodium); }
+  if (updates.caffeine !== undefined) { fields.push("caffeine = ?"); values.push(updates.caffeine); }
+  if (updates.note !== undefined) { fields.push("note = ?"); values.push(updates.note); }
+
+  if (fields.length === 0) return rowToFoodLog(existing);
+
+  fields.push("updated_at = ?");
+  values.push(now);
+  values.push(id);
+
+  await db.runAsync(
+    `UPDATE food_logs SET ${fields.join(", ")} WHERE id = ?`,
+    ...values
+  );
+
+  const updated = await db.getFirstAsync<any>("SELECT * FROM food_logs WHERE id = ?", id);
+  return updated ? rowToFoodLog(updated) : null;
 }
 
 export async function deleteLog(id: string): Promise<void> {

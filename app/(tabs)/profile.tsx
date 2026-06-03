@@ -1,9 +1,10 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useState, useCallback } from "react";
 import { getProfile } from "../../src/db/repositories/profileRepository";
 import { calcDailyTargets } from "../../src/features/profile/profileCalculator";
+import { exportData } from "../../src/features/export/exportService";
 import type { UserProfile, DailyTargets } from "../../src/types/profile";
 
 const ACTIVITY_LABELS: Record<string, string> = {
@@ -50,19 +51,55 @@ export default function ProfileScreen() {
       icon: "notifications-outline" as const,
       label: "提醒设置",
       desc: "热量、糖、咖啡因提醒",
-      onPress: () => {},
+      onPress: () => router.push("/reminder-settings"),
     },
     {
       icon: "download-outline" as const,
       label: "数据导出",
       desc: "导出饮食记录",
-      onPress: () => {},
+      onPress: () => {
+        Alert.alert("导出饮食记录", "选择导出格式", [
+          {
+            text: "CSV",
+            onPress: async () => {
+              try {
+                await exportData("csv");
+              } catch (e: any) {
+                if (e.message === "NO_DATA") {
+                  Alert.alert("提示", "暂无记录可导出");
+                } else {
+                  Alert.alert("错误", "导出失败，请重试");
+                }
+              }
+            },
+          },
+          {
+            text: "JSON",
+            onPress: async () => {
+              try {
+                await exportData("json");
+              } catch (e: any) {
+                if (e.message === "NO_DATA") {
+                  Alert.alert("提示", "暂无记录可导出");
+                } else {
+                  Alert.alert("错误", "导出失败，请重试");
+                }
+              }
+            },
+          },
+          { text: "取消", style: "cancel" },
+        ]);
+      },
     },
     {
       icon: "information-circle-outline" as const,
       label: "关于",
       desc: "版本信息与免责声明",
-      onPress: () => {},
+      onPress: () =>
+        Alert.alert(
+          "关于",
+          "日常饮食记录 v1.0.0\n\n本应用中的营养计算均为生活记录与大致估算，不构成医学、诊断或治疗建议。"
+        ),
     },
   ];
 

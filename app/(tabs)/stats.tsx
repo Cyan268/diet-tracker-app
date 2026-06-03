@@ -3,6 +3,7 @@ import { useState, useCallback } from "react";
 import { useFocusEffect } from "expo-router";
 import { LineChart, PieChart } from "react-native-chart-kit";
 import { getWeeklyData, getTodayMealBreakdown, getTodayOverview } from "../../src/features/stats/statsService";
+import { EmptyState } from "../../src/components/EmptyState";
 import { round } from "../../src/utils/number";
 import type { WeeklyData, MealBreakdownItem, TodayOverview } from "../../src/features/stats/statsService";
 
@@ -86,7 +87,7 @@ export default function StatsScreen() {
             absolute
           />
         ) : (
-          <Text style={styles.emptyText}>今日暂无记录</Text>
+          <EmptyState icon="pie-chart-outline" title="今日暂无记录" />
         )}
       </View>
 
@@ -108,7 +109,7 @@ export default function StatsScreen() {
             style={styles.chart}
           />
         ) : (
-          <Text style={styles.emptyText}>暂无数据，请先添加几天记录</Text>
+          <EmptyState icon="trending-up-outline" title="暂无数据" subtitle="请先添加几天记录" />
         )}
       </View>
 
@@ -130,7 +131,7 @@ export default function StatsScreen() {
             style={styles.chart}
           />
         ) : (
-          <Text style={styles.emptyText}>暂无咖啡因数据</Text>
+          <EmptyState icon="cafe-outline" title="暂无咖啡因数据" />
         )}
       </View>
 
@@ -155,7 +156,7 @@ export default function StatsScreen() {
             </Text>
           </View>
         ) : (
-          <Text style={styles.emptyText}>今日暂无记录</Text>
+          <EmptyState icon="water-outline" title="今日暂无记录" />
         )}
       </View>
     </ScrollView>
@@ -194,7 +195,6 @@ const styles = StyleSheet.create({
   overviewValue: { fontSize: 20, fontWeight: "bold", color: "#4CAF50" },
   overviewLabel: { fontSize: 11, color: "#999", marginTop: 2 },
   chart: { borderRadius: 8, marginLeft: -16 },
-  emptyText: { fontSize: 14, color: "#999", textAlign: "center", paddingVertical: 30 },
   drinkRow: {
     flexDirection: "row",
     justifyContent: "space-between",

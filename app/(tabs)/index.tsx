@@ -4,6 +4,7 @@ import { useFocusEffect } from "expo-router";
 import { MetricCard } from "../../src/components/MetricCard";
 import { FoodLogItem } from "../../src/components/FoodLogItem";
 import { ReminderCard } from "../../src/components/ReminderCard";
+import { EmptyState } from "../../src/components/EmptyState";
 import { getTodaySummary, getTodayLogs } from "../../src/features/summary/summaryService";
 import { getProfile } from "../../src/db/repositories/profileRepository";
 import { calcDailyTargets } from "../../src/features/profile/profileCalculator";
@@ -21,22 +22,24 @@ export default function HomeScreen() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const today = getToday();
 
+  const loadData = useCallback(async () => {
+    const [s, l] = await Promise.all([getTodaySummary(today), getTodayLogs(today)]);
+    setSummary(s);
+    setLogs(l);
+
+    const profile = await getProfile();
+    if (profile) {
+      const t = calcDailyTargets(profile);
+      setTargets(t);
+      const rules = await getEnabledRules();
+      setReminders(generateReminders(s, t, rules));
+    }
+  }, [today]);
+
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        const [s, l] = await Promise.all([getTodaySummary(today), getTodayLogs(today)]);
-        setSummary(s);
-        setLogs(l);
-
-        const profile = await getProfile();
-        if (profile) {
-          const t = calcDailyTargets(profile);
-          setTargets(t);
-          const rules = await getEnabledRules();
-          setReminders(generateReminders(s, t, rules));
-        }
-      })();
-    }, [today])
+      loadData();
+    }, [loadData])
   );
 
   return (
@@ -104,9 +107,13 @@ export default function HomeScreen() {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>今日记录</Text>
         {logs.length === 0 ? (
-          <Text style={styles.emptyText}>还没有记录，去添加页面记录今日饮食吧</Text>
+          <EmptyState
+            icon="restaurant-outline"
+            title="还没有记录"
+            subtitle="去添加页面记录今日饮食吧"
+          />
         ) : (
-          logs.map((log) => <FoodLogItem key={log.id} log={log} />)
+          logs.map((log) => <FoodLogItem key={log.id} log={log} onDeleted={loadData} />)
         )}
       </View>
     </ScrollView>
@@ -152,5 +159,4 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  emptyText: { fontSize: 14, color: "#999", textAlign: "center", paddingVertical: 20 },
 });

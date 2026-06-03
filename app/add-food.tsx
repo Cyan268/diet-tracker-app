@@ -1,13 +1,15 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Alert, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { searchFoods, getAllFoods } from "../src/db/repositories/foodRepository";
+import { searchAllFoods } from "../src/services/foodSearchService";
+import { saveExternalFood } from "../src/db/repositories/foodRepository";
 import { addLog } from "../src/db/repositories/logRepository";
 import { calcByGram } from "../src/features/food/foodCalculator";
 import { getToday } from "../src/utils/date";
 import { round } from "../src/utils/number";
 import type { FoodItem } from "../src/types/nutrition";
+import type { ExternalFoodResult } from "../src/types/external";
 import type { MealType } from "../src/types/log";
 
 const MEAL_LABELS: Record<string, string> = {
@@ -22,26 +24,53 @@ export default function AddFoodScreen() {
   const mt = (mealType ?? "breakfast") as MealType;
 
   const [keyword, setKeyword] = useState("");
-  const [results, setResults] = useState<FoodItem[]>([]);
+  const [localResults, setLocalResults] = useState<FoodItem[]>([]);
+  const [externalResults, setExternalResults] = useState<ExternalFoodResult[]>([]);
+  const [searching, setSearching] = useState(false);
   const [selected, setSelected] = useState<FoodItem | null>(null);
   const [amount, setAmount] = useState("");
   const [unit, setUnit] = useState("g");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleSearch = useCallback(async (text: string) => {
-    setKeyword(text);
-    if (text.trim().length === 0) {
-      setResults([]);
-      return;
-    }
-    const found = await searchFoods(text.trim());
-    setResults(found);
+  useEffect(() => {
+    return () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+    };
   }, []);
 
-  const handleSelectFood = (food: FoodItem) => {
+  const handleSearch = useCallback((text: string) => {
+    setKeyword(text);
+    setSelected(null);
+
+    if (searchTimer.current) clearTimeout(searchTimer.current);
+
+    if (text.trim().length === 0) {
+      setLocalResults([]);
+      setExternalResults([]);
+      return;
+    }
+
+    searchTimer.current = setTimeout(async () => {
+      setSearching(true);
+      try {
+        const results = await searchAllFoods(text);
+        setLocalResults(results.local);
+        setExternalResults(results.external);
+      } catch {
+        setLocalResults([]);
+        setExternalResults([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 400);
+  }, []);
+
+  const handleSelectLocal = (food: FoodItem) => {
     setSelected(food);
-    setResults([]);
+    setLocalResults([]);
+    setExternalResults([]);
     setKeyword(food.name);
     if (food.servingUnit && food.servingWeightG) {
       setUnit(food.servingUnit);
@@ -50,6 +79,27 @@ export default function AddFoodScreen() {
       setUnit("g");
       setAmount("");
     }
+  };
+
+  const handleSelectExternal = async (result: ExternalFoodResult) => {
+    setSearching(true);
+    try {
+      const cached = await saveExternalFood(result);
+      handleSelectLocal(cached);
+    } catch {
+      Alert.alert("错误", "保存食物数据失败，请重试");
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const clearSearch = () => {
+    setKeyword("");
+    setLocalResults([]);
+    setExternalResults([]);
+    setSelected(null);
+    setAmount("");
+    if (searchTimer.current) clearTimeout(searchTimer.current);
   };
 
   const getGrams = (): number => {
@@ -95,6 +145,50 @@ export default function AddFoodScreen() {
     }
   };
 
+  const hasResults = localResults.length > 0 || externalResults.length > 0;
+  const showNoResults = keyword.length > 0 && !searching && !hasResults && !selected;
+
+  const renderLocalItem = ({ item }: { item: FoodItem }) => (
+    <TouchableOpacity style={styles.resultItem} onPress={() => handleSelectLocal(item)}>
+      <View style={styles.resultContent}>
+        <Text style={styles.resultName}>{item.name}</Text>
+        <Text style={styles.resultMeta}>
+          {item.category ?? ""} · {round(item.kcalPer100g)} kcal/100g
+        </Text>
+      </View>
+      <Text style={styles.badgeLocal}>本地</Text>
+      <Ionicons name="chevron-forward" size={18} color="#ccc" />
+    </TouchableOpacity>
+  );
+
+  const renderExternalItem = ({ item }: { item: ExternalFoodResult }) => (
+    <TouchableOpacity style={styles.resultItem} onPress={() => handleSelectExternal(item)}>
+      <View style={styles.resultContent}>
+        <Text style={styles.resultName}>{item.name}</Text>
+        <Text style={styles.resultMeta}>
+          {item.brand ? `${item.brand} · ` : ""}{round(item.kcalPer100g)} kcal/100g
+        </Text>
+      </View>
+      <Text style={styles.badgeExternal}>网络</Text>
+      <Ionicons name="chevron-forward" size={18} color="#ccc" />
+    </TouchableOpacity>
+  );
+
+  // Build combined list with section headers
+  const combinedData: (
+    | { type: "local"; item: FoodItem }
+    | { type: "external"; item: ExternalFoodResult }
+    | { type: "header"; label: string }
+  )[] = [];
+  if (localResults.length > 0) {
+    combinedData.push({ type: "header", label: "本地食物" });
+    for (const item of localResults) combinedData.push({ type: "local", item });
+  }
+  if (externalResults.length > 0) {
+    combinedData.push({ type: "header", label: "网络搜索结果" });
+    for (const item of externalResults) combinedData.push({ type: "external", item });
+  }
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <View style={styles.header}>
@@ -114,30 +208,39 @@ export default function AddFoodScreen() {
           onChangeText={handleSearch}
           autoFocus
         />
-        {keyword.length > 0 && (
-          <TouchableOpacity onPress={() => { setKeyword(""); setResults([]); setSelected(null); setAmount(""); }}>
+        {searching && <ActivityIndicator size="small" color="#4CAF50" style={{ marginRight: 4 }} />}
+        {keyword.length > 0 && !searching && (
+          <TouchableOpacity onPress={clearSearch}>
             <Ionicons name="close-circle" size={20} color="#999" />
           </TouchableOpacity>
         )}
       </View>
 
-      {results.length > 0 && !selected && (
+      {showNoResults && (
+        <View style={styles.noResults}>
+          <Ionicons name="search-outline" size={32} color="#e0e0e0" />
+          <Text style={styles.noResultsText}>未找到「{keyword}」</Text>
+          <Text style={styles.noResultsHint}>试试其他关键词</Text>
+        </View>
+      )}
+
+      {combinedData.length > 0 && !selected && (
         <FlatList
-          data={results}
-          keyExtractor={(item) => item.id}
+          data={combinedData}
+          keyExtractor={(item, index) =>
+            item.type === "header" ? `header-${(item as any).label}` : (item as any).item.id ?? `ext-${index}`
+          }
           style={styles.resultList}
           keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.resultItem} onPress={() => handleSelectFood(item)}>
-              <View>
-                <Text style={styles.resultName}>{item.name}</Text>
-                <Text style={styles.resultMeta}>
-                  {item.category ?? ""} · {round(item.kcalPer100g)} kcal/100g
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color="#ccc" />
-            </TouchableOpacity>
-          )}
+          renderItem={({ item }) => {
+            if (item.type === "header") {
+              return <Text style={styles.sectionHeader}>{(item as any).label}</Text>;
+            }
+            if (item.type === "local") {
+              return renderLocalItem({ item: (item as any).item });
+            }
+            return renderExternalItem({ item: (item as any).item });
+          }}
         />
       )}
 
@@ -259,18 +362,62 @@ const styles = StyleSheet.create({
     height: 44,
   },
   searchInput: { flex: 1, marginLeft: 8, fontSize: 15, color: "#333" },
-  resultList: { marginHorizontal: 16, marginTop: 4, maxHeight: 200 },
+  noResults: {
+    alignItems: "center",
+    paddingVertical: 30,
+    marginHorizontal: 16,
+  },
+  noResultsText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#999",
+    marginTop: 10,
+  },
+  noResultsHint: {
+    fontSize: 12,
+    color: "#bbb",
+    marginTop: 4,
+  },
+  resultList: { marginHorizontal: 16, marginTop: 4 },
+  sectionHeader: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#999",
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 6,
+  },
   resultItem: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     backgroundColor: "#fff",
     padding: 12,
     borderBottomWidth: 0.5,
     borderBottomColor: "#f0f0f0",
   },
+  resultContent: { flex: 1 },
   resultName: { fontSize: 15, fontWeight: "500", color: "#333" },
   resultMeta: { fontSize: 12, color: "#999", marginTop: 2 },
+  badgeLocal: {
+    fontSize: 10,
+    color: "#4CAF50",
+    backgroundColor: "#E8F5E9",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    overflow: "hidden",
+    marginRight: 6,
+  },
+  badgeExternal: {
+    fontSize: 10,
+    color: "#2196F3",
+    backgroundColor: "#E3F2FD",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    overflow: "hidden",
+    marginRight: 6,
+  },
   detailArea: { flex: 1, padding: 16 },
   selectedFood: { marginBottom: 12 },
   selectedName: { fontSize: 18, fontWeight: "600", color: "#333" },
