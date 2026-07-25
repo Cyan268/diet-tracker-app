@@ -1,0 +1,106 @@
+services:
+  api:
+    build:
+      context: ./backend
+    command: >-
+      sh -c "alembic upgrade head &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-proxy-headers"
+    environment:
+      NUTRIPILOT_ENVIRONMENT: development
+      NUTRIPILOT_DATABASE_URL: postgresql+psycopg://nutripilot:nutripilot@postgres:5432/nutripilot
+      NUTRIPILOT_REDIS_URL: redis://redis:6379/0
+      NUTRIPILOT_PUBLIC_REGISTRATION_ENABLED: ${NUTRIPILOT_PUBLIC_REGISTRATION_ENABLED:-true}
+      NUTRIPILOT_AUTH_PROTECTION_ENABLED: ${NUTRIPILOT_AUTH_PROTECTION_ENABLED:-true}
+      NUTRIPILOT_AUTH_PROTECTION_FAIL_CLOSED: ${NUTRIPILOT_AUTH_PROTECTION_FAIL_CLOSED:-false}
+      NUTRIPILOT_AUTH_RATE_LIMIT_WINDOW_SECONDS: ${NUTRIPILOT_AUTH_RATE_LIMIT_WINDOW_SECONDS:-900}
+      NUTRIPILOT_AUTH_LOGIN_ATTEMPTS_PER_WINDOW: ${NUTRIPILOT_AUTH_LOGIN_ATTEMPTS_PER_WINDOW:-10}
+      NUTRIPILOT_AUTH_REGISTER_ATTEMPTS_PER_WINDOW: ${NUTRIPILOT_AUTH_REGISTER_ATTEMPTS_PER_WINDOW:-5}
+      NUTRIPILOT_AUTH_VISITOR_REQUESTS_PER_WINDOW: ${NUTRIPILOT_AUTH_VISITOR_REQUESTS_PER_WINDOW:-30}
+      NUTRIPILOT_TRUSTED_PROXY_CIDRS: ${NUTRIPILOT_TRUSTED_PROXY_CIDRS:-[]}
+      NUTRIPILOT_RATE_LIMIT_HMAC_SECRET: ${NUTRIPILOT_RATE_LIMIT_HMAC_SECRET:-development-only-rate-limit-hmac-secret}
+      NUTRIPILOT_DEMO_PROTECTION_ENABLED: ${NUTRIPILOT_DEMO_PROTECTION_ENABLED:-true}
+      NUTRIPILOT_DEMO_PROTECTION_FAIL_CLOSED: ${NUTRIPILOT_DEMO_PROTECTION_FAIL_CLOSED:-false}
+      NUTRIPILOT_DEMO_RATE_LIMIT_WINDOW_SECONDS: ${NUTRIPILOT_DEMO_RATE_LIMIT_WINDOW_SECONDS:-60}
+      NUTRIPILOT_DEMO_WRITE_REQUESTS_PER_WINDOW: ${NUTRIPILOT_DEMO_WRITE_REQUESTS_PER_WINDOW:-30}
+      NUTRIPILOT_DEMO_AI_REQUESTS_PER_WINDOW: ${NUTRIPILOT_DEMO_AI_REQUESTS_PER_WINDOW:-12}
+      NUTRIPILOT_DEMO_MAX_LOGS: ${NUTRIPILOT_DEMO_MAX_LOGS:-100}
+      NUTRIPILOT_DEMO_MAX_PRIVATE_FOODS: ${NUTRIPILOT_DEMO_MAX_PRIVATE_FOODS:-10}
+      NUTRIPILOT_DEMO_MAX_CONVERSATIONS: ${NUTRIPILOT_DEMO_MAX_CONVERSATIONS:-8}
+      NUTRIPILOT_DEMO_MAX_MESSAGES_PER_CONVERSATION: ${NUTRIPILOT_DEMO_MAX_MESSAGES_PER_CONVERSATION:-40}
+      NUTRIPILOT_DEMO_RESET_INTERVAL_MINUTES: ${NUTRIPILOT_DEMO_RESET_INTERVAL_MINUTES:-0}
+      NUTRIPILOT_DEMO_RESET_EMAIL: ${NUTRIPILOT_DEMO_RESET_EMAIL:-demo@nutripilot.example}
+      NUTRIPILOT_DEMO_RESET_PASSWORD: ${NUTRIPILOT_DEMO_RESET_PASSWORD:-}
+      NUTRIPILOT_DEMO_RESET_LOCK_TTL_SECONDS: ${NUTRIPILOT_DEMO_RESET_LOCK_TTL_SECONDS:-300}
+      NUTRIPILOT_CORS_ORIGINS: '["http://localhost:8081","http://127.0.0.1:8081","http://localhost:8082","http://127.0.0.1:8082"]'
+      NUTRIPILOT_ALLOWED_HOSTS: '${NUTRIPILOT_ALLOWED_HOSTS:-["localhost","127.0.0.1","api"]}'
+      NUTRIPILOT_AI_PROVIDER: ${NUTRIPILOT_AI_PROVIDER:-rule_based}
+      NUTRIPILOT_LOG_LEVEL: ${NUTRIPILOT_LOG_LEVEL:-INFO}
+      NUTRIPILOT_LOG_FORMAT: ${NUTRIPILOT_LOG_FORMAT:-json}
+      NUTRIPILOT_SENTRY_DSN: ${NUTRIPILOT_SENTRY_DSN:-}
+      NUTRIPILOT_SENTRY_TRACES_SAMPLE_RATE: ${NUTRIPILOT_SENTRY_TRACES_SAMPLE_RATE:-0}
+      NUTRIPILOT_RELEASE: ${NUTRIPILOT_RELEASE:-}
+      NUTRIPILOT_CREDENTIAL_ENCRYPTION_KEY: ${NUTRIPILOT_CREDENTIAL_ENCRYPTION_KEY:-development-only-encryption-key-change-me-at-least-32-bytes}
+      NUTRIPILOT_OPENAI_API_KEY: ${NUTRIPILOT_OPENAI_API_KEY:-}
+      NUTRIPILOT_OPENAI_MODEL: ${NUTRIPILOT_OPENAI_MODEL:-gpt-5.6-luna}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=2)",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: nutripilot
+      POSTGRES_USER: nutripilot
+      POSTGRES_PASSWORD: nutripilot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nutripilot -d nutripilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7.4-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  loadtest:
+    image: grafana/k6:2.0.0
+    profiles: ["loadtest"]
+    environment:
+      BASE_URL: http://api:8000
+    volumes:
+      - ./load-tests:/scripts:ro
+      - ./load-tests/results:/results
+    depends_on:
+      api:
+        condition: service_healthy
+    entrypoint: ["k6"]
+
+volumes:
+  postgres_data:

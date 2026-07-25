@@ -1,9 +1,10 @@
 import { getDatabase } from "../database";
+import type { FoodItemRow } from "../rows";
 import { v4 as uuidv4 } from "uuid";
 import type { FoodItem } from "@/types/nutrition";
 import type { ExternalFoodResult } from "@/types/external";
 
-function rowToFoodItem(row: any): FoodItem {
+function rowToFoodItem(row: FoodItemRow): FoodItem {
   return {
     id: row.id,
     name: row.name,
@@ -33,13 +34,13 @@ function rowToFoodItem(row: any): FoodItem {
 
 export async function getAllFoods(): Promise<FoodItem[]> {
   const db = await getDatabase();
-  const rows = await db.getAllAsync<any>("SELECT * FROM food_items ORDER BY name");
+  const rows = await db.getAllAsync<FoodItemRow>("SELECT * FROM food_items ORDER BY name");
   return rows.map(rowToFoodItem);
 }
 
 export async function searchFoods(keyword: string): Promise<FoodItem[]> {
   const db = await getDatabase();
-  const rows = await db.getAllAsync<any>(
+  const rows = await db.getAllAsync<FoodItemRow>(
     "SELECT * FROM food_items WHERE name LIKE ? ORDER BY name",
     `%${keyword}%`
   );
@@ -48,7 +49,7 @@ export async function searchFoods(keyword: string): Promise<FoodItem[]> {
 
 export async function getFoodById(id: string): Promise<FoodItem | null> {
   const db = await getDatabase();
-  const row = await db.getFirstAsync<any>("SELECT * FROM food_items WHERE id = ?", id);
+  const row = await db.getFirstAsync<FoodItemRow>("SELECT * FROM food_items WHERE id = ?", id);
   return row ? rowToFoodItem(row) : null;
 }
 
@@ -57,7 +58,7 @@ export async function saveExternalFood(result: ExternalFoodResult): Promise<Food
   const now = new Date().toISOString();
 
   // Check if already cached by name+source
-  const existing = await db.getFirstAsync<any>(
+  const existing = await db.getFirstAsync<FoodItemRow>(
     "SELECT * FROM food_items WHERE source = ? AND name = ?",
     result.source,
     result.name

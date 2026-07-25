@@ -1,0 +1,76 @@
+services:
+  - type: web
+    name: nutripilot-demo
+    runtime: docker
+    plan: free
+    region: singapore
+    dockerfilePath: ./Dockerfile.production
+    dockerContext: .
+    healthCheckPath: /api/v1/health/ready
+    envVars:
+      - key: NUTRIPILOT_ENVIRONMENT
+        value: production
+      - key: NUTRIPILOT_DATABASE_URL
+        fromDatabase:
+          name: nutripilot-postgres
+          property: connectionString
+      - key: NUTRIPILOT_REDIS_URL
+        fromService:
+          type: keyvalue
+          name: nutripilot-redis
+          property: connectionString
+      - key: NUTRIPILOT_PLATFORM_EXTERNAL_HOST
+        fromService:
+          type: web
+          name: nutripilot-demo
+          envVarKey: RENDER_EXTERNAL_HOSTNAME
+      - key: NUTRIPILOT_ALLOWED_HOSTS
+        value: "[]"
+      - key: NUTRIPILOT_CORS_ORIGINS
+        value: "[]"
+      - key: NUTRIPILOT_PUBLIC_REGISTRATION_ENABLED
+        value: "false"
+      - key: NUTRIPILOT_AUTH_PROTECTION_ENABLED
+        value: "true"
+      - key: NUTRIPILOT_AUTH_PROTECTION_FAIL_CLOSED
+        value: "true"
+      - key: NUTRIPILOT_AUTH_VISITOR_REQUESTS_PER_WINDOW
+        value: "300"
+      - key: NUTRIPILOT_DEMO_PROTECTION_ENABLED
+        value: "true"
+      - key: NUTRIPILOT_DEMO_PROTECTION_FAIL_CLOSED
+        value: "true"
+      - key: NUTRIPILOT_DEMO_RESET_INTERVAL_MINUTES
+        value: "1440"
+      - key: NUTRIPILOT_DEMO_RESET_PASSWORD
+        sync: false
+      - key: NUTRIPILOT_JWT_SECRET
+        generateValue: true
+      - key: NUTRIPILOT_CREDENTIAL_ENCRYPTION_KEY
+        generateValue: true
+      - key: NUTRIPILOT_RATE_LIMIT_HMAC_SECRET
+        generateValue: true
+      - key: NUTRIPILOT_AI_PROVIDER
+        value: rule_based
+      - key: NUTRIPILOT_LOG_FORMAT
+        value: json
+      - key: NUTRIPILOT_RELEASE
+        fromService:
+          type: web
+          name: nutripilot-demo
+          envVarKey: RENDER_GIT_COMMIT
+
+  - type: keyvalue
+    name: nutripilot-redis
+    plan: free
+    region: singapore
+    ipAllowList: []
+    maxmemoryPolicy: allkeys-lru
+
+databases:
+  - name: nutripilot-postgres
+    plan: free
+    region: singapore
+    databaseName: nutripilot
+    user: nutripilot
+    ipAllowList: []

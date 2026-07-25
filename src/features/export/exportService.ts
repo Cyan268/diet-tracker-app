@@ -1,6 +1,7 @@
 import { File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
 import { getDatabase } from "@/db/database";
+import { getCurrentUserId } from "@/db/accountScope";
 
 interface ExportRow {
   date: string;
@@ -30,12 +31,14 @@ async function fetchAllLogs(): Promise<ExportRow[]> {
   const db = await getDatabase();
   return db.getAllAsync<ExportRow>(
     `SELECT date, meal_type, custom_name, amount, unit, kcal, protein, fat, carbs, sugar, sodium, caffeine, note
-     FROM food_logs ORDER BY date, created_at`
+     FROM food_logs WHERE owner_user_id = ? ORDER BY date, created_at`,
+    getCurrentUserId()
   );
 }
 
 function toCsv(rows: ExportRow[]): string {
-  const header = "日期,餐次,食物名称,数量,单位,热量(kcal),蛋白质(g),脂肪(g),碳水(g),糖(g),钠(mg),咖啡因(mg),备注";
+  const header =
+    "日期,餐次,食物名称,数量,单位,热量(kcal),蛋白质(g),脂肪(g),碳水(g),糖(g),钠(mg),咖啡因(mg),备注";
   const lines = rows.map((r) =>
     [
       r.date,

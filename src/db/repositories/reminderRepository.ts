@@ -1,7 +1,10 @@
 import { getDatabase } from "../database";
+import type { ReminderRuleRow } from "../rows";
 import type { ReminderRule } from "@/types/reminder";
 
-function rowToRule(row: any): ReminderRule {
+type BindValue = string | number | null;
+
+function rowToRule(row: ReminderRuleRow): ReminderRule {
   return {
     id: row.id,
     metric: row.metric,
@@ -14,7 +17,7 @@ function rowToRule(row: any): ReminderRule {
 
 export async function getEnabledRules(): Promise<ReminderRule[]> {
   const db = await getDatabase();
-  const rows = await db.getAllAsync<any>(
+  const rows = await db.getAllAsync<ReminderRuleRow>(
     "SELECT * FROM reminder_rules WHERE enabled = 1"
   );
   return rows.map(rowToRule);
@@ -22,7 +25,7 @@ export async function getEnabledRules(): Promise<ReminderRule[]> {
 
 export async function getAllRules(): Promise<ReminderRule[]> {
   const db = await getDatabase();
-  const rows = await db.getAllAsync<any>(
+  const rows = await db.getAllAsync<ReminderRuleRow>(
     "SELECT * FROM reminder_rules ORDER BY metric"
   );
   return rows.map(rowToRule);
@@ -34,7 +37,7 @@ export async function updateRule(
 ): Promise<void> {
   const db = await getDatabase();
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: BindValue[] = [];
 
   if (updates.enabled !== undefined) {
     fields.push("enabled = ?");
@@ -48,8 +51,5 @@ export async function updateRule(
   if (fields.length === 0) return;
 
   values.push(id);
-  await db.runAsync(
-    `UPDATE reminder_rules SET ${fields.join(", ")} WHERE id = ?`,
-    ...values
-  );
+  await db.runAsync(`UPDATE reminder_rules SET ${fields.join(", ")} WHERE id = ?`, ...values);
 }

@@ -23,10 +23,7 @@ export function MetricCard({ label, value, unit, target, color = "#4CAF50" }: Me
       {progress !== undefined && (
         <View style={styles.progressBar}>
           <View
-            style={[
-              styles.progressFill,
-              { width: `${progress * 100}%`, backgroundColor: color },
-            ]}
+            style={[styles.progressFill, { width: `${progress * 100}%`, backgroundColor: color }]}
           />
         </View>
       )}

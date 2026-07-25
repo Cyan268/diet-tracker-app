@@ -72,9 +72,7 @@ export async function searchOpenFoodFacts(
     const data: OffResponse = await response.json();
     if (!data.products) return [];
 
-    return data.products
-      .map(mapProduct)
-      .filter((r): r is ExternalFoodResult => r !== null);
+    return data.products.map(mapProduct).filter((r): r is ExternalFoodResult => r !== null);
   } catch {
     return [];
   }

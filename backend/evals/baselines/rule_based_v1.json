@@ -1,0 +1,16 @@
+{
+  "dataset_version": "food-text-zh-cn-v1.0.0",
+  "provider": "rule_based_v1",
+  "minimums": {
+    "sample_count": 26,
+    "request_success_rate": 1.0,
+    "schema_validity_rate": 1.0,
+    "entity_precision": 0.8125,
+    "entity_recall": 0.8125,
+    "entity_f1": 0.8125,
+    "amount_accuracy": 1.0,
+    "unit_accuracy": 1.0,
+    "meal_type_accuracy": 1.0,
+    "case_exact_match_rate": 0.6538
+  }
+}

@@ -1,4 +1,12 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+} from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -76,7 +84,7 @@ export default function EditLogScreen() {
 
     setSaving(true);
     try {
-      const updates: Parameters<typeof updateLog>[1] = { note: note || undefined };
+      const updates: Parameters<typeof updateLog>[1] = { note: note.trim() ? note : null };
 
       if (!isDrink && nutrition) {
         updates.amount = parseFloat(amount) || 0;
@@ -92,7 +100,7 @@ export default function EditLogScreen() {
 
       await updateLog(log.id, updates);
       router.back();
-    } catch (e) {
+    } catch {
       Alert.alert("错误", "保存失败，请重试");
     } finally {
       setSaving(false);
@@ -126,7 +134,9 @@ export default function EditLogScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>饮品记录</Text>
           <Text style={styles.drinkInfo}>
-            {log?.amount}{log?.unit} · {Math.round(log?.kcal ?? 0)} kcal · 糖 {round(log?.sugar ?? 0, 1)}g · 咖啡因 {Math.round(log?.caffeine ?? 0)}mg
+            {log?.amount}
+            {log?.unit} · {Math.round(log?.kcal ?? 0)} kcal · 糖 {round(log?.sugar ?? 0, 1)}g ·
+            咖啡因 {Math.round(log?.caffeine ?? 0)}mg
           </Text>
           <Text style={styles.drinkHint}>饮品记录暂不支持修改配方，仅可编辑备注。</Text>
         </View>
@@ -211,7 +221,12 @@ export default function EditLogScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f5f5f5" },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+  },
   loadingText: { fontSize: 14, color: "#999" },
   header: {
     flexDirection: "row",

@@ -8,6 +8,7 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+coverage/
 
 # Native
 .kotlin/
@@ -17,6 +18,7 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+*.apk
 
 # Metro
 .metro-health-check*
@@ -31,7 +33,21 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
+!backend/.env.example
+!backend/.env.production.example
+
+# Python
+.venv/
+.tmp/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+.coverage
 
 # typescript
 *.tsbuildinfo

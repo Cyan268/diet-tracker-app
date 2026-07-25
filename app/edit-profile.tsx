@@ -1,9 +1,18 @@
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  Alert,
+} from "react-native";
 import { router } from "expo-router";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { getProfile, upsertProfile } from "../src/db/repositories/profileRepository";
-import type { Gender, ActivityLevel, Goal } from "../src/types/profile";
+import type { Gender, ActivityLevel, Goal, UserProfile } from "../src/types/profile";
+import { calcProfileMetrics } from "../src/features/profile/profileCalculator";
 
 const GENDER_OPTIONS: { key: Gender; label: string }[] = [
   { key: "male", label: "男" },
@@ -19,9 +28,9 @@ const ACTIVITY_OPTIONS: { key: ActivityLevel; label: string; desc: string }[] = 
 ];
 
 const GOAL_OPTIONS: { key: Goal; label: string; desc: string }[] = [
-  { key: "lose", label: "减脂", desc: "每日减少500kcal摄入" },
+  { key: "lose", label: "减脂", desc: "在估算消耗基础上每日减少 500 kcal" },
   { key: "maintain", label: "维持", desc: "保持当前体重" },
-  { key: "gain", label: "增肌", desc: "每日增加300kcal摄入" },
+  { key: "gain", label: "增肌", desc: "在估算消耗基础上每日增加 300 kcal" },
 ];
 
 export default function EditProfileScreen() {
@@ -32,6 +41,29 @@ export default function EditProfileScreen() {
   const [activityLevel, setActivityLevel] = useState<ActivityLevel>("moderate");
   const [goal, setGoal] = useState<Goal>("maintain");
   const [saving, setSaving] = useState(false);
+  const ageNumber = Number(age);
+  const heightNumber = Number(height);
+  const weightNumber = Number(weight);
+  const previewProfile: UserProfile | null =
+    ageNumber >= 18 &&
+    ageNumber <= 100 &&
+    heightNumber >= 100 &&
+    heightNumber <= 250 &&
+    weightNumber >= 30 &&
+    weightNumber <= 200
+      ? {
+          id: "preview",
+          gender,
+          age: ageNumber,
+          heightCm: heightNumber,
+          weightKg: weightNumber,
+          activityLevel,
+          goal,
+          createdAt: "",
+          updatedAt: "",
+        }
+      : null;
+  const preview = previewProfile ? calcProfileMetrics(previewProfile) : null;
 
   useEffect(() => {
     getProfile().then((p) => {
@@ -51,8 +83,8 @@ export default function EditProfileScreen() {
     const heightNum = parseFloat(height);
     const weightNum = parseFloat(weight);
 
-    if (!ageNum || ageNum < 10 || ageNum > 120) {
-      Alert.alert("提示", "请输入有效年龄（10-120）");
+    if (!ageNum || ageNum < 18 || ageNum > 100) {
+      Alert.alert("提示", "当前版本面向成年人，请输入有效年龄（18-100）");
       return;
     }
     if (!heightNum || heightNum < 100 || heightNum > 250) {
@@ -75,7 +107,7 @@ export default function EditProfileScreen() {
         goal,
       });
       router.back();
-    } catch (e) {
+    } catch {
       Alert.alert("错误", "保存失败，请重试");
     } finally {
       setSaving(false);
@@ -93,7 +125,7 @@ export default function EditProfileScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>性别</Text>
+        <Text style={styles.sectionTitle}>生理性别（用于代谢公式）</Text>
         <View style={styles.optionRow}>
           {GENDER_OPTIONS.map((opt) => (
             <TouchableOpacity
@@ -101,7 +133,9 @@ export default function EditProfileScreen() {
               style={[styles.optionChip, gender === opt.key && styles.optionChipActive]}
               onPress={() => setGender(opt.key)}
             >
-              <Text style={[styles.optionChipText, gender === opt.key && styles.optionChipTextActive]}>
+              <Text
+                style={[styles.optionChipText, gender === opt.key && styles.optionChipTextActive]}
+              >
                 {opt.label}
               </Text>
             </TouchableOpacity>
@@ -151,12 +185,19 @@ export default function EditProfileScreen() {
             onPress={() => setActivityLevel(opt.key)}
           >
             <View style={styles.listItemContent}>
-              <Text style={[styles.listItemLabel, activityLevel === opt.key && styles.listItemLabelActive]}>
+              <Text
+                style={[
+                  styles.listItemLabel,
+                  activityLevel === opt.key && styles.listItemLabelActive,
+                ]}
+              >
                 {opt.label}
               </Text>
               <Text style={styles.listItemDesc}>{opt.desc}</Text>
             </View>
-            {activityLevel === opt.key && <Ionicons name="checkmark-circle" size={22} color="#4CAF50" />}
+            {activityLevel === opt.key && (
+              <Ionicons name="checkmark-circle" size={22} color="#4CAF50" />
+            )}
           </TouchableOpacity>
         ))}
       </View>
@@ -179,6 +220,43 @@ export default function EditProfileScreen() {
           </TouchableOpacity>
         ))}
       </View>
+
+      {preview && (
+        <View style={styles.previewCard}>
+          <View style={styles.previewHeader}>
+            <Text style={styles.previewTitle}>你的每日营养目标预览</Text>
+            <Ionicons name="sparkles-outline" size={19} color="#4CAF50" />
+          </View>
+          <View style={styles.energyRow}>
+            <View style={styles.energyItem}>
+              <Text style={styles.energyValue}>{preview.bmr}</Text>
+              <Text style={styles.energyLabel}>基础代谢 kcal</Text>
+            </View>
+            <View style={styles.energyItem}>
+              <Text style={styles.energyValue}>{preview.tdee}</Text>
+              <Text style={styles.energyLabel}>维持消耗 kcal</Text>
+            </View>
+            <View style={styles.energyItem}>
+              <Text style={styles.energyValue}>{preview.bmi}</Text>
+              <Text style={styles.energyLabel}>BMI</Text>
+            </View>
+          </View>
+          <View style={styles.targetGrid}>
+            <Text style={styles.targetText}>热量 {preview.targets.kcal} kcal</Text>
+            <Text style={styles.targetText}>蛋白质 {preview.targets.protein} g</Text>
+            <Text style={styles.targetText}>脂肪 {preview.targets.fat} g</Text>
+            <Text style={styles.targetText}>碳水 {preview.targets.carbs} g</Text>
+          </View>
+          <Text style={styles.limitText}>
+            提醒上限：添加糖 {preview.targets.sugar} g · 钠 {preview.targets.sodium} mg · 咖啡因{" "}
+            {preview.targets.caffeine} mg
+          </Text>
+          <Text style={styles.formulaNote}>
+            基于 Mifflin–St Jeor
+            公式和活动系数估算，结果会有个体误差，仅用于日常记录，不替代医生或营养师建议。
+          </Text>
+        </View>
+      )}
 
       <TouchableOpacity
         style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
@@ -247,6 +325,32 @@ const styles = StyleSheet.create({
   listItemLabel: { fontSize: 15, fontWeight: "500", color: "#333" },
   listItemLabelActive: { color: "#4CAF50" },
   listItemDesc: { fontSize: 12, color: "#999", marginTop: 2 },
+  previewCard: {
+    backgroundColor: "#F1F8F2",
+    marginHorizontal: 16,
+    marginTop: 14,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#C8E6C9",
+  },
+  previewHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  previewTitle: { fontSize: 15, fontWeight: "700", color: "#2E5D32" },
+  energyRow: { flexDirection: "row", marginTop: 14, gap: 8 },
+  energyItem: { flex: 1, alignItems: "center" },
+  energyValue: { fontSize: 19, fontWeight: "700", color: "#4CAF50" },
+  energyLabel: { fontSize: 10, color: "#6B7B6D", marginTop: 3, textAlign: "center" },
+  targetGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 14 },
+  targetText: {
+    width: "48%",
+    fontSize: 12,
+    color: "#38543B",
+    backgroundColor: "#fff",
+    padding: 8,
+    borderRadius: 8,
+  },
+  limitText: { fontSize: 11, color: "#667568", lineHeight: 17, marginTop: 12 },
+  formulaNote: { fontSize: 11, color: "#7A877C", lineHeight: 17, marginTop: 8 },
   saveBtn: {
     backgroundColor: "#4CAF50",
     marginHorizontal: 16,

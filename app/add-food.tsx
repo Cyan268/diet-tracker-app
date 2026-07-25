@@ -1,4 +1,15 @@
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Alert, KeyboardAvoidingView, Platform, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ActivityIndicator,
+} from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { useState, useCallback, useRef, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -18,6 +29,11 @@ const MEAL_LABELS: Record<string, string> = {
   dinner: "晚餐",
   snack: "加餐",
 };
+
+type SearchListItem =
+  | { type: "local"; item: FoodItem }
+  | { type: "external"; item: ExternalFoodResult }
+  | { type: "header"; label: string };
 
 export default function AddFoodScreen() {
   const { mealType } = useLocalSearchParams<{ mealType: string }>();
@@ -138,7 +154,7 @@ export default function AddFoodScreen() {
         note: note || undefined,
       });
       router.back();
-    } catch (e) {
+    } catch {
       Alert.alert("错误", "保存失败，请重试");
     } finally {
       setSaving(false);
@@ -166,7 +182,8 @@ export default function AddFoodScreen() {
       <View style={styles.resultContent}>
         <Text style={styles.resultName}>{item.name}</Text>
         <Text style={styles.resultMeta}>
-          {item.brand ? `${item.brand} · ` : ""}{round(item.kcalPer100g)} kcal/100g
+          {item.brand ? `${item.brand} · ` : ""}
+          {round(item.kcalPer100g)} kcal/100g
         </Text>
       </View>
       <Text style={styles.badgeExternal}>网络</Text>
@@ -175,11 +192,7 @@ export default function AddFoodScreen() {
   );
 
   // Build combined list with section headers
-  const combinedData: (
-    | { type: "local"; item: FoodItem }
-    | { type: "external"; item: ExternalFoodResult }
-    | { type: "header"; label: string }
-  )[] = [];
+  const combinedData: SearchListItem[] = [];
   if (localResults.length > 0) {
     combinedData.push({ type: "header", label: "本地食物" });
     for (const item of localResults) combinedData.push({ type: "local", item });
@@ -190,7 +203,10 @@ export default function AddFoodScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color="#333" />
@@ -227,19 +243,21 @@ export default function AddFoodScreen() {
       {combinedData.length > 0 && !selected && (
         <FlatList
           data={combinedData}
-          keyExtractor={(item, index) =>
-            item.type === "header" ? `header-${(item as any).label}` : (item as any).item.id ?? `ext-${index}`
-          }
+          keyExtractor={(item, index) => {
+            if (item.type === "header") return `header-${item.label}`;
+            if (item.type === "local") return `local-${item.item.id}`;
+            return `external-${item.item.externalId ?? `${item.item.source}-${index}`}`;
+          }}
           style={styles.resultList}
           keyboardShouldPersistTaps="handled"
           renderItem={({ item }) => {
             if (item.type === "header") {
-              return <Text style={styles.sectionHeader}>{(item as any).label}</Text>;
+              return <Text style={styles.sectionHeader}>{item.label}</Text>;
             }
             if (item.type === "local") {
-              return renderLocalItem({ item: (item as any).item });
+              return renderLocalItem({ item: item.item });
             }
-            return renderExternalItem({ item: (item as any).item });
+            return renderExternalItem({ item: item.item });
           }}
         />
       )}
@@ -275,9 +293,7 @@ export default function AddFoodScreen() {
           </View>
 
           {unit !== "g" && selected.servingWeightG && (
-            <Text style={styles.gramHint}>
-              ≈ {round(grams)}g
-            </Text>
+            <Text style={styles.gramHint}>≈ {round(grams)}g</Text>
           )}
 
           <TextInput
