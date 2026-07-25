@@ -4,6 +4,14 @@ NutriPilot 是一个正在演进中的 AI 多模态饮食记录与个性化营�
 
 项目当前由 React Native + Expo 客户端起步，已经支持饮食记录、营养计算、饮品配置、趋势统计、提醒和数据导出。后续将沿着“自然语言/图片输入 → AI 结构化识别 → 用户确认 → 确定性营养计算 → 趋势分析 → 个性化建议”的主线，补齐后端、云同步、AI 工程、测试、部署与可观测性。
 
+## 在线演示
+
+- 地址：[https://nutripilot-demo.onrender.com](https://nutripilot-demo.onrender.com)
+- 演示账号：`demo@nutripilot.example`
+- 演示密码：`NutriPilot-Demo-2026!`
+- 公网 Demo 使用无外部费用的规则型 AI Provider；用户在个人账号中配置 API Key 后，可切换到 OpenAI Provider。
+- 服务运行在 Render 免费方案上，长时间无访问后首次唤醒可能需要 50 秒以上，请耐心等待。
+
 ## 当前技术栈
 
 - React Native 0.81 + Expo SDK 54

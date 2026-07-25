@@ -44,8 +44,8 @@
 
 | 指标                       |                                                        当前值 | 采集方式                                     |
 | -------------------------- | ------------------------------------------------------------: | -------------------------------------------- |
-| 后端测试                   |                                      109 个通过、3 个可选跳过 | `pytest`                                     |
-| 后端行/分支综合覆盖率      |                                                           82% | `pytest --cov=app`                           |
+| 后端测试                   |                                      121 个通过、3 个可选跳过 | `pytest`                                     |
+| 后端行/分支综合覆盖率      |                                                        80.50% | 发布候选包 `pytest --cov=app`                |
 | Ruff                       |                                                      0 个问题 | `ruff check app tests migrations scripts`    |
 | Python 依赖完整性          |                                                          通过 | `python -m pip check`                        |
 | Alembic 离线迁移           |                                            v1-v8 SQL 生成成功 | `alembic upgrade head --sql`                 |
@@ -73,6 +73,23 @@
 | SQLite Schema              |                                                            v3 | `PRAGMA user_version`                        |
 | 移动认证状态机             |                                              6 个关键分支通过 | Jest `authSession.test.ts`                   |
 | Outbox/账号隔离            |                                              8 个相关测试通过 | Jest migration/outbox/isolation tests        |
+
+## 3.2 公网部署验收
+
+2026-07-26 在 Render Singapore 免费方案完成真实公网发布。以下延迟均为部署完成后的单次验收样本，只用于证明链路可用，不代表 P50/P95 性能基线。
+
+| 项目           | 结果                                                                                                 |
+| -------------- | ---------------------------------------------------------------------------------------------------- |
+| 公网地址       | `https://nutripilot-demo.onrender.com`                                                               |
+| 发布版本       | Git commit `6ce43ff`                                                                                 |
+| 资源           | Docker Web Service Free、PostgreSQL 18 Free、Valkey 8 Free                                           |
+| 部署状态       | Live，构建与启动共 1 分 22 秒                                                                        |
+| 启动链路       | 生产配置预检通过、Alembic 迁移通过、演示数据按 `2026-07-26`（UTC+8）重置                             |
+| 公网自动冒烟   | 10/10 通过：根页、SPA fallback、存活、就绪、注册策略、404、演示登录、身份鉴权、注销                  |
+| 单次 HTTP 样本 | 根页 3253 ms；SPA 886 ms；live 571 ms；ready 574 ms；登录 2085 ms；身份 560 ms；注销 571 ms          |
+| 浏览器数据验收 | 2026-07-26 显示 1790/2023 kcal、4 条当日记录，蛋白质/脂肪/碳水等目标与同步数据正常                   |
+| AI 助手验收    | Tool Calling 读取当日记录并返回剩余约 233 kcal；规则 Provider 7 ms、0 token，显示证据、Prompt、Trace |
+| 尚未采集       | 免费实例休眠后的真实冷启动分布、持续压测、公网 P50/P95、外部 OpenAI Provider 延迟与费用              |
 
 ## 4. 指标变更记录
 
@@ -119,3 +136,4 @@
 | 2026-07-23 | Phase 4 Auth Perimeter     | 公开注册开关与认证限流       | 23 Paths/49 Schemas；后端 97 通过、3 跳过、覆盖率 81%；前端 20 套件/57 测试；注册 403、登录 401/401/429、Retry-After 60；HMAC 键不含邮箱；成功登录清桶；Web 动态隐藏/恢复注册入口 | Pytest + Jest + OpenAPI + Docker/PostgreSQL 17/Redis 7.4 + 浏览器冒烟    |
 | 2026-07-25 | Phase 4 Production Gateway | 可信代理、访客限流与部署预检 | 后端 109 通过、3 跳过、覆盖率 82%；前端 20 套件/57 测试；同访客轮换邮箱 401/401/429、异访客 401；Host 400；2 个访客/3 个账号脱敏键；非 root UID 999；生产预检 ok                  | Pytest + Jest + Docker/PostgreSQL 17/Redis 7.4 + 静态预检                |
 | 2026-07-25 | Phase 4 Release Package    | 同源生产镜像与发布验收       | 后端 119 通过/3 跳过/覆盖率 80.50%，前端 20 套件/57 测试；77,045,335-byte 镜像、UID 999；部署脚本 10/10；浏览器约 2 秒同步 2023 kcal 目标、1790 kcal 与 4 条记录；无公网指标      | Pytest + Jest + 多阶段 Docker + PostgreSQL 17/Redis 7.4 + 浏览器         |
+| 2026-07-26 | Phase 4 Public Deployment  | Render 公网发布与端到端验收  | 后端 121 通过/3 跳过，前端 20 套件/57 测试；Render Free 三资源 Live；部署 1 分 22 秒；公网冒烟 10/10；浏览器同步 1790/2023 kcal 与 4 条记录；规则 AI 7 ms、0 token                | Render 部署日志 + 公网 smoke 脚本 + 应用内浏览器端到端验证               |

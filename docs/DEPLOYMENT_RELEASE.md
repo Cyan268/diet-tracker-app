@@ -203,4 +203,24 @@ Remove-Item Env:NUTRIPILOT_SMOKE_DEMO_EMAIL,Env:NUTRIPILOT_SMOKE_DEMO_PASSWORD
 - 首次启动因 Windows 参数转义破坏 Host JSON，预检在迁移和 Uvicorn 前退出；修复后又用最终镜像主动复测脱敏失败路径；
 - 验收后临时容器和临时环境文件已清理，本地演示密码已恢复。
 
-公网指标只有完成真实 Render 部署后才能补充。
+## 9. Render 公网部署验收记录
+
+2026-07-26 已完成真实公网发布：
+
+- 地址：`https://nutripilot-demo.onrender.com`
+- 分支：`agent/render-public-deployment`
+- 首次完整验收版本：`6ce43ff`
+- Render Blueprint：一个 Docker Web Service、一个 PostgreSQL 18、一个 Valkey 8，均为 Free、Singapore；
+- 部署状态为 Live，最终一次部署从构建到上线用时 1 分 22 秒；
+- 启动日志确认生产预检、Alembic 迁移和演示重置成功，重置锚点为中国标准时间的 `2026-07-26`；
+- 公网自动冒烟 10/10 通过：根页、SPA fallback、存活、就绪、注册策略、API/资源 404、演示登录、身份鉴权和注销；
+- 单次响应样本：根页 3253 ms、SPA fallback 886 ms、live 571 ms、ready 574 ms、登录 2085 ms、身份 560 ms、注销 571 ms；
+- 浏览器登录后显示 1790/2023 kcal 和 4 条当日记录；
+- AI 助手通过 Tool Calling 读取当日数据，返回剩余约 233 kcal，并展示 Query 证据、Prompt 版本和 Trace；规则 Provider 本次为 7 ms、0 token。
+
+真实部署发现并修复了两个仅靠本地环境不容易暴露的问题：
+
+1. Render 内置的 `RENDER_EXTERNAL_HOSTNAME` / `RENDER_GIT_COMMIT` 不能作为普通 Blueprint `fromService.envVarKey` 转发。修复方案是由 Settings 直接读取平台运行变量，同时保留显式 `NUTRIPILOT_*` 配置的更高优先级，并用测试固定契约。
+2. Render 容器使用 UTC，而浏览器位于 UTC+8。原先用服务器 `date.today()` 生成演示数据，会在北京时间跨日后的八小时内造成“今天没有记录”。修复方案是增加可配置的演示时区偏移，所有 seed/reset 入口统一通过同一函数确定日期，并补充 UTC 跨日边界测试。
+
+这些公网延迟是单次功能验收样本，不是 P50/P95。Render 免费 Web 长时间无访问后会休眠，首次唤醒可能超过 50 秒；免费 PostgreSQL 也有生命周期和备份限制，因此本部署用于作品集演示，不应宣称为高可用生产系统。
