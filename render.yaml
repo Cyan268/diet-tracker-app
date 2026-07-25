@@ -19,11 +19,6 @@ services:
           type: keyvalue
           name: nutripilot-redis
           property: connectionString
-      - key: NUTRIPILOT_PLATFORM_EXTERNAL_HOST
-        fromService:
-          type: web
-          name: nutripilot-demo
-          envVarKey: RENDER_EXTERNAL_HOSTNAME
       - key: NUTRIPILOT_ALLOWED_HOSTS
         value: "[]"
       - key: NUTRIPILOT_CORS_ORIGINS
@@ -54,12 +49,6 @@ services:
         value: rule_based
       - key: NUTRIPILOT_LOG_FORMAT
         value: json
-      - key: NUTRIPILOT_RELEASE
-        fromService:
-          type: web
-          name: nutripilot-demo
-          envVarKey: RENDER_GIT_COMMIT
-
   - type: keyvalue
     name: nutripilot-redis
     plan: free

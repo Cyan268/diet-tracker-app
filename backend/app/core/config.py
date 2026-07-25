@@ -1,3 +1,4 @@
+import os
 import re
 from decimal import Decimal
 from functools import lru_cache
@@ -59,13 +60,21 @@ class Settings(BaseSettings):
     demo_reset_lock_ttl_seconds: int = Field(default=300, ge=30, le=3600)
     cors_origins: list[str] = Field(default_factory=list)
     allowed_hosts: list[str] = Field(default_factory=lambda: ["*"])
-    platform_external_host: str | None = Field(default=None, min_length=1, max_length=253)
+    platform_external_host: str | None = Field(
+        default_factory=lambda: os.getenv("RENDER_EXTERNAL_HOSTNAME"),
+        min_length=1,
+        max_length=253,
+    )
     web_dist_dir: Path | None = None
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     log_format: Literal["json", "console"] = "json"
     sentry_dsn: SecretStr | None = None
     sentry_traces_sample_rate: float = Field(default=0, ge=0, le=1)
-    release: str | None = Field(default=None, min_length=1, max_length=200)
+    release: str | None = Field(
+        default_factory=lambda: os.getenv("RENDER_GIT_COMMIT"),
+        min_length=1,
+        max_length=200,
+    )
     jwt_secret: SecretStr = Field(
         default=SecretStr("development-only-change-me-at-least-32-bytes"),
         min_length=32,

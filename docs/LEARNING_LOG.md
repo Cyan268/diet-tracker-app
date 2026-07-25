@@ -1414,6 +1414,47 @@ Render 独立 Static Site 能免费使用 CDN 和自定义 Header，但增加 UR
 
 ---
 
+## 学习卡 050：平台内置环境变量不等于 Blueprint 可引用变量
+
+日期：2026-07-26
+
+### 业务问题
+
+Render 首次公网 Blueprint 同步已经成功读取发布分支并创建数据库、Key Value 和 Web Service，但同步随后提示找不到 `RENDER_EXTERNAL_HOSTNAME` / `RENDER_GIT_COMMIT`，公网构建无法继续。
+
+### 原有方案及限制
+
+第一版把 Render 内置变量当成普通服务环境变量，通过 `fromService.envVarKey` 再映射成 `NUTRIPILOT_PLATFORM_EXTERNAL_HOST` 和 `NUTRIPILOT_RELEASE`。这种写法对 Blueprint 自己声明的变量成立，但 Render 的运行时内置变量没有进入该引用集合；“容器运行时存在”不代表“基础设施解析阶段可引用”。
+
+### 最终方案
+
+删除两个无效的 Blueprint 自引用。Settings 在没有显式 `NUTRIPILOT_*` 值时，分别回退读取 `RENDER_EXTERNAL_HOSTNAME` 和 `RENDER_GIT_COMMIT`。这样平台适配集中在配置边界，Render 仍能注入 Host 白名单和可观测性 Release，本地、测试和其他平台仍可用显式配置覆盖。
+
+### 遇到的问题与定位过程
+
+同步页先显示三个资源创建成功，随后在两个环境变量步骤明确报告 `environment variable not found`。这说明故障发生在 Blueprint 配置解析，而不是 Docker 构建或应用启动。对照 `render.yaml` 后定位到两个 `fromService` 自引用；数据库和 Redis 的连接串引用正常，因为它们是 Blueprint 资源显式公开的属性。
+
+### 替代方案及取舍
+
+可以在 Render 控制台手工复制 Host 和 Commit，但不可复现且后续同步容易漂移；也可以硬编码公网域名，但服务改名会失效。由 Settings 读取平台内置变量既保留 IaC，又让应用层拥有可测试的兼容逻辑。
+
+### 测试与验证
+
+新增单测模拟 Render 两个内置变量，验证 Host 和 Release 回退值；聚焦生产预检测试 7/7 通过。修复提交推送后需以同一 Blueprint 重新同步，并继续验证公网健康、登录和浏览器数据同步。
+
+### 面试回答模板
+
+> 第一次 Render 同步失败不是容器问题，而是 IaC 解析阶段和运行时环境阶段混淆。我原来用 `fromService.envVarKey` 引用 Render 内置变量，但该机制只能解析 Blueprint 暴露的资源属性或用户变量。修复时没有在控制台手填，而是删除无效引用，让 Settings 以显式 `NUTRIPILOT_*` 为主、Render 内置变量为回退，并补单测。这样修复可复现、可迁移，也把平台耦合限制在配置边界。
+
+### 可继续追问的问题
+
+- Blueprint 解析、镜像构建、容器启动分别能看到哪些变量？
+- 为什么数据库连接串能 `fromDatabase`，内置 Commit 却不能 `fromService`？
+- 显式配置和平台回退谁应优先，如何测试？
+- 为什么不直接在 Render 控制台手工修复？
+
+---
+
 ## 学习卡模板
 
 ### 标题

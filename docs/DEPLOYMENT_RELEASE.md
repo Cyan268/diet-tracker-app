@@ -118,13 +118,15 @@ nutripilot-redis      managed Key Value
 
 - 三个资源固定在 Singapore，数据库和 Redis 仅使用内部连接地址；
 - Render 的 `postgresql://` 连接串由 Settings 规范化为 SQLAlchemy 的 `postgresql+psycopg://`；
-- `RENDER_EXTERNAL_HOSTNAME` 通过自引用映射到 `NUTRIPILOT_PLATFORM_EXTERNAL_HOST`，加入 Host 白名单；
+- 应用直接以 `RENDER_EXTERNAL_HOSTNAME` 和 `RENDER_GIT_COMMIT` 作为 Host/Release 的平台回退值；显式 `NUTRIPILOT_*` 配置仍具有更高优先级；
 - JWT、AI 凭证加密和限流分别使用三个自动生成的 Secret；
 - `NUTRIPILOT_DEMO_RESET_PASSWORD` 使用 `sync: false`，首次创建 Blueprint 时由用户填写；
 - 公开注册关闭，AI 使用不产生外部费用的 `rule_based` Provider；
 - 免费 Key Value 丢失只会清空短期限流/重置锁，不会丢失 PostgreSQL 主数据。
 
-如果 `nutripilot-demo` 名称已被占用，可以同时修改服务名和所有 `fromService.name` 引用。
+如果 `nutripilot-demo` 名称已被占用，可以同时修改服务名和数据库、Key Value 的 `fromService.name` 引用。
+
+Render 的内置运行变量不是 Blueprint 中可通过 `fromService.envVarKey` 转发的普通用户环境变量。第一次公网同步曾因尝试转发 `RENDER_EXTERNAL_HOSTNAME` / `RENDER_GIT_COMMIT` 失败；最终将平台兼容集中到 Settings 默认值，并用单测固定显式配置优先、平台变量回退的契约。
 
 ## 5. 代理与认证限流的诚实边界
 

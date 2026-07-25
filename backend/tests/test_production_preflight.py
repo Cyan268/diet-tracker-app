@@ -59,6 +59,25 @@ def test_single_origin_portfolio_accepts_embedded_web_without_cors() -> None:
     assert errors == []
 
 
+def test_render_builtin_environment_values_are_used_as_fallbacks(monkeypatch) -> None:
+    monkeypatch.delenv("NUTRIPILOT_PLATFORM_EXTERNAL_HOST", raising=False)
+    monkeypatch.delenv("NUTRIPILOT_RELEASE", raising=False)
+    monkeypatch.setenv("RENDER_EXTERNAL_HOSTNAME", "nutripilot-demo.onrender.com")
+    monkeypatch.setenv("RENDER_GIT_COMMIT", "06bb662")
+
+    settings = Settings(_env_file=None)
+
+    assert settings.platform_external_host == "nutripilot-demo.onrender.com"
+    assert settings.release == "06bb662"
+
+    monkeypatch.setenv("NUTRIPILOT_PLATFORM_EXTERNAL_HOST", "portfolio.example.com")
+    monkeypatch.setenv("NUTRIPILOT_RELEASE", "explicit-release")
+    overridden_settings = Settings(_env_file=None)
+
+    assert overridden_settings.platform_external_host == "portfolio.example.com"
+    assert overridden_settings.release == "explicit-release"
+
+
 def test_single_origin_preflight_requires_built_index() -> None:
     errors = production_preflight_errors(
         production_settings(cors_origins=[], web_dist_dir=MISSING_WEB_FIXTURE),

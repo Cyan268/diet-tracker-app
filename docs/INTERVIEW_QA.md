@@ -559,6 +559,10 @@ Node、npm、Metro 和 1332 个构建依赖只存在于第一阶段；最终镜�
 
 登录接口先建立会话，客户端随后把云端资料和日志同步进账号隔离的本地 SQLite。首次渲染发生在同步完成前，所以短暂显示本地默认值。约两秒后真实种子数据出现。改进方案是让认证状态机增加 `initial_sync` 状态或骨架屏，而不是把默认值伪装成已同步数据。
 
+### 10.114 为什么 Render 内置环境变量不能直接用 `fromService.envVarKey`？
+
+Blueprint 解析发生在资源配置阶段，`fromService` 只能引用 Blueprint 可解析的服务属性或用户环境变量；`RENDER_EXTERNAL_HOSTNAME` 和 `RENDER_GIT_COMMIT` 是平台在运行阶段注入容器的内置变量，不在该引用集合中。第一次真实同步因此在环境变量步骤失败。项目删除了两个无效自引用，由 Settings 在没有显式 `NUTRIPILOT_*` 配置时读取 Render 内置值，并以单测固定优先级。这样没有控制台漂移，也把平台耦合限制在配置层。
+
 ## 工程质量
 
 ### 11. TypeScript 类型检查、Lint 和测试有什么区别？
