@@ -10,7 +10,7 @@
 | TS/TSX 代码行数        |             约 9,667 |                      仅记录 | PowerShell 行数统计                  |
 | TypeScript strict      |               已开启 |                        保持 | `tsconfig.json`                      |
 | 类型检查               |                 通过 |                 CI 持续通过 | `npx tsc --noEmit`                   |
-| 自动化测试数           |                   57 |                    持续补充 | `npm test`                           |
+| 自动化测试数           |                   58 |                    持续补充 | `npm test`                           |
 | 自动化测试覆盖率       |      行覆盖率 26.81% |            核心业务逻辑优先 | `npm run test:coverage`              |
 | CI                     |               已配置 | 类型检查、零警告 Lint、测试 | GitHub Actions                       |
 | Expo Doctor            |           18/18 通过 |                    持续通过 | `npx expo-doctor`                    |
@@ -136,4 +136,4 @@
 | 2026-07-23 | Phase 4 Auth Perimeter     | 公开注册开关与认证限流       | 23 Paths/49 Schemas；后端 97 通过、3 跳过、覆盖率 81%；前端 20 套件/57 测试；注册 403、登录 401/401/429、Retry-After 60；HMAC 键不含邮箱；成功登录清桶；Web 动态隐藏/恢复注册入口 | Pytest + Jest + OpenAPI + Docker/PostgreSQL 17/Redis 7.4 + 浏览器冒烟    |
 | 2026-07-25 | Phase 4 Production Gateway | 可信代理、访客限流与部署预检 | 后端 109 通过、3 跳过、覆盖率 82%；前端 20 套件/57 测试；同访客轮换邮箱 401/401/429、异访客 401；Host 400；2 个访客/3 个账号脱敏键；非 root UID 999；生产预检 ok                  | Pytest + Jest + Docker/PostgreSQL 17/Redis 7.4 + 静态预检                |
 | 2026-07-25 | Phase 4 Release Package    | 同源生产镜像与发布验收       | 后端 119 通过/3 跳过/覆盖率 80.50%，前端 20 套件/57 测试；77,045,335-byte 镜像、UID 999；部署脚本 10/10；浏览器约 2 秒同步 2023 kcal 目标、1790 kcal 与 4 条记录；无公网指标      | Pytest + Jest + 多阶段 Docker + PostgreSQL 17/Redis 7.4 + 浏览器         |
-| 2026-07-26 | Phase 4 Public Deployment  | Render 公网发布与端到端验收  | 后端 121 通过/3 跳过，前端 20 套件/57 测试；Render Free 三资源 Live；部署 1 分 22 秒；公网冒烟 10/10；浏览器同步 1790/2023 kcal 与 4 条记录；规则 AI 7 ms、0 token                | Render 部署日志 + 公网 smoke 脚本 + 应用内浏览器端到端验证               |
+| 2026-07-26 | Phase 4 Public Deployment  | Render 公网发布与端到端验收  | 后端 121 通过/3 跳过，前端 20 套件/58 测试；Render Free 三资源 Live；公网冒烟 10/10；修复重置账号复用确定性 ID 导致的跨账号本地主键碰撞；浏览器同步 1790/2023 kcal 与 4 条记录    | Render 部署日志 + 公网 smoke 脚本 + 应用内浏览器端到端验证               |

@@ -147,7 +147,20 @@ async function applyUpsert(
   change: SyncChangeResponse
 ): Promise<number> {
   const local = await findLocalLog(db, ownerUserId, change);
-  const aggregateId = local?.id ?? change.client_id;
+  let aggregateId = local?.id ?? change.client_id;
+  if (!local) {
+    const collision = await db.getFirstAsync<{ owner_user_id: string | null }>(
+      "SELECT owner_user_id FROM food_logs WHERE id = ? LIMIT 1",
+      change.client_id
+    );
+    if (collision && collision.owner_user_id !== ownerUserId) {
+      // A server-side demo reset rotates the user id but deliberately reuses
+      // deterministic client ids. Keep the previous local account isolated and
+      // give the new account a fresh local primary key; subsequent changes still
+      // match through server_id/client_id in findLocalLog.
+      aggregateId = uuidv4();
+    }
+  }
   const event = await findLocalEvent(db, ownerUserId, aggregateId);
 
   if (event) {

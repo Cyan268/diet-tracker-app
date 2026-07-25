@@ -43,12 +43,16 @@ function page(change: SyncChangeResponse): SyncPageResponse {
 
 function createDatabase(
   local: FoodLogRow | null,
-  event: OutboxEventRow | null
+  event: OutboxEventRow | null,
+  collisionOwnerUserId: string | null = null
 ): { db: SQLiteDatabase; runAsync: jest.Mock } {
   const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
   const db = {
     getFirstAsync: jest.fn(async (sql: string) => {
       if (sql.includes("sync_cursors")) return { log_cursor: 0 };
+      if (sql.includes("SELECT owner_user_id FROM food_logs")) {
+        return collisionOwnerUserId ? { owner_user_id: collisionOwnerUserId } : null;
+      }
       if (sql.includes("FROM food_logs")) return local;
       if (sql.includes("FROM outbox_events")) return event;
       return null;
@@ -76,6 +80,21 @@ describe("pull sync service", () => {
     expect(runAsync.mock.calls.some(([sql]) => sql.includes("INSERT INTO sync_cursors"))).toBe(
       true
     );
+  });
+
+  it("uses a fresh local id when a rotated account reuses a deterministic client id", async () => {
+    const { db, runAsync } = createDatabase(null, null, "previous-demo-user");
+    mockGetDatabase.mockResolvedValue(db);
+    await activateLocalAccount("new-demo-user");
+    const auth = { request: jest.fn().mockResolvedValue(page(REMOTE)) } as unknown as AuthSession;
+
+    const result = await pullRemoteChanges(auth);
+
+    expect(result).toEqual({ pulled: 1, conflicts: 0 });
+    const insert = runAsync.mock.calls.find(([sql]) => sql.includes("INSERT INTO food_logs"));
+    expect(insert).toBeDefined();
+    expect(insert?.[1]).not.toBe(REMOTE.client_id);
+    expect(insert?.[2]).toBe("new-demo-user");
   });
 
   it("preserves a pending local edit and records a newer remote version as conflict", async () => {

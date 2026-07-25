@@ -218,9 +218,10 @@ Remove-Item Env:NUTRIPILOT_SMOKE_DEMO_EMAIL,Env:NUTRIPILOT_SMOKE_DEMO_PASSWORD
 - 浏览器登录后显示 1790/2023 kcal 和 4 条当日记录；
 - AI 助手通过 Tool Calling 读取当日数据，返回剩余约 233 kcal，并展示 Query 证据、Prompt 版本和 Trace；规则 Provider 本次为 7 ms、0 token。
 
-真实部署发现并修复了两个仅靠本地环境不容易暴露的问题：
+真实部署发现并修复了三个仅靠本地环境不容易暴露的问题：
 
 1. Render 内置的 `RENDER_EXTERNAL_HOSTNAME` / `RENDER_GIT_COMMIT` 不能作为普通 Blueprint `fromService.envVarKey` 转发。修复方案是由 Settings 直接读取平台运行变量，同时保留显式 `NUTRIPILOT_*` 配置的更高优先级，并用测试固定契约。
 2. Render 容器使用 UTC，而浏览器位于 UTC+8。原先用服务器 `date.today()` 生成演示数据，会在北京时间跨日后的八小时内造成“今天没有记录”。修复方案是增加可配置的演示时区偏移，所有 seed/reset 入口统一通过同一函数确定日期，并补充 UTC 跨日边界测试。
+3. 演示重置会轮换服务端用户 ID，但同一日期的种子复用确定性 `client_id`。浏览器保留旧账号数据时，新账号增量同步命中跨账号本地主键冲突；隔离条件阻止覆盖，却仍推进游标，造成服务端有 58 条日志而首页为 0。修复方案是在检测到 ID 已被其他账号占用时生成新的本地主键，后续仍通过 `server_id/client_id` 匹配，并增加账号轮换回归测试。
 
 这些公网延迟是单次功能验收样本，不是 P50/P95。Render 免费 Web 长时间无访问后会休眠，首次唤醒可能超过 50 秒；免费 PostgreSQL 也有生命周期和备份限制，因此本部署用于作品集演示，不应宣称为高可用生产系统。
