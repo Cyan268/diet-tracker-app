@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from app.core.config import Settings
 from app.core.database import session_factory
 from app.core.redis import get_redis_client
-from app.services.demo_data import seed_demo_account
+from app.services.demo_data import resolve_demo_anchor_date, seed_demo_account
 
 _RELEASE_LOCK_SCRIPT = """
 if redis.call('GET', KEYS[1]) == ARGV[1] then
@@ -49,7 +49,7 @@ async def reset_demo_once(
                 session,
                 email=settings.demo_reset_email,
                 password=password.get_secret_value(),
-                anchor_date=anchor_date or date.today(),
+                anchor_date=anchor_date or resolve_demo_anchor_date(settings),
                 reset_existing=True,
             )
         logger.info("demo.reset.completed", extra={"event": "demo.reset.completed"})

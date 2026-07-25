@@ -1,10 +1,11 @@
-from datetime import date
+from datetime import UTC, date, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from app.core.config import Settings
 from app.models import FoodLog, User
+from app.services.demo_data import resolve_demo_anchor_date
 from app.services.demo_reset import reset_demo_once
 
 
@@ -21,6 +22,17 @@ class ResetLockRedis:
     async def eval(self, *args):
         self.eval_calls.append(args)
         return 1
+
+
+def test_demo_anchor_date_uses_configured_timezone_offset() -> None:
+    settings = Settings(demo_timezone_offset_minutes=480)
+
+    anchor_date = resolve_demo_anchor_date(
+        settings,
+        now=datetime(2026, 7, 25, 17, 30, tzinfo=UTC),
+    )
+
+    assert anchor_date == date(2026, 7, 26)
 
 
 async def test_automatic_demo_reset_uses_lock_and_rotates_account(

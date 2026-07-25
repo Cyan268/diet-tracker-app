@@ -6,7 +6,7 @@ from datetime import date
 
 from app.core.config import get_settings
 from app.core.database import dispose_engine, session_factory
-from app.services.demo_data import seed_demo_account
+from app.services.demo_data import resolve_demo_anchor_date, seed_demo_account
 
 
 def validate_seed_environment(environment: str, allow_production: bool) -> None:
@@ -20,7 +20,7 @@ def parse_args() -> argparse.Namespace:
         "--email",
         default=os.getenv("NUTRIPILOT_DEMO_EMAIL", "demo@nutripilot.example"),
     )
-    parser.add_argument("--anchor-date", type=date.fromisoformat, default=date.today())
+    parser.add_argument("--anchor-date", type=date.fromisoformat)
     parser.add_argument("--reset-existing", action="store_true")
     parser.add_argument("--allow-production", action="store_true")
     return parser.parse_args()
@@ -33,12 +33,13 @@ async def run() -> None:
     password = os.getenv("NUTRIPILOT_DEMO_PASSWORD")
     if password is None:
         raise RuntimeError("NUTRIPILOT_DEMO_PASSWORD must be set")
+    anchor_date = args.anchor_date or resolve_demo_anchor_date(settings)
     async with session_factory() as session:
         result = await seed_demo_account(
             session,
             email=args.email,
             password=password,
-            anchor_date=args.anchor_date,
+            anchor_date=anchor_date,
             reset_existing=args.reset_existing,
         )
     print(

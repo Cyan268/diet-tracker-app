@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta, timezone
 from decimal import Decimal
 from hashlib import sha256
 from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
@@ -8,6 +8,7 @@ from uuid import NAMESPACE_URL, UUID, uuid4, uuid5
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import Settings
 from app.core.security import hash_password
 from app.models import (
     AiCallLog,
@@ -26,6 +27,14 @@ from app.schemas.diet import LogCreateRequest, LogResponse, NutritionValues
 from app.services.auth import normalize_email
 
 DEMO_SEED_VERSION = "demo-seed-v1"
+
+
+def resolve_demo_anchor_date(settings: Settings, *, now: datetime | None = None) -> date:
+    instant = now or datetime.now(UTC)
+    if instant.tzinfo is None:
+        raise ValueError("demo anchor clock must be timezone-aware")
+    demo_timezone = timezone(timedelta(minutes=settings.demo_timezone_offset_minutes))
+    return instant.astimezone(demo_timezone).date()
 
 
 class DemoAccountConflictError(ValueError):

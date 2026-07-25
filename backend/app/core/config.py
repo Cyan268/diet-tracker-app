@@ -55,6 +55,7 @@ class Settings(BaseSettings):
     demo_max_conversations: int = Field(default=8, ge=1, le=1000)
     demo_max_messages_per_conversation: int = Field(default=40, ge=2, le=1000)
     demo_reset_interval_minutes: int = Field(default=0, ge=0, le=10080)
+    demo_timezone_offset_minutes: int = Field(default=480, ge=-720, le=840)
     demo_reset_email: EmailStr = "demo@nutripilot.example"
     demo_reset_password: SecretStr | None = None
     demo_reset_lock_ttl_seconds: int = Field(default=300, ge=30, le=3600)

@@ -37,6 +37,8 @@ services:
         value: "true"
       - key: NUTRIPILOT_DEMO_RESET_INTERVAL_MINUTES
         value: "1440"
+      - key: NUTRIPILOT_DEMO_TIMEZONE_OFFSET_MINUTES
+        value: "480"
       - key: NUTRIPILOT_DEMO_RESET_PASSWORD
         sync: false
       - key: NUTRIPILOT_JWT_SECRET
