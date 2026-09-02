@@ -2,7 +2,10 @@ import type { DailySummary } from "@/types/log";
 import type { DailyTargets } from "@/types/profile";
 import type { ReminderRule, Reminder } from "@/types/reminder";
 
-const REMINDER_MESSAGES: Record<string, { icon: Reminder["icon"]; message: string; type: Reminder["type"] }> = {
+const REMINDER_MESSAGES: Record<
+  string,
+  { icon: Reminder["icon"]; message: string; type: Reminder["type"] }
+> = {
   kcal_high: {
     icon: "flame",
     message: "今日热量已超过目标，晚餐可适当减少高油高糖食物。",
@@ -32,23 +35,35 @@ const REMINDER_MESSAGES: Record<string, { icon: Reminder["icon"]; message: strin
 
 function getActualValue(metric: string, summary: DailySummary): number {
   switch (metric) {
-    case "kcal": return summary.totalKcal;
-    case "protein": return summary.totalProtein;
-    case "sugar": return summary.totalSugar;
-    case "sodium": return summary.totalSodium;
-    case "caffeine": return summary.totalCaffeine;
-    default: return 0;
+    case "kcal":
+      return summary.totalKcal;
+    case "protein":
+      return summary.totalProtein;
+    case "sugar":
+      return summary.totalSugar;
+    case "sodium":
+      return summary.totalSodium;
+    case "caffeine":
+      return summary.totalCaffeine;
+    default:
+      return 0;
   }
 }
 
 function getTargetValue(metric: string, targets: DailyTargets): number {
   switch (metric) {
-    case "kcal": return targets.kcal;
-    case "protein": return targets.protein;
-    case "sugar": return targets.sugar;
-    case "sodium": return targets.sodium;
-    case "caffeine": return targets.caffeine;
-    default: return 0;
+    case "kcal":
+      return targets.kcal;
+    case "protein":
+      return targets.protein;
+    case "sugar":
+      return targets.sugar;
+    case "sodium":
+      return targets.sodium;
+    case "caffeine":
+      return targets.caffeine;
+    default:
+      return 0;
   }
 }
 
@@ -66,9 +81,7 @@ export function generateReminders(
     const target = getTargetValue(rule.metric, targets);
 
     const threshold =
-      rule.thresholdType === "ratio_of_target"
-        ? target * rule.thresholdValue
-        : rule.thresholdValue;
+      rule.thresholdType === "ratio_of_target" ? target * rule.thresholdValue : rule.thresholdValue;
 
     let triggered = false;
     if (rule.ruleType === "too_high" && actual > threshold) triggered = true;

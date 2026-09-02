@@ -1,0 +1,194 @@
+# Explicitly select this file; never combine it with the development compose.yaml.
+name: ${NUTRIPILOT_PROJECT_NAME:-nutripilot-vps}
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  api:
+    image: ${NUTRIPILOT_APP_IMAGE:?Set the tested VPS image tag or digest}
+    command: ["python", "-m", "app.cli.serve_vps"]
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 768m
+    pids_limit: 128
+    logging: *logging
+    environment: &api_environment
+      NUTRIPILOT_ENVIRONMENT: production
+      NUTRIPILOT_SECRETS_DIR: /run/secrets
+      NUTRIPILOT_REDIS_URL: redis://redis:6379/0
+      NUTRIPILOT_PUBLIC_REGISTRATION_ENABLED: "false"
+      NUTRIPILOT_AUTH_PROTECTION_ENABLED: "true"
+      NUTRIPILOT_AUTH_PROTECTION_FAIL_CLOSED: "true"
+      NUTRIPILOT_AUTH_VISITOR_REQUESTS_PER_WINDOW: ${NUTRIPILOT_AUTH_VISITOR_REQUESTS_PER_WINDOW:-30}
+      NUTRIPILOT_DEMO_PROTECTION_ENABLED: "true"
+      NUTRIPILOT_DEMO_PROTECTION_FAIL_CLOSED: "true"
+      NUTRIPILOT_DEMO_RESET_INTERVAL_MINUTES: "0"
+      NUTRIPILOT_DEMO_RESET_EMAIL: demo@nutripilot.example
+      NUTRIPILOT_VPS_PROXY_ADDRESS: ${NUTRIPILOT_PROXY_IP:-172.30.91.2}
+      NUTRIPILOT_TRUSTED_PROXY_CIDRS: '["${NUTRIPILOT_PROXY_IP:-172.30.91.2}/32"]'
+      NUTRIPILOT_ALLOWED_HOSTS: '["${NUTRIPILOT_PUBLIC_HOST:?Set the exact public hostname}","127.0.0.1"]'
+      NUTRIPILOT_CORS_ORIGINS: "[]"
+      NUTRIPILOT_AI_PROVIDER: rule_based
+      NUTRIPILOT_LOG_FORMAT: json
+      NUTRIPILOT_LOG_LEVEL: INFO
+      NUTRIPILOT_DATABASE_ECHO: "false"
+      NUTRIPILOT_WEB_DIST_DIR: /app/web
+      NUTRIPILOT_RELEASE: ${NUTRIPILOT_RELEASE:?Set the release identifier}
+    secrets: &api_secrets
+      - nutripilot_database_url
+      - nutripilot_jwt_secret
+      - nutripilot_credential_encryption_key
+      - nutripilot_rate_limit_hmac_secret
+      - nutripilot_demo_reset_password
+    networks:
+      edge:
+        ipv4_address: ${NUTRIPILOT_API_IP:-172.30.91.3}
+      data: {}
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready', timeout=2)",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 15s
+
+  maintenance:
+    image: ${NUTRIPILOT_APP_IMAGE:?Set the tested VPS image tag or digest}
+    profiles: [ops]
+    command:
+      [
+        "python",
+        "-m",
+        "app.cli.production_preflight",
+        "--portfolio",
+        "--behind-proxy",
+        "--single-origin-web",
+        "--vps",
+      ]
+    restart: "no"
+    read_only: true
+    tmpfs: ["/tmp:size=32m,mode=1777"]
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 768m
+    logging: *logging
+    environment: *api_environment
+    secrets: *api_secrets
+    networks: [data]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+
+  postgres:
+    image: ${NUTRIPILOT_POSTGRES_IMAGE:-postgres:17-alpine}
+    restart: unless-stopped
+    mem_limit: 768m
+    pids_limit: 128
+    logging: *logging
+    environment:
+      POSTGRES_DB: nutripilot
+      POSTGRES_USER: nutripilot
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password]
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    networks: [data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nutripilot -d nutripilot"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  redis:
+    image: ${NUTRIPILOT_REDIS_IMAGE:-redis:7.4-alpine}
+    command:
+      [
+        "redis-server",
+        "--appendonly",
+        "yes",
+        "--maxmemory",
+        "96mb",
+        "--maxmemory-policy",
+        "noeviction",
+      ]
+    restart: unless-stopped
+    mem_limit: 160m
+    pids_limit: 64
+    logging: *logging
+    volumes: ["redis_data:/data"]
+    networks: [data]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+
+  proxy:
+    image: ${NUTRIPILOT_CADDY_IMAGE:-caddy:2.10.2-alpine}
+    restart: unless-stopped
+    mem_limit: 128m
+    pids_limit: 64
+    logging: *logging
+    environment:
+      NUTRIPILOT_SITE_ADDRESS: ${NUTRIPILOT_SITE_ADDRESS:?Set the HTTPS site hostname}
+      NUTRIPILOT_API_UPSTREAM: ${NUTRIPILOT_API_IP:-172.30.91.3}:8000
+    ports:
+      - "${NUTRIPILOT_BIND_ADDRESS:-0.0.0.0}:${NUTRIPILOT_HTTP_PORT:-80}:80"
+      - "${NUTRIPILOT_BIND_ADDRESS:-0.0.0.0}:${NUTRIPILOT_HTTPS_PORT:-443}:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      edge:
+        ipv4_address: ${NUTRIPILOT_PROXY_IP:-172.30.91.2}
+    depends_on:
+      api: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:2019/config/"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+
+networks:
+  edge:
+    ipam:
+      config: [{ subnet: "${NUTRIPILOT_EDGE_SUBNET:-172.30.91.0/28}" }]
+  data:
+    internal: true
+
+volumes:
+  postgres_data:
+  redis_data:
+  caddy_data:
+  caddy_config:
+
+# Secret contents are mounted, never interpolated into Compose environment output.
+secrets:
+  postgres_password:
+    file: ${NUTRIPILOT_SECRETS_PATH:?Set a restricted secrets directory}/postgres_password
+  nutripilot_database_url:
+    file: ${NUTRIPILOT_SECRETS_PATH}/nutripilot_database_url
+  nutripilot_jwt_secret:
+    file: ${NUTRIPILOT_SECRETS_PATH}/nutripilot_jwt_secret
+  nutripilot_credential_encryption_key:
+    file: ${NUTRIPILOT_SECRETS_PATH}/nutripilot_credential_encryption_key
+  nutripilot_rate_limit_hmac_secret:
+    file: ${NUTRIPILOT_SECRETS_PATH}/nutripilot_rate_limit_hmac_secret
+  nutripilot_demo_reset_password:
+    file: ${NUTRIPILOT_SECRETS_PATH}/nutripilot_demo_reset_password

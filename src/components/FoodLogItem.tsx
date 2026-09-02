@@ -66,7 +66,8 @@ export function FoodLogItem({ log, onDeleted }: FoodLogItemProps) {
         <View style={styles.content}>
           <Text style={styles.name}>{log.customName ?? "未知食物"}</Text>
           <Text style={styles.detail}>
-            {log.amount}{log.unit} · {Math.round(log.kcal)} kcal
+            {log.amount}
+            {log.unit} · {Math.round(log.kcal)} kcal
           </Text>
         </View>
         <Text style={styles.macro}>

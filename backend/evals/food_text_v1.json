@@ -1,0 +1,221 @@
+{
+  "dataset_version": "food-text-zh-cn-v1.0.0",
+  "description": "脱敏的中文饮食实体抽取评测集，覆盖多实体、中文数量、单位换算、餐次提示、未知食品、否定与非饮食意图。",
+  "evaluation_date": "2026-07-19",
+  "locale": "zh-CN",
+  "cases": [
+    {
+      "id": "breakfast_eggs_milk",
+      "text": "早餐吃了两个鸡蛋和一杯牛奶",
+      "tags": ["multi_entity", "chinese_quantity", "breakfast"],
+      "expected": [
+        {"normalized_name": "鸡蛋（煮）", "amount": 2, "unit": "个", "meal_type": "breakfast"},
+        {"normalized_name": "牛奶（全脂）", "amount": 1, "unit": "杯", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "lunch_chicken_rice",
+      "text": "午餐吃了200克鸡胸肉和一碗米饭",
+      "tags": ["multi_entity", "grams", "lunch"],
+      "expected": [
+        {"normalized_name": "鸡胸肉（水煮）", "amount": 200, "unit": "g", "meal_type": "lunch"},
+        {"normalized_name": "白米饭", "amount": 1, "unit": "碗", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dinner_noodles_tomato",
+      "text": "晚餐半碗面条和一个番茄",
+      "tags": ["multi_entity", "decimal_quantity", "dinner"],
+      "expected": [
+        {"normalized_name": "面条（煮熟）", "amount": 0.5, "unit": "碗", "meal_type": "dinner"},
+        {"normalized_name": "番茄", "amount": 1, "unit": "个", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "snack_banana_missing_quantity",
+      "text": "下午加餐吃了香蕉",
+      "tags": ["missing_quantity", "snack"],
+      "expected": [
+        {"normalized_name": "香蕉", "amount": 1, "unit": "根", "meal_type": "snack"}
+      ]
+    },
+    {
+      "id": "drink_hint_yogurt",
+      "text": "喝了半杯原味酸奶",
+      "meal_type_hint": "drink",
+      "tags": ["meal_hint", "drink"],
+      "expected": [
+        {"normalized_name": "酸奶（原味）", "amount": 0.5, "unit": "杯", "meal_type": "drink"}
+      ]
+    },
+    {
+      "id": "lunch_beef_broccoli",
+      "text": "中午吃了0.25千克瘦牛肉和西兰花",
+      "tags": ["unit_conversion", "missing_quantity", "lunch"],
+      "expected": [
+        {"normalized_name": "牛肉（瘦）", "amount": 250, "unit": "g", "meal_type": "lunch"},
+        {"normalized_name": "西兰花", "amount": 1, "unit": "份", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "breakfast_bread_milk",
+      "text": "早上两片全麦面包配半杯全脂牛奶",
+      "tags": ["multi_entity", "chinese_quantity", "breakfast"],
+      "expected": [
+        {"normalized_name": "全麦面包", "amount": 2, "unit": "片", "meal_type": "breakfast"},
+        {"normalized_name": "牛奶（全脂）", "amount": 0.5, "unit": "杯", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dinner_tofu_cucumber",
+      "text": "晚饭吃了两块豆腐和一根黄瓜",
+      "tags": ["multi_entity", "dinner"],
+      "expected": [
+        {"normalized_name": "豆腐", "amount": 2, "unit": "块", "meal_type": "dinner"},
+        {"normalized_name": "黄瓜", "amount": 1, "unit": "根", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "snack_chips_chocolate",
+      "text": "零食吃了一包薯片和两块巧克力",
+      "tags": ["multi_entity", "unit_alias", "snack"],
+      "expected": [
+        {"normalized_name": "薯片", "amount": 1, "unit": "小包", "meal_type": "snack"},
+        {"normalized_name": "巧克力", "amount": 2, "unit": "块", "meal_type": "snack"}
+      ]
+    },
+    {
+      "id": "breakfast_fruit_missing_quantities",
+      "text": "早餐吃了苹果和橙子",
+      "tags": ["multi_entity", "missing_quantity", "breakfast"],
+      "expected": [
+        {"normalized_name": "苹果", "amount": 1, "unit": "个", "meal_type": "breakfast"},
+        {"normalized_name": "橙子", "amount": 1, "unit": "个", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dinner_pork_rice",
+      "text": "晚上150克瘦猪肉和两碗白米饭",
+      "tags": ["multi_entity", "grams", "dinner"],
+      "expected": [
+        {"normalized_name": "猪肉（瘦）", "amount": 150, "unit": "g", "meal_type": "dinner"},
+        {"normalized_name": "白米饭", "amount": 2, "unit": "碗", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "meal_hint_tomato_grams",
+      "text": "吃了200克西红柿",
+      "meal_type_hint": "lunch",
+      "tags": ["meal_hint", "alias", "grams"],
+      "expected": [
+        {"normalized_name": "番茄", "amount": 200, "unit": "g", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "no_food_weather",
+      "text": "今天天气不错，出去散步了",
+      "tags": ["no_food", "out_of_scope"],
+      "expected": []
+    },
+    {
+      "id": "no_food_water_exercise",
+      "text": "今天运动了四十分钟，记得多喝水",
+      "tags": ["no_food", "out_of_scope"],
+      "expected": []
+    },
+    {
+      "id": "unknown_dumplings",
+      "text": "午饭吃了12个猪肉饺子",
+      "tags": ["unknown_catalog_food", "lunch"],
+      "expected": [
+        {"normalized_name": "猪肉饺子", "amount": 12, "unit": "个", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "unknown_branded_milk_tea",
+      "text": "下午喝了一杯霸王茶姬伯牙绝弦",
+      "meal_type_hint": "drink",
+      "tags": ["brand", "unknown_catalog_food", "drink"],
+      "expected": [
+        {"normalized_name": "伯牙绝弦", "amount": 1, "unit": "杯", "meal_type": "drink"}
+      ]
+    },
+    {
+      "id": "unknown_fried_chicken",
+      "text": "晚餐吃了一份炸鸡",
+      "tags": ["unknown_catalog_food", "dinner"],
+      "expected": [
+        {"normalized_name": "炸鸡", "amount": 1, "unit": "份", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "dish_name_not_ingredient",
+      "text": "午餐一碗米饭和一份麻婆豆腐",
+      "tags": ["semantic_boundary", "multi_entity", "lunch"],
+      "expected": [
+        {"normalized_name": "白米饭", "amount": 1, "unit": "碗", "meal_type": "lunch"},
+        {"normalized_name": "麻婆豆腐", "amount": 1, "unit": "份", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "generic_bread_not_wholewheat",
+      "text": "晚上吃了一片普通面包",
+      "tags": ["semantic_boundary", "dinner"],
+      "expected": [
+        {"normalized_name": "普通面包", "amount": 1, "unit": "片", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "kilogram_chicken_conversion",
+      "text": "晚饭0.3kg水煮鸡胸肉",
+      "tags": ["unit_conversion", "dinner"],
+      "expected": [
+        {"normalized_name": "鸡胸肉（水煮）", "amount": 300, "unit": "g", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "chinese_quantity_fruits",
+      "text": "加餐两根香蕉和一个苹果",
+      "tags": ["multi_entity", "chinese_quantity", "snack"],
+      "expected": [
+        {"normalized_name": "香蕉", "amount": 2, "unit": "根", "meal_type": "snack"},
+        {"normalized_name": "苹果", "amount": 1, "unit": "个", "meal_type": "snack"}
+      ]
+    },
+    {
+      "id": "unknown_americano",
+      "text": "喝了一杯冰美式咖啡",
+      "meal_type_hint": "drink",
+      "tags": ["unknown_catalog_food", "drink"],
+      "expected": [
+        {"normalized_name": "冰美式咖啡", "amount": 1, "unit": "杯", "meal_type": "drink"}
+      ]
+    },
+    {
+      "id": "dinner_beef_missing_quantity",
+      "text": "晚餐吃了牛肉",
+      "tags": ["missing_quantity", "dinner"],
+      "expected": [
+        {"normalized_name": "牛肉（瘦）", "amount": 1, "unit": "份", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "negated_egg",
+      "text": "早餐没吃鸡蛋，只喝了水",
+      "tags": ["negation", "no_food"],
+      "expected": []
+    },
+    {
+      "id": "allergy_not_consumption",
+      "text": "我对牛奶过敏，不能喝牛奶",
+      "tags": ["negation", "non_consumption", "no_food"],
+      "expected": []
+    },
+    {
+      "id": "future_plan_not_consumption",
+      "text": "计划明天早餐吃一个苹果",
+      "tags": ["future_intent", "non_consumption", "no_food"],
+      "expected": []
+    }
+  ]
+}

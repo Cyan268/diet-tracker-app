@@ -1,4 +1,8 @@
-import { getSummariesByDateRange, getMealBreakdownByDate, getDailySummary } from "@/db/repositories/logRepository";
+import {
+  getSummariesByDateRange,
+  getMealBreakdownByDate,
+  getDailySummary,
+} from "@/db/repositories/logRepository";
 import { getToday } from "@/utils/date";
 import type { DailySummary } from "@/types/log";
 

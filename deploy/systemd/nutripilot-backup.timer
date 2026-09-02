@@ -1,0 +1,11 @@
+[Unit]
+Description=Run NutriPilot local database backup daily
+
+[Timer]
+OnCalendar=*-*-* 03:25:00
+Persistent=true
+RandomizedDelaySec=15min
+Unit=nutripilot-backup.service
+
+[Install]
+WantedBy=timers.target

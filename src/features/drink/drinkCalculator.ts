@@ -1,9 +1,6 @@
 import type { DrinkOption, DrinkCalculation } from "@/types/drink";
 
-export function calcDrink(
-  base: DrinkOption,
-  options: DrinkOption[]
-): DrinkCalculation {
+export function calcDrink(base: DrinkOption, options: DrinkOption[]): DrinkCalculation {
   let kcal = base.kcalDelta;
   let sugar = base.sugarDelta;
   let caffeine = base.caffeineDelta;

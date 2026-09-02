@@ -1,0 +1,157 @@
+name: Publish approved VPS image
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full Git SHA from a green CI run on the default branch
+        required: true
+        type: string
+      confirm_production_release:
+        description: I intend to publish this exact production release
+        required: true
+        default: false
+        type: boolean
+      requires_backup:
+        description: Require a verified database backup before deployment
+        required: true
+        default: true
+        type: boolean
+      compatible_schemas:
+        description: Comma-separated schema revisions this image can run against
+        required: true
+        default: "20260831_0009"
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: nutripilot-production-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production-release
+    env:
+      SOURCE_SHA: ${{ inputs.source_sha }}
+      CONFIRMED: ${{ inputs.confirm_production_release }}
+      REQUIRES_BACKUP: ${{ inputs.requires_backup }}
+      COMPATIBLE_SCHEMAS: ${{ inputs.compatible_schemas }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      CADDY_IMAGE: caddy:2.10.2-alpine
+      POSTGRES_IMAGE: postgres:17-alpine
+      REDIS_IMAGE: redis:7.4-alpine
+      SCHEMA_REVISION: "20260831_0009"
+
+    steps:
+      - name: Require explicit confirmation and full SHA
+        shell: bash
+        run: |
+          test "${CONFIRMED}" = "true"
+          [[ "${SOURCE_SHA}" =~ ^[0-9a-f]{40}$ ]]
+
+      - name: Checkout requested revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          fetch-depth: 0
+
+      - name: Verify revision belongs to the default branch
+        shell: bash
+        run: |
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+          git fetch origin "${DEFAULT_BRANCH}" --no-tags
+          git merge-base --is-ancestor "${SOURCE_SHA}" "origin/${DEFAULT_BRANCH}"
+
+      - name: Resolve immutable image name
+        shell: bash
+        run: |
+          repository="${GITHUB_REPOSITORY,,}"
+          echo "RELEASE_IMAGE=ghcr.io/${repository}:${SOURCE_SHA}" >> "${GITHUB_ENV}"
+
+      - name: Build exact VPS target
+        run: |
+          mkdir -p release-artifacts
+          docker build \
+            --file Dockerfile.production \
+            --target vps \
+            --build-arg BUILD_REVISION="${SOURCE_SHA}" \
+            --build-arg SOURCE_REVISION="${SOURCE_SHA}" \
+            --tag "${RELEASE_IMAGE}" \
+            .
+
+      - name: Record vulnerability report before publishing
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.RELEASE_IMAGE }}
+          format: json
+          output: release-artifacts/trivy.json
+          # pip 26.2 vendors an SBOM for its build-time internals. Scan the
+          # installed filesystem instead of treating that inventory as runtime.
+          skip-files: "**/pip/_vendor/bom.cdx.json"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+
+      - name: Enforce vulnerability gate before publishing
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.RELEASE_IMAGE }}
+          format: table
+          skip-files: "**/pip/_vendor/bom.cdx.json"
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          skip-setup-trivy: true
+
+      - name: Authenticate to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push SHA-tagged image
+        run: docker push "${RELEASE_IMAGE}"
+
+      - name: Create digest-pinned production manifest
+        shell: bash
+        run: |
+          docker pull "${CADDY_IMAGE}"
+          docker pull "${POSTGRES_IMAGE}"
+          docker pull "${REDIS_IMAGE}"
+          IFS=',' read -ra schemas <<< "${COMPATIBLE_SCHEMAS}"
+          compatibility_args=()
+          for schema in "${schemas[@]}"; do
+            trimmed="${schema//[[:space:]]/}"
+            test -n "${trimmed}"
+            compatibility_args+=(--compatible-schema "${trimmed}")
+          done
+          backup_args=()
+          if [ "${REQUIRES_BACKUP}" = "true" ]; then
+            backup_args+=(--requires-backup)
+          fi
+          python scripts/deploy/release_controller.py manifest \
+            --release "${SOURCE_SHA}" \
+            --source-revision "${SOURCE_SHA}" \
+            --image "${RELEASE_IMAGE}" \
+            --proxy-image "${CADDY_IMAGE}" \
+            --postgres-image "${POSTGRES_IMAGE}" \
+            --redis-image "${REDIS_IMAGE}" \
+            --schema "${SCHEMA_REVISION}" \
+            "${compatibility_args[@]}" \
+            "${backup_args[@]}" \
+            --output release-artifacts/release-manifest.json
+
+      - name: Upload immutable release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-release-${{ inputs.source_sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-artifacts/
+          if-no-files-found: warn
+          retention-days: 90

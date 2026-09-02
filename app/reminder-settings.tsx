@@ -1,4 +1,13 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Switch, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  Switch,
+  Alert,
+} from "react-native";
 import { router } from "expo-router";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -44,9 +53,10 @@ export default function ReminderSettingsScreen() {
         rs.map((r) => ({
           rule: r,
           enabled: r.enabled,
-          thresholdStr: r.thresholdType === "ratio_of_target"
-            ? String(Math.round(r.thresholdValue * 100))
-            : String(r.thresholdValue),
+          thresholdStr:
+            r.thresholdType === "ratio_of_target"
+              ? String(Math.round(r.thresholdValue * 100))
+              : String(r.thresholdValue),
           changed: false,
         }))
       );
@@ -55,9 +65,7 @@ export default function ReminderSettingsScreen() {
   }, []);
 
   const updateRuleState = (index: number, updates: Partial<RuleState>) => {
-    setRules((prev) =>
-      prev.map((r, i) => (i === index ? { ...r, ...updates, changed: true } : r))
-    );
+    setRules((prev) => prev.map((r, i) => (i === index ? { ...r, ...updates, changed: true } : r)));
   };
 
   const handleSave = async () => {
@@ -66,9 +74,10 @@ export default function ReminderSettingsScreen() {
       for (const rs of rules) {
         if (!rs.changed) continue;
 
-        const thresholdValue = rs.rule.thresholdType === "ratio_of_target"
-          ? (parseFloat(rs.thresholdStr) || 0) / 100
-          : parseFloat(rs.thresholdStr) || 0;
+        const thresholdValue =
+          rs.rule.thresholdType === "ratio_of_target"
+            ? (parseFloat(rs.thresholdStr) || 0) / 100
+            : parseFloat(rs.thresholdStr) || 0;
 
         await updateRule(rs.rule.id, {
           enabled: rs.enabled,
@@ -76,7 +85,7 @@ export default function ReminderSettingsScreen() {
         });
       }
       router.back();
-    } catch (e) {
+    } catch {
       Alert.alert("错误", "保存失败，请重试");
     } finally {
       setSaving(false);
@@ -130,9 +139,7 @@ export default function ReminderSettingsScreen() {
             </View>
 
             <View style={styles.thresholdRow}>
-              <Text style={styles.thresholdLabel}>
-                {isRatio ? "目标百分比" : `阈值 (${unit})`}
-              </Text>
+              <Text style={styles.thresholdLabel}>{isRatio ? "目标百分比" : `阈值 (${unit})`}</Text>
               <View style={styles.thresholdInputRow}>
                 <TextInput
                   style={styles.thresholdInput}
@@ -163,7 +170,12 @@ export default function ReminderSettingsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5" },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f5f5f5" },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+  },
   loadingText: { fontSize: 14, color: "#999" },
   header: {
     flexDirection: "row",

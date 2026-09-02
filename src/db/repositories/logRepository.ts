@@ -1,8 +1,14 @@
 import { getDatabase } from "../database";
+import type { DailySummaryRow, FoodLogRow, MealBreakdownRow, NutritionTotalsRow } from "../rows";
 import { v4 as uuidv4 } from "uuid";
 import type { FoodLog, DailySummary } from "@/types/log";
+import { buildLogSyncPayload, enqueueLogEvent } from "./outboxRepository";
+import { getCurrentUserId } from "../accountScope";
+import { withWriteTransaction } from "../transactions";
 
-function rowToFoodLog(row: any): FoodLog {
+type BindValue = string | number | null;
+
+function rowToFoodLog(row: FoodLogRow): FoodLog {
   return {
     id: row.id,
     date: row.date,
@@ -24,56 +30,80 @@ function rowToFoodLog(row: any): FoodLog {
   };
 }
 
-export async function addLog(
-  log: Omit<FoodLog, "id" | "createdAt" | "updatedAt">
-): Promise<FoodLog> {
+export type NewFoodLog = Omit<FoodLog, "id" | "createdAt" | "updatedAt">;
+
+export async function addLogs(logs: NewFoodLog[]): Promise<FoodLog[]> {
+  if (logs.length === 0) return [];
+  const ownerUserId = getCurrentUserId();
   const db = await getDatabase();
-  const id = uuidv4();
   const now = new Date().toISOString();
+  const createdLogs = logs.map((log) => ({
+    ...log,
+    id: uuidv4(),
+    createdAt: now,
+    updatedAt: now,
+  }));
 
-  await db.runAsync(
-    `INSERT INTO food_logs (id, date, meal_type, food_item_id, custom_name, amount, unit, kcal, protein, fat, carbs, sugar, sodium, caffeine, note, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    id,
-    log.date,
-    log.mealType,
-    log.foodItemId ?? null,
-    log.customName ?? null,
-    log.amount,
-    log.unit,
-    log.kcal,
-    log.protein,
-    log.fat,
-    log.carbs,
-    log.sugar,
-    log.sodium,
-    log.caffeine,
-    log.note ?? null,
-    now,
-    now
-  );
+  await withWriteTransaction(db, async (txn) => {
+    for (const createdLog of createdLogs) {
+      await txn.runAsync(
+        `INSERT INTO food_logs (id, owner_user_id, date, meal_type, food_item_id, custom_name, amount, unit, kcal, protein, fat, carbs, sugar, sodium, caffeine, note, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        createdLog.id,
+        ownerUserId,
+        createdLog.date,
+        createdLog.mealType,
+        createdLog.foodItemId ?? null,
+        createdLog.customName ?? null,
+        createdLog.amount,
+        createdLog.unit,
+        createdLog.kcal,
+        createdLog.protein,
+        createdLog.fat,
+        createdLog.carbs,
+        createdLog.sugar,
+        createdLog.sodium,
+        createdLog.caffeine,
+        createdLog.note ?? null,
+        now,
+        now
+      );
+      await enqueueLogEvent(txn, createdLog, "create", now, undefined, ownerUserId);
+    }
+  });
 
-  return { ...log, id, createdAt: now, updatedAt: now };
+  return createdLogs;
+}
+
+export async function addLog(log: NewFoodLog): Promise<FoodLog> {
+  const [created] = await addLogs([log]);
+  return created;
 }
 
 export async function getLogById(id: string): Promise<FoodLog | null> {
   const db = await getDatabase();
-  const row = await db.getFirstAsync<any>("SELECT * FROM food_logs WHERE id = ?", id);
+  const row = await db.getFirstAsync<FoodLogRow>(
+    "SELECT * FROM food_logs WHERE id = ? AND owner_user_id = ?",
+    id,
+    getCurrentUserId()
+  );
   return row ? rowToFoodLog(row) : null;
 }
 
 export async function getLogsByDate(date: string): Promise<FoodLog[]> {
   const db = await getDatabase();
-  const rows = await db.getAllAsync<any>(
-    "SELECT * FROM food_logs WHERE date = ? ORDER BY created_at",
-    date
+  const rows = await db.getAllAsync<FoodLogRow>(
+    "SELECT * FROM food_logs WHERE date = ? AND owner_user_id = ? ORDER BY created_at",
+    date,
+    getCurrentUserId()
   );
   return rows.map(rowToFoodLog);
 }
 
 export async function getDailySummary(date: string): Promise<DailySummary> {
   const db = await getDatabase();
-  const row = await db.getFirstAsync<any>(
+  const ownerUserId = getCurrentUserId();
+  const row = await db.getFirstAsync<NutritionTotalsRow>(
     `SELECT
        COALESCE(SUM(kcal), 0) as total_kcal,
        COALESCE(SUM(protein), 0) as total_protein,
@@ -82,14 +112,16 @@ export async function getDailySummary(date: string): Promise<DailySummary> {
        COALESCE(SUM(sugar), 0) as total_sugar,
        COALESCE(SUM(sodium), 0) as total_sodium,
        COALESCE(SUM(caffeine), 0) as total_caffeine
-     FROM food_logs WHERE date = ?`,
-    date
+     FROM food_logs WHERE date = ? AND owner_user_id = ?`,
+    date,
+    ownerUserId
   );
 
-  const mealRows = await db.getAllAsync<any>(
+  const mealRows = await db.getAllAsync<MealBreakdownRow>(
     `SELECT meal_type, COALESCE(SUM(kcal), 0) as total
-     FROM food_logs WHERE date = ? GROUP BY meal_type`,
-    date
+     FROM food_logs WHERE date = ? AND owner_user_id = ? GROUP BY meal_type`,
+    date,
+    ownerUserId
   );
 
   const mealBreakdown = {
@@ -120,45 +152,129 @@ export async function getDailySummary(date: string): Promise<DailySummary> {
 
 export async function updateLog(
   id: string,
-  updates: Partial<Pick<FoodLog, "amount" | "unit" | "kcal" | "protein" | "fat" | "carbs" | "sugar" | "sodium" | "caffeine" | "note">>
+  updates: Partial<
+    Omit<
+      Pick<
+        FoodLog,
+        | "amount"
+        | "unit"
+        | "kcal"
+        | "protein"
+        | "fat"
+        | "carbs"
+        | "sugar"
+        | "sodium"
+        | "caffeine"
+        | "note"
+      >,
+      "note"
+    >
+  > & { note?: string | null }
 ): Promise<FoodLog | null> {
+  const ownerUserId = getCurrentUserId();
   const db = await getDatabase();
-  const existing = await db.getFirstAsync<any>("SELECT * FROM food_logs WHERE id = ?", id);
-  if (!existing) return null;
+  let result: FoodLog | null = null;
+  await withWriteTransaction(db, async (txn) => {
+    const existing = await txn.getFirstAsync<FoodLogRow>(
+      "SELECT * FROM food_logs WHERE id = ? AND owner_user_id = ?",
+      id,
+      ownerUserId
+    );
+    if (!existing) return;
 
-  const now = new Date().toISOString();
-  const fields: string[] = [];
-  const values: any[] = [];
+    const now = new Date().toISOString();
+    const fields: string[] = [];
+    const values: BindValue[] = [];
 
-  if (updates.amount !== undefined) { fields.push("amount = ?"); values.push(updates.amount); }
-  if (updates.unit !== undefined) { fields.push("unit = ?"); values.push(updates.unit); }
-  if (updates.kcal !== undefined) { fields.push("kcal = ?"); values.push(updates.kcal); }
-  if (updates.protein !== undefined) { fields.push("protein = ?"); values.push(updates.protein); }
-  if (updates.fat !== undefined) { fields.push("fat = ?"); values.push(updates.fat); }
-  if (updates.carbs !== undefined) { fields.push("carbs = ?"); values.push(updates.carbs); }
-  if (updates.sugar !== undefined) { fields.push("sugar = ?"); values.push(updates.sugar); }
-  if (updates.sodium !== undefined) { fields.push("sodium = ?"); values.push(updates.sodium); }
-  if (updates.caffeine !== undefined) { fields.push("caffeine = ?"); values.push(updates.caffeine); }
-  if (updates.note !== undefined) { fields.push("note = ?"); values.push(updates.note); }
+    if (updates.amount !== undefined) {
+      fields.push("amount = ?");
+      values.push(updates.amount);
+    }
+    if (updates.unit !== undefined) {
+      fields.push("unit = ?");
+      values.push(updates.unit);
+    }
+    if (updates.kcal !== undefined) {
+      fields.push("kcal = ?");
+      values.push(updates.kcal);
+    }
+    if (updates.protein !== undefined) {
+      fields.push("protein = ?");
+      values.push(updates.protein);
+    }
+    if (updates.fat !== undefined) {
+      fields.push("fat = ?");
+      values.push(updates.fat);
+    }
+    if (updates.carbs !== undefined) {
+      fields.push("carbs = ?");
+      values.push(updates.carbs);
+    }
+    if (updates.sugar !== undefined) {
+      fields.push("sugar = ?");
+      values.push(updates.sugar);
+    }
+    if (updates.sodium !== undefined) {
+      fields.push("sodium = ?");
+      values.push(updates.sodium);
+    }
+    if (updates.caffeine !== undefined) {
+      fields.push("caffeine = ?");
+      values.push(updates.caffeine);
+    }
+    if (updates.note !== undefined) {
+      fields.push("note = ?");
+      values.push(updates.note ?? null);
+    }
 
-  if (fields.length === 0) return rowToFoodLog(existing);
+    if (fields.length === 0) {
+      result = rowToFoodLog(existing);
+      return;
+    }
 
-  fields.push("updated_at = ?");
-  values.push(now);
-  values.push(id);
+    fields.push("updated_at = ?", "sync_status = 'pending'", "last_sync_error = NULL");
+    values.push(now, id, ownerUserId);
+    await txn.runAsync(
+      `UPDATE food_logs SET ${fields.join(", ")} WHERE id = ? AND owner_user_id = ?`,
+      ...values
+    );
 
-  await db.runAsync(
-    `UPDATE food_logs SET ${fields.join(", ")} WHERE id = ?`,
-    ...values
-  );
-
-  const updated = await db.getFirstAsync<any>("SELECT * FROM food_logs WHERE id = ?", id);
-  return updated ? rowToFoodLog(updated) : null;
+    const updated = await txn.getFirstAsync<FoodLogRow>(
+      "SELECT * FROM food_logs WHERE id = ? AND owner_user_id = ?",
+      id,
+      ownerUserId
+    );
+    if (!updated) return;
+    result = rowToFoodLog(updated);
+    const payload = JSON.stringify({
+      ...JSON.parse(buildLogSyncPayload(result)),
+      server_id: updated.server_id,
+      expected_version: updated.server_version,
+    });
+    await enqueueLogEvent(txn, result, "update", now, payload, ownerUserId);
+  });
+  return result;
 }
 
 export async function deleteLog(id: string): Promise<void> {
+  const ownerUserId = getCurrentUserId();
   const db = await getDatabase();
-  await db.runAsync("DELETE FROM food_logs WHERE id = ?", id);
+  await withWriteTransaction(db, async (txn) => {
+    const existing = await txn.getFirstAsync<FoodLogRow>(
+      "SELECT * FROM food_logs WHERE id = ? AND owner_user_id = ?",
+      id,
+      ownerUserId
+    );
+    if (!existing) return;
+    const log = rowToFoodLog(existing);
+    const now = new Date().toISOString();
+    const deletePayload = JSON.stringify({
+      server_id: existing.server_id,
+      expected_version: existing.server_version,
+    });
+    await enqueueLogEvent(txn, log, "delete", now, deletePayload, ownerUserId);
+    await txn.runAsync("DELETE FROM food_logs WHERE id = ? AND owner_user_id = ?", id, ownerUserId);
+  });
 }
 
 export async function getSummariesByDateRange(
@@ -166,7 +282,8 @@ export async function getSummariesByDateRange(
   endDate: string
 ): Promise<DailySummary[]> {
   const db = await getDatabase();
-  const rows = await db.getAllAsync<any>(
+  const ownerUserId = getCurrentUserId();
+  const rows = await db.getAllAsync<DailySummaryRow>(
     `SELECT date,
        COALESCE(SUM(kcal), 0) as total_kcal,
        COALESCE(SUM(protein), 0) as total_protein,
@@ -175,8 +292,9 @@ export async function getSummariesByDateRange(
        COALESCE(SUM(sugar), 0) as total_sugar,
        COALESCE(SUM(sodium), 0) as total_sodium,
        COALESCE(SUM(caffeine), 0) as total_caffeine
-     FROM food_logs WHERE date >= ? AND date <= ?
+     FROM food_logs WHERE owner_user_id = ? AND date >= ? AND date <= ?
      GROUP BY date ORDER BY date`,
+    ownerUserId,
     startDate,
     endDate
   );
@@ -198,10 +316,11 @@ export async function getMealBreakdownByDate(
   date: string
 ): Promise<{ mealType: string; kcal: number }[]> {
   const db = await getDatabase();
-  const rows = await db.getAllAsync<any>(
+  const rows = await db.getAllAsync<MealBreakdownRow>(
     `SELECT meal_type, COALESCE(SUM(kcal), 0) as total
-     FROM food_logs WHERE date = ? GROUP BY meal_type`,
-    date
+     FROM food_logs WHERE date = ? AND owner_user_id = ? GROUP BY meal_type`,
+    date,
+    getCurrentUserId()
   );
   return rows.map((r) => ({ mealType: r.meal_type, kcal: r.total }));
 }

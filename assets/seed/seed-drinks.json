@@ -1,34 +1,357 @@
 [
-  { "brand": "通用", "drinkName": "美式咖啡", "optionType": "size", "optionName": "中杯(360ml)", "kcalDelta": 10, "sugarDelta": 0, "caffeineDelta": 150 },
-  { "brand": "通用", "drinkName": "美式咖啡", "optionType": "size", "optionName": "大杯(480ml)", "kcalDelta": 15, "sugarDelta": 0, "caffeineDelta": 200 },
-  { "brand": "通用", "drinkName": "拿铁", "optionType": "size", "optionName": "中杯(360ml)", "kcalDelta": 150, "sugarDelta": 8, "caffeineDelta": 150 },
-  { "brand": "通用", "drinkName": "拿铁", "optionType": "size", "optionName": "大杯(480ml)", "kcalDelta": 200, "sugarDelta": 10, "caffeineDelta": 200 },
-  { "brand": "通用", "drinkName": "卡布奇诺", "optionType": "size", "optionName": "中杯(360ml)", "kcalDelta": 120, "sugarDelta": 6, "caffeineDelta": 150 },
-  { "brand": "通用", "drinkName": "奶茶", "optionType": "size", "optionName": "中杯(500ml)", "kcalDelta": 300, "sugarDelta": 25, "caffeineDelta": 80 },
-  { "brand": "通用", "drinkName": "奶茶", "optionType": "size", "optionName": "大杯(700ml)", "kcalDelta": 400, "sugarDelta": 35, "caffeineDelta": 100 },
-  { "brand": "通用", "drinkName": "水果茶", "optionType": "size", "optionName": "中杯(500ml)", "kcalDelta": 180, "sugarDelta": 30, "caffeineDelta": 30 },
-  { "brand": "通用", "drinkName": "水果茶", "optionType": "size", "optionName": "大杯(700ml)", "kcalDelta": 250, "sugarDelta": 40, "caffeineDelta": 40 },
+  {
+    "brand": "通用",
+    "drinkName": "美式咖啡",
+    "optionType": "size",
+    "optionName": "中杯(360ml)",
+    "kcalDelta": 10,
+    "sugarDelta": 0,
+    "caffeineDelta": 150
+  },
+  {
+    "brand": "通用",
+    "drinkName": "美式咖啡",
+    "optionType": "size",
+    "optionName": "大杯(480ml)",
+    "kcalDelta": 15,
+    "sugarDelta": 0,
+    "caffeineDelta": 200
+  },
+  {
+    "brand": "通用",
+    "drinkName": "拿铁",
+    "optionType": "size",
+    "optionName": "中杯(360ml)",
+    "kcalDelta": 150,
+    "sugarDelta": 8,
+    "caffeineDelta": 150
+  },
+  {
+    "brand": "通用",
+    "drinkName": "拿铁",
+    "optionType": "size",
+    "optionName": "大杯(480ml)",
+    "kcalDelta": 200,
+    "sugarDelta": 10,
+    "caffeineDelta": 200
+  },
+  {
+    "brand": "通用",
+    "drinkName": "卡布奇诺",
+    "optionType": "size",
+    "optionName": "中杯(360ml)",
+    "kcalDelta": 120,
+    "sugarDelta": 6,
+    "caffeineDelta": 150
+  },
+  {
+    "brand": "通用",
+    "drinkName": "奶茶",
+    "optionType": "size",
+    "optionName": "中杯(500ml)",
+    "kcalDelta": 300,
+    "sugarDelta": 25,
+    "caffeineDelta": 80
+  },
+  {
+    "brand": "通用",
+    "drinkName": "奶茶",
+    "optionType": "size",
+    "optionName": "大杯(700ml)",
+    "kcalDelta": 400,
+    "sugarDelta": 35,
+    "caffeineDelta": 100
+  },
+  {
+    "brand": "通用",
+    "drinkName": "水果茶",
+    "optionType": "size",
+    "optionName": "中杯(500ml)",
+    "kcalDelta": 180,
+    "sugarDelta": 30,
+    "caffeineDelta": 30
+  },
+  {
+    "brand": "通用",
+    "drinkName": "水果茶",
+    "optionType": "size",
+    "optionName": "大杯(700ml)",
+    "kcalDelta": 250,
+    "sugarDelta": 40,
+    "caffeineDelta": 40
+  },
 
-  { "brand": "通用", "drinkName": "*", "optionType": "sugar", "optionName": "无糖", "kcalDelta": 0, "sugarDelta": 0, "caffeineDelta": 0 },
-  { "brand": "通用", "drinkName": "*", "optionType": "sugar", "optionName": "少糖", "kcalDelta": 20, "sugarDelta": 5, "caffeineDelta": 0 },
-  { "brand": "通用", "drinkName": "*", "optionType": "sugar", "optionName": "半糖", "kcalDelta": 40, "sugarDelta": 10, "caffeineDelta": 0 },
-  { "brand": "通用", "drinkName": "*", "optionType": "sugar", "optionName": "标准糖", "kcalDelta": 80, "sugarDelta": 20, "caffeineDelta": 0 },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "sugar",
+    "optionName": "无糖",
+    "kcalDelta": 0,
+    "sugarDelta": 0,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "sugar",
+    "optionName": "少糖",
+    "kcalDelta": 20,
+    "sugarDelta": 5,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "sugar",
+    "optionName": "半糖",
+    "kcalDelta": 40,
+    "sugarDelta": 10,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "sugar",
+    "optionName": "标准糖",
+    "kcalDelta": 80,
+    "sugarDelta": 20,
+    "caffeineDelta": 0
+  },
 
-  { "brand": "通用", "drinkName": "*", "optionType": "milk", "optionName": "全脂牛奶", "kcalDelta": 80, "sugarDelta": 5, "caffeineDelta": 0 },
-  { "brand": "通用", "drinkName": "*", "optionType": "milk", "optionName": "脱脂牛奶", "kcalDelta": 40, "sugarDelta": 5, "caffeineDelta": 0 },
-  { "brand": "通用", "drinkName": "*", "optionType": "milk", "optionName": "燕麦奶", "kcalDelta": 60, "sugarDelta": 3, "caffeineDelta": 0 },
-  { "brand": "通用", "drinkName": "*", "optionType": "milk", "optionName": "椰奶", "kcalDelta": 70, "sugarDelta": 4, "caffeineDelta": 0 },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "milk",
+    "optionName": "无",
+    "kcalDelta": 0,
+    "sugarDelta": 0,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "milk",
+    "optionName": "全脂牛奶",
+    "kcalDelta": 80,
+    "sugarDelta": 5,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "milk",
+    "optionName": "脱脂牛奶",
+    "kcalDelta": 40,
+    "sugarDelta": 5,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "milk",
+    "optionName": "燕麦奶",
+    "kcalDelta": 60,
+    "sugarDelta": 3,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "milk",
+    "optionName": "椰奶",
+    "kcalDelta": 70,
+    "sugarDelta": 4,
+    "caffeineDelta": 0
+  },
 
-  { "brand": "通用", "drinkName": "*", "optionType": "topping", "optionName": "珍珠", "kcalDelta": 100, "sugarDelta": 15, "caffeineDelta": 0 },
-  { "brand": "通用", "drinkName": "*", "optionType": "topping", "optionName": "椰果", "kcalDelta": 40, "sugarDelta": 8, "caffeineDelta": 0 },
-  { "brand": "通用", "drinkName": "*", "optionType": "topping", "optionName": "布丁", "kcalDelta": 80, "sugarDelta": 10, "caffeineDelta": 0 },
-  { "brand": "通用", "drinkName": "*", "optionType": "topping", "optionName": "仙草", "kcalDelta": 30, "sugarDelta": 5, "caffeineDelta": 0 },
-  { "brand": "通用", "drinkName": "*", "optionType": "topping", "optionName": "芋圆", "kcalDelta": 90, "sugarDelta": 12, "caffeineDelta": 0 },
-  { "brand": "通用", "drinkName": "*", "optionType": "topping", "optionName": "奶盖", "kcalDelta": 120, "sugarDelta": 5, "caffeineDelta": 0 },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "珍珠",
+    "kcalDelta": 100,
+    "sugarDelta": 15,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "椰果",
+    "kcalDelta": 40,
+    "sugarDelta": 8,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "布丁",
+    "kcalDelta": 80,
+    "sugarDelta": 10,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "仙草",
+    "kcalDelta": 30,
+    "sugarDelta": 5,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "芋圆",
+    "kcalDelta": 90,
+    "sugarDelta": 12,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "奶盖",
+    "kcalDelta": 120,
+    "sugarDelta": 5,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "小珍珠",
+    "kcalDelta": 80,
+    "sugarDelta": 12,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "脆啵啵",
+    "kcalDelta": 55,
+    "sugarDelta": 10,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "马蹄",
+    "kcalDelta": 45,
+    "sugarDelta": 7,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "西米",
+    "kcalDelta": 70,
+    "sugarDelta": 8,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "红豆",
+    "kcalDelta": 90,
+    "sugarDelta": 10,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "芋泥",
+    "kcalDelta": 120,
+    "sugarDelta": 10,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "茶冻",
+    "kcalDelta": 35,
+    "sugarDelta": 6,
+    "caffeineDelta": 5
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "桂花冻",
+    "kcalDelta": 45,
+    "sugarDelta": 8,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "寒天晶球",
+    "kcalDelta": 50,
+    "sugarDelta": 9,
+    "caffeineDelta": 0
+  },
+  {
+    "brand": "通用",
+    "drinkName": "*",
+    "optionType": "topping",
+    "optionName": "麻薯",
+    "kcalDelta": 110,
+    "sugarDelta": 12,
+    "caffeineDelta": 0
+  },
 
-  { "brand": "星巴克", "drinkName": "美式", "optionType": "size", "optionName": "中杯(Tall)", "kcalDelta": 10, "sugarDelta": 0, "caffeineDelta": 150 },
-  { "brand": "星巴克", "drinkName": "美式", "optionType": "size", "optionName": "大杯(Grande)", "kcalDelta": 15, "sugarDelta": 0, "caffeineDelta": 225 },
-  { "brand": "星巴克", "drinkName": "拿铁", "optionType": "size", "optionName": "中杯(Tall)", "kcalDelta": 150, "sugarDelta": 8, "caffeineDelta": 75 },
-  { "brand": "星巴克", "drinkName": "拿铁", "optionType": "size", "optionName": "大杯(Grande)", "kcalDelta": 220, "sugarDelta": 12, "caffeineDelta": 150 },
-  { "brand": "星巴克", "drinkName": "星冰乐", "optionType": "size", "optionName": "大杯(Grande)", "kcalDelta": 300, "sugarDelta": 45, "caffeineDelta": 95 }
+  {
+    "brand": "星巴克",
+    "drinkName": "美式",
+    "optionType": "size",
+    "optionName": "中杯(Tall)",
+    "kcalDelta": 10,
+    "sugarDelta": 0,
+    "caffeineDelta": 150
+  },
+  {
+    "brand": "星巴克",
+    "drinkName": "美式",
+    "optionType": "size",
+    "optionName": "大杯(Grande)",
+    "kcalDelta": 15,
+    "sugarDelta": 0,
+    "caffeineDelta": 225
+  },
+  {
+    "brand": "星巴克",
+    "drinkName": "拿铁",
+    "optionType": "size",
+    "optionName": "中杯(Tall)",
+    "kcalDelta": 150,
+    "sugarDelta": 8,
+    "caffeineDelta": 75
+  },
+  {
+    "brand": "星巴克",
+    "drinkName": "拿铁",
+    "optionType": "size",
+    "optionName": "大杯(Grande)",
+    "kcalDelta": 220,
+    "sugarDelta": 12,
+    "caffeineDelta": 150
+  },
+  {
+    "brand": "星巴克",
+    "drinkName": "星冰乐",
+    "optionType": "size",
+    "optionName": "大杯(Grande)",
+    "kcalDelta": 300,
+    "sugarDelta": 45,
+    "caffeineDelta": 95
+  }
 ]

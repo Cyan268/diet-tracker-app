@@ -1,0 +1,41 @@
+{
+	# Admin is container-loopback only; never publish 2019.
+	admin 127.0.0.1:2019
+	log default {
+		format filter {
+			wrap json
+			fields {
+				request delete
+				resp_headers delete
+			}
+		}
+	}
+}
+
+{$NUTRIPILOT_SITE_ADDRESS} {
+	request_body {
+		max_size 1MB
+	}
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		Cross-Origin-Opener-Policy same-origin
+		Cross-Origin-Embedder-Policy credentialless
+		Referrer-Policy no-referrer
+	}
+	# This is the first/only edge proxy. No CDN forwarded chain is trusted.
+	reverse_proxy {$NUTRIPILOT_API_UPSTREAM} {
+		header_up -Forwarded
+		header_up -X-Real-IP
+		header_up X-Forwarded-For {http.request.remote.host}
+		transport http {
+			dial_timeout 3s
+			response_header_timeout 90s
+		}
+	}
+}
+
+# Unknown cleartext Host values must not return the app or a misleading empty 200.
+:80 {
+	respond "Unknown host" 421
+}

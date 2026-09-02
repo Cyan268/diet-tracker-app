@@ -1,0 +1,1 @@
+"""NutriPilot backend application."""

@@ -1,0 +1,1227 @@
+{
+  "cases": [
+    {
+      "actual": [
+        {
+          "amount": 2.0,
+          "confidence": 0.94,
+          "evidence": "识别到“鸡蛋”及其相邻数量",
+          "meal_type": "breakfast",
+          "needs_review": false,
+          "normalized_name": "鸡蛋（煮）",
+          "raw_name": "鸡蛋",
+          "unit": "个"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“牛奶”及其相邻数量",
+          "meal_type": "breakfast",
+          "needs_review": false,
+          "normalized_name": "牛奶（全脂）",
+          "raw_name": "牛奶",
+          "unit": "杯"
+        }
+      ],
+      "case_id": "breakfast_eggs_milk",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 2.0,
+          "meal_type": "breakfast",
+          "normalized_name": "鸡蛋（煮）",
+          "unit": "个"
+        },
+        {
+          "amount": 1.0,
+          "meal_type": "breakfast",
+          "normalized_name": "牛奶（全脂）",
+          "unit": "杯"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.92,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "鸡蛋（煮）",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "牛奶（全脂）",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "早餐吃了两个鸡蛋和一杯牛奶"
+    },
+    {
+      "actual": [
+        {
+          "amount": 200.0,
+          "confidence": 0.94,
+          "evidence": "识别到“鸡胸肉”及其相邻数量",
+          "meal_type": "lunch",
+          "needs_review": false,
+          "normalized_name": "鸡胸肉（水煮）",
+          "raw_name": "鸡胸肉",
+          "unit": "g"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“米饭”及其相邻数量",
+          "meal_type": "lunch",
+          "needs_review": false,
+          "normalized_name": "白米饭",
+          "raw_name": "米饭",
+          "unit": "碗"
+        }
+      ],
+      "case_id": "lunch_chicken_rice",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 200.0,
+          "meal_type": "lunch",
+          "normalized_name": "鸡胸肉（水煮）",
+          "unit": "g"
+        },
+        {
+          "amount": 1.0,
+          "meal_type": "lunch",
+          "normalized_name": "白米饭",
+          "unit": "碗"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.93,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "鸡胸肉（水煮）",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "白米饭",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "午餐吃了200克鸡胸肉和一碗米饭"
+    },
+    {
+      "actual": [
+        {
+          "amount": 0.5,
+          "confidence": 0.94,
+          "evidence": "识别到“面条”及其相邻数量",
+          "meal_type": "dinner",
+          "needs_review": false,
+          "normalized_name": "面条（煮熟）",
+          "raw_name": "面条",
+          "unit": "碗"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“番茄”及其相邻数量",
+          "meal_type": "dinner",
+          "needs_review": false,
+          "normalized_name": "番茄",
+          "raw_name": "番茄",
+          "unit": "个"
+        }
+      ],
+      "case_id": "dinner_noodles_tomato",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 0.5,
+          "meal_type": "dinner",
+          "normalized_name": "面条（煮熟）",
+          "unit": "碗"
+        },
+        {
+          "amount": 1.0,
+          "meal_type": "dinner",
+          "normalized_name": "番茄",
+          "unit": "个"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.5,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "面条（煮熟）",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "番茄",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "晚餐半碗面条和一个番茄"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“香蕉”，未检测到数量，暂按 1根",
+          "meal_type": "snack",
+          "needs_review": true,
+          "normalized_name": "香蕉",
+          "raw_name": "香蕉",
+          "unit": "根"
+        }
+      ],
+      "case_id": "snack_banana_missing_quantity",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 1.0,
+          "meal_type": "snack",
+          "normalized_name": "香蕉",
+          "unit": "根"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.25,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "香蕉",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "下午加餐吃了香蕉"
+    },
+    {
+      "actual": [
+        {
+          "amount": 0.5,
+          "confidence": 0.94,
+          "evidence": "识别到“原味酸奶”及其相邻数量",
+          "meal_type": "drink",
+          "needs_review": false,
+          "normalized_name": "酸奶（原味）",
+          "raw_name": "原味酸奶",
+          "unit": "杯"
+        }
+      ],
+      "case_id": "drink_hint_yogurt",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 0.5,
+          "meal_type": "drink",
+          "normalized_name": "酸奶（原味）",
+          "unit": "杯"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.26,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "酸奶（原味）",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "喝了半杯原味酸奶"
+    },
+    {
+      "actual": [
+        {
+          "amount": 250.0,
+          "confidence": 0.94,
+          "evidence": "识别到“瘦牛肉”及其相邻数量",
+          "meal_type": "lunch",
+          "needs_review": false,
+          "normalized_name": "牛肉（瘦）",
+          "raw_name": "瘦牛肉",
+          "unit": "g"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“西兰花”，未检测到数量，暂按 1份",
+          "meal_type": "lunch",
+          "needs_review": true,
+          "normalized_name": "西兰花",
+          "raw_name": "西兰花",
+          "unit": "份"
+        }
+      ],
+      "case_id": "lunch_beef_broccoli",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 250.0,
+          "meal_type": "lunch",
+          "normalized_name": "牛肉（瘦）",
+          "unit": "g"
+        },
+        {
+          "amount": 1.0,
+          "meal_type": "lunch",
+          "normalized_name": "西兰花",
+          "unit": "份"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.47,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "牛肉（瘦）",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "西兰花",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "中午吃了0.25千克瘦牛肉和西兰花"
+    },
+    {
+      "actual": [
+        {
+          "amount": 2.0,
+          "confidence": 0.94,
+          "evidence": "识别到“全麦面包”及其相邻数量",
+          "meal_type": "breakfast",
+          "needs_review": false,
+          "normalized_name": "全麦面包",
+          "raw_name": "全麦面包",
+          "unit": "片"
+        },
+        {
+          "amount": 0.5,
+          "confidence": 0.94,
+          "evidence": "识别到“全脂牛奶”及其相邻数量",
+          "meal_type": "breakfast",
+          "needs_review": false,
+          "normalized_name": "牛奶（全脂）",
+          "raw_name": "全脂牛奶",
+          "unit": "杯"
+        }
+      ],
+      "case_id": "breakfast_bread_milk",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 2.0,
+          "meal_type": "breakfast",
+          "normalized_name": "全麦面包",
+          "unit": "片"
+        },
+        {
+          "amount": 0.5,
+          "meal_type": "breakfast",
+          "normalized_name": "牛奶（全脂）",
+          "unit": "杯"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.57,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "全麦面包",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "牛奶（全脂）",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "早上两片全麦面包配半杯全脂牛奶"
+    },
+    {
+      "actual": [
+        {
+          "amount": 2.0,
+          "confidence": 0.94,
+          "evidence": "识别到“豆腐”及其相邻数量",
+          "meal_type": "dinner",
+          "needs_review": false,
+          "normalized_name": "豆腐",
+          "raw_name": "豆腐",
+          "unit": "块"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“黄瓜”及其相邻数量",
+          "meal_type": "dinner",
+          "needs_review": false,
+          "normalized_name": "黄瓜",
+          "raw_name": "黄瓜",
+          "unit": "根"
+        }
+      ],
+      "case_id": "dinner_tofu_cucumber",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 2.0,
+          "meal_type": "dinner",
+          "normalized_name": "豆腐",
+          "unit": "块"
+        },
+        {
+          "amount": 1.0,
+          "meal_type": "dinner",
+          "normalized_name": "黄瓜",
+          "unit": "根"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.6,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "豆腐",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "黄瓜",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "晚饭吃了两块豆腐和一根黄瓜"
+    },
+    {
+      "actual": [
+        {
+          "amount": 2.0,
+          "confidence": 0.94,
+          "evidence": "识别到“巧克力”及其相邻数量",
+          "meal_type": "snack",
+          "needs_review": false,
+          "normalized_name": "巧克力",
+          "raw_name": "巧克力",
+          "unit": "块"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“薯片”及其相邻数量",
+          "meal_type": "snack",
+          "needs_review": false,
+          "normalized_name": "薯片",
+          "raw_name": "薯片",
+          "unit": "小包"
+        }
+      ],
+      "case_id": "snack_chips_chocolate",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 1.0,
+          "meal_type": "snack",
+          "normalized_name": "薯片",
+          "unit": "小包"
+        },
+        {
+          "amount": 2.0,
+          "meal_type": "snack",
+          "normalized_name": "巧克力",
+          "unit": "块"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.62,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "薯片",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "巧克力",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "零食吃了一包薯片和两块巧克力"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“苹果”，未检测到数量，暂按 1个",
+          "meal_type": "breakfast",
+          "needs_review": true,
+          "normalized_name": "苹果",
+          "raw_name": "苹果",
+          "unit": "个"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“橙子”，未检测到数量，暂按 1个",
+          "meal_type": "breakfast",
+          "needs_review": true,
+          "normalized_name": "橙子",
+          "raw_name": "橙子",
+          "unit": "个"
+        }
+      ],
+      "case_id": "breakfast_fruit_missing_quantities",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 1.0,
+          "meal_type": "breakfast",
+          "normalized_name": "苹果",
+          "unit": "个"
+        },
+        {
+          "amount": 1.0,
+          "meal_type": "breakfast",
+          "normalized_name": "橙子",
+          "unit": "个"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.46,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "苹果",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "橙子",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "早餐吃了苹果和橙子"
+    },
+    {
+      "actual": [
+        {
+          "amount": 2.0,
+          "confidence": 0.94,
+          "evidence": "识别到“白米饭”及其相邻数量",
+          "meal_type": "dinner",
+          "needs_review": false,
+          "normalized_name": "白米饭",
+          "raw_name": "白米饭",
+          "unit": "碗"
+        },
+        {
+          "amount": 150.0,
+          "confidence": 0.94,
+          "evidence": "识别到“瘦猪肉”及其相邻数量",
+          "meal_type": "dinner",
+          "needs_review": false,
+          "normalized_name": "猪肉（瘦）",
+          "raw_name": "瘦猪肉",
+          "unit": "g"
+        }
+      ],
+      "case_id": "dinner_pork_rice",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 150.0,
+          "meal_type": "dinner",
+          "normalized_name": "猪肉（瘦）",
+          "unit": "g"
+        },
+        {
+          "amount": 2.0,
+          "meal_type": "dinner",
+          "normalized_name": "白米饭",
+          "unit": "碗"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.45,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "猪肉（瘦）",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "白米饭",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "晚上150克瘦猪肉和两碗白米饭"
+    },
+    {
+      "actual": [
+        {
+          "amount": 200.0,
+          "confidence": 0.94,
+          "evidence": "识别到“西红柿”及其相邻数量",
+          "meal_type": "lunch",
+          "needs_review": false,
+          "normalized_name": "番茄",
+          "raw_name": "西红柿",
+          "unit": "g"
+        }
+      ],
+      "case_id": "meal_hint_tomato_grams",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 200.0,
+          "meal_type": "lunch",
+          "normalized_name": "番茄",
+          "unit": "g"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.25,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "番茄",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "吃了200克西红柿"
+    },
+    {
+      "actual": [],
+      "case_id": "no_food_weather",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.04,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "今天天气不错，出去散步了"
+    },
+    {
+      "actual": [],
+      "case_id": "no_food_water_exercise",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.03,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "今天运动了四十分钟，记得多喝水"
+    },
+    {
+      "actual": [
+        {
+          "amount": 12.0,
+          "confidence": 0.94,
+          "evidence": "识别到“猪肉”及其相邻数量",
+          "meal_type": "lunch",
+          "needs_review": false,
+          "normalized_name": "猪肉（瘦）",
+          "raw_name": "猪肉",
+          "unit": "个"
+        }
+      ],
+      "case_id": "unknown_dumplings",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "amount": 12.0,
+          "meal_type": "lunch",
+          "normalized_name": "猪肉饺子",
+          "unit": "个"
+        }
+      ],
+      "false_negative_names": [
+        "猪肉饺子"
+      ],
+      "false_positive_names": [
+        "猪肉（瘦）"
+      ],
+      "input_tokens": 0,
+      "latency_ms": 0.26,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "午饭吃了12个猪肉饺子"
+    },
+    {
+      "actual": [],
+      "case_id": "unknown_branded_milk_tea",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "amount": 1.0,
+          "meal_type": "drink",
+          "normalized_name": "伯牙绝弦",
+          "unit": "杯"
+        }
+      ],
+      "false_negative_names": [
+        "伯牙绝弦"
+      ],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.11,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "下午喝了一杯霸王茶姬伯牙绝弦"
+    },
+    {
+      "actual": [],
+      "case_id": "unknown_fried_chicken",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "amount": 1.0,
+          "meal_type": "dinner",
+          "normalized_name": "炸鸡",
+          "unit": "份"
+        }
+      ],
+      "false_negative_names": [
+        "炸鸡"
+      ],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.09,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "晚餐吃了一份炸鸡"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“米饭”及其相邻数量",
+          "meal_type": "lunch",
+          "needs_review": false,
+          "normalized_name": "白米饭",
+          "raw_name": "米饭",
+          "unit": "碗"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“豆腐”，未检测到数量，暂按 1块",
+          "meal_type": "lunch",
+          "needs_review": true,
+          "normalized_name": "豆腐",
+          "raw_name": "豆腐",
+          "unit": "块"
+        }
+      ],
+      "case_id": "dish_name_not_ingredient",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "amount": 1.0,
+          "meal_type": "lunch",
+          "normalized_name": "白米饭",
+          "unit": "碗"
+        },
+        {
+          "amount": 1.0,
+          "meal_type": "lunch",
+          "normalized_name": "麻婆豆腐",
+          "unit": "份"
+        }
+      ],
+      "false_negative_names": [
+        "麻婆豆腐"
+      ],
+      "false_positive_names": [
+        "豆腐"
+      ],
+      "input_tokens": 0,
+      "latency_ms": 0.1,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "白米饭",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "午餐一碗米饭和一份麻婆豆腐"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“面包”，未检测到数量，暂按 1片",
+          "meal_type": "dinner",
+          "needs_review": true,
+          "normalized_name": "全麦面包",
+          "raw_name": "面包",
+          "unit": "片"
+        }
+      ],
+      "case_id": "generic_bread_not_wholewheat",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "amount": 1.0,
+          "meal_type": "dinner",
+          "normalized_name": "普通面包",
+          "unit": "片"
+        }
+      ],
+      "false_negative_names": [
+        "普通面包"
+      ],
+      "false_positive_names": [
+        "全麦面包"
+      ],
+      "input_tokens": 0,
+      "latency_ms": 0.41,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "晚上吃了一片普通面包"
+    },
+    {
+      "actual": [
+        {
+          "amount": 300.0,
+          "confidence": 0.94,
+          "evidence": "识别到“水煮鸡胸肉”及其相邻数量",
+          "meal_type": "dinner",
+          "needs_review": false,
+          "normalized_name": "鸡胸肉（水煮）",
+          "raw_name": "水煮鸡胸肉",
+          "unit": "g"
+        }
+      ],
+      "case_id": "kilogram_chicken_conversion",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 300.0,
+          "meal_type": "dinner",
+          "normalized_name": "鸡胸肉（水煮）",
+          "unit": "g"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.55,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "鸡胸肉（水煮）",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "晚饭0.3kg水煮鸡胸肉"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“苹果”及其相邻数量",
+          "meal_type": "snack",
+          "needs_review": false,
+          "normalized_name": "苹果",
+          "raw_name": "苹果",
+          "unit": "个"
+        },
+        {
+          "amount": 2.0,
+          "confidence": 0.94,
+          "evidence": "识别到“香蕉”及其相邻数量",
+          "meal_type": "snack",
+          "needs_review": false,
+          "normalized_name": "香蕉",
+          "raw_name": "香蕉",
+          "unit": "根"
+        }
+      ],
+      "case_id": "chinese_quantity_fruits",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 2.0,
+          "meal_type": "snack",
+          "normalized_name": "香蕉",
+          "unit": "根"
+        },
+        {
+          "amount": 1.0,
+          "meal_type": "snack",
+          "normalized_name": "苹果",
+          "unit": "个"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.11,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "香蕉",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "苹果",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "加餐两根香蕉和一个苹果"
+    },
+    {
+      "actual": [],
+      "case_id": "unknown_americano",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "amount": 1.0,
+          "meal_type": "drink",
+          "normalized_name": "冰美式咖啡",
+          "unit": "杯"
+        }
+      ],
+      "false_negative_names": [
+        "冰美式咖啡"
+      ],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.04,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "喝了一杯冰美式咖啡"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“牛肉”，未检测到数量，暂按 1份",
+          "meal_type": "dinner",
+          "needs_review": true,
+          "normalized_name": "牛肉（瘦）",
+          "raw_name": "牛肉",
+          "unit": "份"
+        }
+      ],
+      "case_id": "dinner_beef_missing_quantity",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "amount": 1.0,
+          "meal_type": "dinner",
+          "normalized_name": "牛肉（瘦）",
+          "unit": "份"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.39,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "牛肉（瘦）",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "晚餐吃了牛肉"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“鸡蛋”，未检测到数量，暂按 1个",
+          "meal_type": "breakfast",
+          "needs_review": true,
+          "normalized_name": "鸡蛋（煮）",
+          "raw_name": "鸡蛋",
+          "unit": "个"
+        }
+      ],
+      "case_id": "negated_egg",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [],
+      "false_negative_names": [],
+      "false_positive_names": [
+        "鸡蛋（煮）"
+      ],
+      "input_tokens": 0,
+      "latency_ms": 0.05,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "早餐没吃鸡蛋，只喝了水"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“牛奶”，未检测到数量，暂按 1杯",
+          "meal_type": "snack",
+          "needs_review": true,
+          "normalized_name": "牛奶（全脂）",
+          "raw_name": "牛奶",
+          "unit": "杯"
+        }
+      ],
+      "case_id": "allergy_not_consumption",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [],
+      "false_negative_names": [],
+      "false_positive_names": [
+        "牛奶（全脂）"
+      ],
+      "input_tokens": 0,
+      "latency_ms": 0.04,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "我对牛奶过敏，不能喝牛奶"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“苹果”及其相邻数量",
+          "meal_type": "breakfast",
+          "needs_review": false,
+          "normalized_name": "苹果",
+          "raw_name": "苹果",
+          "unit": "个"
+        }
+      ],
+      "case_id": "future_plan_not_consumption",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [],
+      "false_negative_names": [],
+      "false_positive_names": [
+        "苹果"
+      ],
+      "input_tokens": 0,
+      "latency_ms": 0.05,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "计划明天早餐吃一个苹果"
+    }
+  ],
+  "dataset_version": "food-text-zh-cn-v1.0.0",
+  "generated_at": "2026-07-18T16:40:56.179084Z",
+  "metrics": {
+    "amount_accuracy": 1.0,
+    "average_tokens_per_case": 0.0,
+    "case_exact_match_rate": 0.6538,
+    "entity_f1": 0.8125,
+    "entity_precision": 0.8125,
+    "entity_recall": 0.8125,
+    "estimated_average_cost_usd": null,
+    "estimated_total_cost_usd": null,
+    "failed_cases": 0,
+    "false_negative_entities": 6,
+    "false_positive_entities": 6,
+    "meal_type_accuracy": 1.0,
+    "p50_latency_ms": 0.26,
+    "p95_latency_ms": 0.92,
+    "request_success_rate": 1.0,
+    "sample_count": 26,
+    "schema_evaluated_cases": 26,
+    "schema_validity_rate": 1.0,
+    "successful_cases": 26,
+    "total_input_tokens": 0,
+    "total_output_tokens": 0,
+    "true_positive_entities": 26,
+    "unit_accuracy": 1.0
+  },
+  "model": "rule-based-v1",
+  "prompt_version": "rule-food-text-v1.0.0",
+  "provider": "rule_based_v1",
+  "report_schema_version": "1.0"
+}

@@ -1,0 +1,3735 @@
+{
+  "components": {
+    "schemas": {
+      "ActivityLevel": {
+        "enum": [
+          "sedentary",
+          "light",
+          "moderate",
+          "active",
+          "very_active"
+        ],
+        "title": "ActivityLevel",
+        "type": "string"
+      },
+      "AiCredentialStatusResponse": {
+        "properties": {
+          "configured": {
+            "title": "Configured",
+            "type": "boolean"
+          },
+          "key_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key Hint"
+          },
+          "provider": {
+            "const": "openai",
+            "default": "openai",
+            "title": "Provider",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "configured"
+        ],
+        "title": "AiCredentialStatusResponse",
+        "type": "object"
+      },
+      "AiCredentialUpsertRequest": {
+        "properties": {
+          "api_key": {
+            "format": "password",
+            "maxLength": 500,
+            "minLength": 20,
+            "title": "Api Key",
+            "type": "string",
+            "writeOnly": true
+          }
+        },
+        "required": [
+          "api_key"
+        ],
+        "title": "AiCredentialUpsertRequest",
+        "type": "object"
+      },
+      "AiMetricsResponse": {
+        "properties": {
+          "average_latency_ms": {
+            "minimum": 0.0,
+            "title": "Average Latency Ms",
+            "type": "number"
+          },
+          "estimated_cost_usd": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Estimated Cost Usd",
+            "type": "string"
+          },
+          "failed_calls": {
+            "minimum": 0.0,
+            "title": "Failed Calls",
+            "type": "integer"
+          },
+          "fallback_calls": {
+            "minimum": 0.0,
+            "title": "Fallback Calls",
+            "type": "integer"
+          },
+          "successful_calls": {
+            "minimum": 0.0,
+            "title": "Successful Calls",
+            "type": "integer"
+          },
+          "total_calls": {
+            "minimum": 0.0,
+            "title": "Total Calls",
+            "type": "integer"
+          },
+          "total_input_tokens": {
+            "minimum": 0.0,
+            "title": "Total Input Tokens",
+            "type": "integer"
+          },
+          "total_output_tokens": {
+            "minimum": 0.0,
+            "title": "Total Output Tokens",
+            "type": "integer"
+          },
+          "total_tokens": {
+            "minimum": 0.0,
+            "title": "Total Tokens",
+            "type": "integer"
+          },
+          "unpriced_calls": {
+            "minimum": 0.0,
+            "title": "Unpriced Calls",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total_calls",
+          "successful_calls",
+          "fallback_calls",
+          "failed_calls",
+          "average_latency_ms",
+          "total_input_tokens",
+          "total_output_tokens",
+          "total_tokens",
+          "estimated_cost_usd",
+          "unpriced_calls"
+        ],
+        "title": "AiMetricsResponse",
+        "type": "object"
+      },
+      "AiUsage": {
+        "properties": {
+          "estimated_cost_usd": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Cost Usd"
+          },
+          "input_tokens": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Input Tokens",
+            "type": "integer"
+          },
+          "output_tokens": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Output Tokens",
+            "type": "integer"
+          },
+          "total_tokens": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Total Tokens",
+            "type": "integer"
+          }
+        },
+        "title": "AiUsage",
+        "type": "object"
+      },
+      "AssistantAnswerResponse": {
+        "properties": {
+          "answer": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Answer",
+            "type": "string"
+          },
+          "disclaimer": {
+            "default": "仅用于日常饮食记录参考，不构成医疗或营养诊断。",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/AssistantToolEvidence"
+            },
+            "maxItems": 12,
+            "title": "Evidence",
+            "type": "array"
+          },
+          "fallback_used": {
+            "title": "Fallback Used",
+            "type": "boolean"
+          },
+          "latency_ms": {
+            "minimum": 0.0,
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "model": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Model",
+            "type": "string"
+          },
+          "prompt_version": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Prompt Version",
+            "type": "string"
+          },
+          "provider": {
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/AiUsage"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "answer",
+          "provider",
+          "model",
+          "prompt_version",
+          "fallback_used",
+          "latency_ms",
+          "usage",
+          "evidence"
+        ],
+        "title": "AssistantAnswerResponse",
+        "type": "object"
+      },
+      "AssistantConversationCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Title"
+          }
+        },
+        "title": "AssistantConversationCreateRequest",
+        "type": "object"
+      },
+      "AssistantConversationDetailResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "message_count": {
+            "minimum": 0.0,
+            "title": "Message Count",
+            "type": "integer"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/AssistantConversationMessageResponse"
+            },
+            "title": "Messages",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "message_count",
+          "created_at",
+          "updated_at",
+          "messages"
+        ],
+        "title": "AssistantConversationDetailResponse",
+        "type": "object"
+      },
+      "AssistantConversationMessageCreateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "client_message_id": {
+            "format": "uuid",
+            "title": "Client Message Id",
+            "type": "string"
+          },
+          "locale": {
+            "const": "zh-CN",
+            "default": "zh-CN",
+            "title": "Locale",
+            "type": "string"
+          },
+          "question": {
+            "maxLength": 500,
+            "minLength": 2,
+            "title": "Question",
+            "type": "string"
+          },
+          "reference_date": {
+            "format": "date",
+            "title": "Reference Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question",
+          "reference_date",
+          "client_message_id"
+        ],
+        "title": "AssistantConversationMessageCreateRequest",
+        "type": "object"
+      },
+      "AssistantConversationMessageResponse": {
+        "properties": {
+          "client_message_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Client Message Id"
+          },
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "disclaimer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Disclaimer"
+          },
+          "evidence": {
+            "items": {
+              "$ref": "#/components/schemas/AssistantToolEvidence"
+            },
+            "title": "Evidence",
+            "type": "array"
+          },
+          "fallback_used": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Used"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "latency_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latency Ms"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "prompt_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt Version"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          },
+          "reference_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Date"
+          },
+          "role": {
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "sequence": {
+            "minimum": 1.0,
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "client_message_id",
+          "role",
+          "content",
+          "sequence",
+          "reference_date",
+          "provider",
+          "model",
+          "prompt_version",
+          "fallback_used",
+          "latency_ms",
+          "input_tokens",
+          "output_tokens",
+          "trace_id",
+          "evidence",
+          "warnings",
+          "disclaimer",
+          "created_at"
+        ],
+        "title": "AssistantConversationMessageResponse",
+        "type": "object"
+      },
+      "AssistantConversationSummaryResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "message_count": {
+            "minimum": 0.0,
+            "title": "Message Count",
+            "type": "integer"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "message_count",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AssistantConversationSummaryResponse",
+        "type": "object"
+      },
+      "AssistantConversationTurnResponse": {
+        "properties": {
+          "conversation": {
+            "$ref": "#/components/schemas/AssistantConversationDetailResponse"
+          },
+          "replayed": {
+            "default": false,
+            "title": "Replayed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "conversation"
+        ],
+        "title": "AssistantConversationTurnResponse",
+        "type": "object"
+      },
+      "AssistantQuestionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "locale": {
+            "const": "zh-CN",
+            "default": "zh-CN",
+            "title": "Locale",
+            "type": "string"
+          },
+          "question": {
+            "maxLength": 500,
+            "minLength": 2,
+            "title": "Question",
+            "type": "string"
+          },
+          "reference_date": {
+            "format": "date",
+            "title": "Reference Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question",
+          "reference_date"
+        ],
+        "title": "AssistantQuestionRequest",
+        "type": "object"
+      },
+      "AssistantToolEvidence": {
+        "properties": {
+          "call_id": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Call Id",
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Summary",
+            "type": "string"
+          },
+          "tool_name": {
+            "enum": [
+              "get_today_summary",
+              "get_weekly_trend",
+              "search_food"
+            ],
+            "title": "Tool Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "call_id",
+          "tool_name",
+          "summary"
+        ],
+        "title": "AssistantToolEvidence",
+        "type": "object"
+      },
+      "AuthResponse": {
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          },
+          "token_type": {
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          }
+        },
+        "required": [
+          "access_token",
+          "refresh_token",
+          "expires_in",
+          "user"
+        ],
+        "title": "AuthResponse",
+        "type": "object"
+      },
+      "DailySummaryResponse": {
+        "properties": {
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "meal_breakdown": {
+            "$ref": "#/components/schemas/MealBreakdown"
+          },
+          "total_caffeine": {
+            "title": "Total Caffeine",
+            "type": "number"
+          },
+          "total_carbs": {
+            "title": "Total Carbs",
+            "type": "number"
+          },
+          "total_fat": {
+            "title": "Total Fat",
+            "type": "number"
+          },
+          "total_kcal": {
+            "title": "Total Kcal",
+            "type": "number"
+          },
+          "total_protein": {
+            "title": "Total Protein",
+            "type": "number"
+          },
+          "total_sodium": {
+            "title": "Total Sodium",
+            "type": "number"
+          },
+          "total_sugar": {
+            "title": "Total Sugar",
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "total_kcal",
+          "total_protein",
+          "total_fat",
+          "total_carbs",
+          "total_sugar",
+          "total_sodium",
+          "total_caffeine",
+          "meal_breakdown"
+        ],
+        "title": "DailySummaryResponse",
+        "type": "object"
+      },
+      "DailyTargetsResponse": {
+        "properties": {
+          "caffeine": {
+            "default": 400,
+            "title": "Caffeine",
+            "type": "integer"
+          },
+          "carbs": {
+            "title": "Carbs",
+            "type": "integer"
+          },
+          "fat": {
+            "title": "Fat",
+            "type": "integer"
+          },
+          "kcal": {
+            "title": "Kcal",
+            "type": "integer"
+          },
+          "protein": {
+            "title": "Protein",
+            "type": "integer"
+          },
+          "sodium": {
+            "default": 2300,
+            "title": "Sodium",
+            "type": "integer"
+          },
+          "sugar": {
+            "default": 50,
+            "title": "Sugar",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "kcal",
+          "protein",
+          "fat",
+          "carbs"
+        ],
+        "title": "DailyTargetsResponse",
+        "type": "object"
+      },
+      "FoodCreateRequest": {
+        "properties": {
+          "brand": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand"
+          },
+          "caffeine_per_100g": {
+            "default": 0,
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Caffeine Per 100G",
+            "type": "number"
+          },
+          "carbs_per_100g": {
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Carbs Per 100G",
+            "type": "number"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "fat_per_100g": {
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Fat Per 100G",
+            "type": "number"
+          },
+          "kcal_per_100g": {
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Kcal Per 100G",
+            "type": "number"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "protein_per_100g": {
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Protein Per 100G",
+            "type": "number"
+          },
+          "serving_unit": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Serving Unit"
+          },
+          "serving_weight_g": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 100000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Serving Weight G"
+          },
+          "sodium_per_100g": {
+            "default": 0,
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Sodium Per 100G",
+            "type": "number"
+          },
+          "sugar_per_100g": {
+            "default": 0,
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Sugar Per 100G",
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "kcal_per_100g",
+          "protein_per_100g",
+          "fat_per_100g",
+          "carbs_per_100g"
+        ],
+        "title": "FoodCreateRequest",
+        "type": "object"
+      },
+      "FoodResponse": {
+        "properties": {
+          "brand": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand"
+          },
+          "caffeine_per_100g": {
+            "default": 0,
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Caffeine Per 100G",
+            "type": "number"
+          },
+          "carbs_per_100g": {
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Carbs Per 100G",
+            "type": "number"
+          },
+          "category": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Category"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "fat_per_100g": {
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Fat Per 100G",
+            "type": "number"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kcal_per_100g": {
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Kcal Per 100G",
+            "type": "number"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "protein_per_100g": {
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Protein Per 100G",
+            "type": "number"
+          },
+          "serving_unit": {
+            "anyOf": [
+              {
+                "maxLength": 30,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Serving Unit"
+          },
+          "serving_weight_g": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 100000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Serving Weight G"
+          },
+          "sodium_per_100g": {
+            "default": 0,
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Sodium Per 100G",
+            "type": "number"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "sugar_per_100g": {
+            "default": 0,
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Sugar Per 100G",
+            "type": "number"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "kcal_per_100g",
+          "protein_per_100g",
+          "fat_per_100g",
+          "carbs_per_100g",
+          "id",
+          "source",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "FoodResponse",
+        "type": "object"
+      },
+      "FoodTextAnalyzeRequest": {
+        "properties": {
+          "locale": {
+            "const": "zh-CN",
+            "default": "zh-CN",
+            "title": "Locale",
+            "type": "string"
+          },
+          "log_date": {
+            "format": "date",
+            "title": "Log Date",
+            "type": "string"
+          },
+          "meal_type_hint": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MealType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text": {
+            "maxLength": 1000,
+            "minLength": 2,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "log_date"
+        ],
+        "title": "FoodTextAnalyzeRequest",
+        "type": "object"
+      },
+      "FoodTextAnalyzeResponse": {
+        "properties": {
+          "entities": {
+            "items": {
+              "$ref": "#/components/schemas/ParsedFoodEntity"
+            },
+            "maxItems": 20,
+            "title": "Entities",
+            "type": "array"
+          },
+          "fallback_used": {
+            "title": "Fallback Used",
+            "type": "boolean"
+          },
+          "latency_ms": {
+            "minimum": 0.0,
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "model": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Model",
+            "type": "string"
+          },
+          "provider": {
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "requires_confirmation": {
+            "const": true,
+            "default": true,
+            "title": "Requires Confirmation",
+            "type": "boolean"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/AiUsage"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "provider",
+          "model",
+          "fallback_used",
+          "latency_ms",
+          "usage",
+          "entities"
+        ],
+        "title": "FoodTextAnalyzeResponse",
+        "type": "object"
+      },
+      "Gender": {
+        "enum": [
+          "male",
+          "female"
+        ],
+        "title": "Gender",
+        "type": "string"
+      },
+      "Goal": {
+        "enum": [
+          "lose",
+          "maintain",
+          "gain"
+        ],
+        "title": "Goal",
+        "type": "string"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "LogCreateRequest": {
+        "properties": {
+          "amount": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100000.0,
+            "title": "Amount",
+            "type": "number"
+          },
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "custom_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Name"
+          },
+          "food_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Food Item Id"
+          },
+          "log_date": {
+            "format": "date",
+            "title": "Log Date",
+            "type": "string"
+          },
+          "meal_type": {
+            "$ref": "#/components/schemas/MealType"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "nutrition": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NutritionValues"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unit": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "log_date",
+          "meal_type",
+          "amount",
+          "unit",
+          "client_id"
+        ],
+        "title": "LogCreateRequest",
+        "type": "object"
+      },
+      "LogResponse": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "number"
+          },
+          "caffeine": {
+            "title": "Caffeine",
+            "type": "number"
+          },
+          "carbs": {
+            "title": "Carbs",
+            "type": "number"
+          },
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "custom_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Name"
+          },
+          "fat": {
+            "title": "Fat",
+            "type": "number"
+          },
+          "food_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Food Item Id"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "kcal": {
+            "title": "Kcal",
+            "type": "number"
+          },
+          "log_date": {
+            "format": "date",
+            "title": "Log Date",
+            "type": "string"
+          },
+          "meal_type": {
+            "$ref": "#/components/schemas/MealType"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "protein": {
+            "title": "Protein",
+            "type": "number"
+          },
+          "sodium": {
+            "title": "Sodium",
+            "type": "number"
+          },
+          "sugar": {
+            "title": "Sugar",
+            "type": "number"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "client_id",
+          "log_date",
+          "meal_type",
+          "food_item_id",
+          "custom_name",
+          "amount",
+          "unit",
+          "kcal",
+          "protein",
+          "fat",
+          "carbs",
+          "sugar",
+          "sodium",
+          "caffeine",
+          "note",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "LogResponse",
+        "type": "object"
+      },
+      "LogUpdateRequest": {
+        "properties": {
+          "amount": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100000.0,
+            "title": "Amount",
+            "type": "number"
+          },
+          "custom_name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Name"
+          },
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "food_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Food Item Id"
+          },
+          "log_date": {
+            "format": "date",
+            "title": "Log Date",
+            "type": "string"
+          },
+          "meal_type": {
+            "$ref": "#/components/schemas/MealType"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "maxLength": 1000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "nutrition": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NutritionValues"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "unit": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "log_date",
+          "meal_type",
+          "amount",
+          "unit",
+          "expected_version"
+        ],
+        "title": "LogUpdateRequest",
+        "type": "object"
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "type": "object"
+      },
+      "MealBreakdown": {
+        "properties": {
+          "breakfast": {
+            "default": 0,
+            "title": "Breakfast",
+            "type": "number"
+          },
+          "dinner": {
+            "default": 0,
+            "title": "Dinner",
+            "type": "number"
+          },
+          "drink": {
+            "default": 0,
+            "title": "Drink",
+            "type": "number"
+          },
+          "lunch": {
+            "default": 0,
+            "title": "Lunch",
+            "type": "number"
+          },
+          "snack": {
+            "default": 0,
+            "title": "Snack",
+            "type": "number"
+          }
+        },
+        "title": "MealBreakdown",
+        "type": "object"
+      },
+      "MealType": {
+        "enum": [
+          "breakfast",
+          "lunch",
+          "dinner",
+          "snack",
+          "drink"
+        ],
+        "title": "MealType",
+        "type": "string"
+      },
+      "NutritionValues": {
+        "properties": {
+          "caffeine": {
+            "default": 0,
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Caffeine",
+            "type": "number"
+          },
+          "carbs": {
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Carbs",
+            "type": "number"
+          },
+          "fat": {
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Fat",
+            "type": "number"
+          },
+          "kcal": {
+            "maximum": 100000.0,
+            "minimum": 0.0,
+            "title": "Kcal",
+            "type": "number"
+          },
+          "protein": {
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Protein",
+            "type": "number"
+          },
+          "sodium": {
+            "default": 0,
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Sodium",
+            "type": "number"
+          },
+          "sugar": {
+            "default": 0,
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Sugar",
+            "type": "number"
+          }
+        },
+        "required": [
+          "kcal",
+          "protein",
+          "fat",
+          "carbs"
+        ],
+        "title": "NutritionValues",
+        "type": "object"
+      },
+      "ParsedFoodEntity": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100000.0,
+            "title": "Amount",
+            "type": "number"
+          },
+          "confidence": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "evidence": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Evidence",
+            "type": "string"
+          },
+          "meal_type": {
+            "$ref": "#/components/schemas/MealType"
+          },
+          "needs_review": {
+            "title": "Needs Review",
+            "type": "boolean"
+          },
+          "normalized_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Normalized Name",
+            "type": "string"
+          },
+          "raw_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Raw Name",
+            "type": "string"
+          },
+          "unit": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "raw_name",
+          "normalized_name",
+          "amount",
+          "unit",
+          "meal_type",
+          "confidence",
+          "needs_review",
+          "evidence"
+        ],
+        "title": "ParsedFoodEntity",
+        "type": "object"
+      },
+      "ProfileResponse": {
+        "properties": {
+          "activity_level": {
+            "$ref": "#/components/schemas/ActivityLevel"
+          },
+          "age": {
+            "maximum": 120.0,
+            "minimum": 13.0,
+            "title": "Age",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "daily_targets": {
+            "$ref": "#/components/schemas/DailyTargetsResponse"
+          },
+          "gender": {
+            "$ref": "#/components/schemas/Gender"
+          },
+          "goal": {
+            "$ref": "#/components/schemas/Goal"
+          },
+          "height_cm": {
+            "maximum": 250.0,
+            "minimum": 80.0,
+            "title": "Height Cm",
+            "type": "number"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "weight_kg": {
+            "maximum": 400.0,
+            "minimum": 20.0,
+            "title": "Weight Kg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "gender",
+          "age",
+          "height_cm",
+          "weight_kg",
+          "activity_level",
+          "goal",
+          "created_at",
+          "updated_at",
+          "daily_targets"
+        ],
+        "title": "ProfileResponse",
+        "type": "object"
+      },
+      "ProfileUpsertRequest": {
+        "properties": {
+          "activity_level": {
+            "$ref": "#/components/schemas/ActivityLevel"
+          },
+          "age": {
+            "maximum": 120.0,
+            "minimum": 13.0,
+            "title": "Age",
+            "type": "integer"
+          },
+          "gender": {
+            "$ref": "#/components/schemas/Gender"
+          },
+          "goal": {
+            "$ref": "#/components/schemas/Goal"
+          },
+          "height_cm": {
+            "maximum": 250.0,
+            "minimum": 80.0,
+            "title": "Height Cm",
+            "type": "number"
+          },
+          "weight_kg": {
+            "maximum": 400.0,
+            "minimum": 20.0,
+            "title": "Weight Kg",
+            "type": "number"
+          }
+        },
+        "required": [
+          "gender",
+          "age",
+          "height_cm",
+          "weight_kg",
+          "activity_level",
+          "goal"
+        ],
+        "title": "ProfileUpsertRequest",
+        "type": "object"
+      },
+      "PublicRuntimeConfigResponse": {
+        "properties": {
+          "registration_enabled": {
+            "title": "Registration Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "registration_enabled"
+        ],
+        "title": "PublicRuntimeConfigResponse",
+        "type": "object"
+      },
+      "RefreshRequest": {
+        "properties": {
+          "refresh_token": {
+            "maxLength": 512,
+            "minLength": 40,
+            "title": "Refresh Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshRequest",
+        "type": "object"
+      },
+      "RegisterRequest": {
+        "properties": {
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 128,
+            "minLength": 10,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "RegisterRequest",
+        "type": "object"
+      },
+      "SyncChangeResponse": {
+        "properties": {
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "cursor": {
+            "title": "Cursor",
+            "type": "integer"
+          },
+          "log": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LogResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "operation": {
+            "enum": [
+              "upsert",
+              "delete"
+            ],
+            "title": "Operation",
+            "type": "string"
+          },
+          "server_id": {
+            "format": "uuid",
+            "title": "Server Id",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cursor",
+          "operation",
+          "server_id",
+          "client_id",
+          "version",
+          "log"
+        ],
+        "title": "SyncChangeResponse",
+        "type": "object"
+      },
+      "SyncPageResponse": {
+        "properties": {
+          "changes": {
+            "items": {
+              "$ref": "#/components/schemas/SyncChangeResponse"
+            },
+            "title": "Changes",
+            "type": "array"
+          },
+          "has_more": {
+            "title": "Has More",
+            "type": "boolean"
+          },
+          "next_cursor": {
+            "title": "Next Cursor",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "changes",
+          "next_cursor",
+          "has_more"
+        ],
+        "title": "SyncPageResponse",
+        "type": "object"
+      },
+      "TokenResponse": {
+        "properties": {
+          "access_token": {
+            "title": "Access Token",
+            "type": "string"
+          },
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          },
+          "token_type": {
+            "default": "bearer",
+            "title": "Token Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "refresh_token",
+          "expires_in"
+        ],
+        "title": "TokenResponse",
+        "type": "object"
+      },
+      "UserResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "email": {
+            "format": "email",
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "is_demo": {
+            "title": "Is Demo",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "is_active",
+          "is_demo",
+          "created_at"
+        ],
+        "title": "UserResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "WeeklyMetricChanges": {
+        "additionalProperties": false,
+        "properties": {
+          "average_caffeine_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Caffeine Percent"
+          },
+          "average_carbs_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Carbs Percent"
+          },
+          "average_fat_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Fat Percent"
+          },
+          "average_kcal_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Kcal Percent"
+          },
+          "average_protein_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Protein Percent"
+          },
+          "average_sodium_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Sodium Percent"
+          },
+          "average_sugar_percent": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Sugar Percent"
+          }
+        },
+        "required": [
+          "average_kcal_percent",
+          "average_protein_percent",
+          "average_fat_percent",
+          "average_carbs_percent",
+          "average_sugar_percent",
+          "average_sodium_percent",
+          "average_caffeine_percent"
+        ],
+        "title": "WeeklyMetricChanges",
+        "type": "object"
+      },
+      "WeeklyPeriodSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "average_caffeine": {
+            "minimum": 0.0,
+            "title": "Average Caffeine",
+            "type": "number"
+          },
+          "average_carbs": {
+            "minimum": 0.0,
+            "title": "Average Carbs",
+            "type": "number"
+          },
+          "average_fat": {
+            "minimum": 0.0,
+            "title": "Average Fat",
+            "type": "number"
+          },
+          "average_kcal": {
+            "minimum": 0.0,
+            "title": "Average Kcal",
+            "type": "number"
+          },
+          "average_protein": {
+            "minimum": 0.0,
+            "title": "Average Protein",
+            "type": "number"
+          },
+          "average_sodium": {
+            "minimum": 0.0,
+            "title": "Average Sodium",
+            "type": "number"
+          },
+          "average_sugar": {
+            "minimum": 0.0,
+            "title": "Average Sugar",
+            "type": "number"
+          },
+          "coverage_ratio": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Coverage Ratio",
+            "type": "number"
+          },
+          "days_with_records": {
+            "maximum": 7.0,
+            "minimum": 0.0,
+            "title": "Days With Records",
+            "type": "integer"
+          },
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "start_date": {
+            "format": "date",
+            "title": "Start Date",
+            "type": "string"
+          },
+          "total_kcal": {
+            "minimum": 0.0,
+            "title": "Total Kcal",
+            "type": "number"
+          }
+        },
+        "required": [
+          "start_date",
+          "end_date",
+          "days_with_records",
+          "coverage_ratio",
+          "total_kcal",
+          "average_kcal",
+          "average_protein",
+          "average_fat",
+          "average_carbs",
+          "average_sugar",
+          "average_sodium",
+          "average_caffeine"
+        ],
+        "title": "WeeklyPeriodSummary",
+        "type": "object"
+      },
+      "WeeklyReportFacts": {
+        "additionalProperties": false,
+        "properties": {
+          "changes": {
+            "$ref": "#/components/schemas/WeeklyMetricChanges"
+          },
+          "comparison_available": {
+            "title": "Comparison Available",
+            "type": "boolean"
+          },
+          "current": {
+            "$ref": "#/components/schemas/WeeklyPeriodSummary"
+          },
+          "previous": {
+            "$ref": "#/components/schemas/WeeklyPeriodSummary"
+          },
+          "targets": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DailyTargetsResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "current",
+          "previous",
+          "targets",
+          "comparison_available",
+          "changes"
+        ],
+        "title": "WeeklyReportFacts",
+        "type": "object"
+      },
+      "WeeklyReportNarrative": {
+        "additionalProperties": false,
+        "properties": {
+          "actions": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Actions",
+            "type": "array"
+          },
+          "headline": {
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Headline",
+            "type": "string"
+          },
+          "highlights": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 3,
+            "minItems": 1,
+            "title": "Highlights",
+            "type": "array"
+          },
+          "summary": {
+            "maxLength": 500,
+            "minLength": 5,
+            "title": "Summary",
+            "type": "string"
+          }
+        },
+        "required": [
+          "headline",
+          "summary",
+          "highlights",
+          "actions"
+        ],
+        "title": "WeeklyReportNarrative",
+        "type": "object"
+      },
+      "WeeklyReportRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "end_date": {
+            "format": "date",
+            "title": "End Date",
+            "type": "string"
+          },
+          "locale": {
+            "const": "zh-CN",
+            "default": "zh-CN",
+            "title": "Locale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "end_date"
+        ],
+        "title": "WeeklyReportRequest",
+        "type": "object"
+      },
+      "WeeklyReportResponse": {
+        "properties": {
+          "data_fingerprint": {
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Data Fingerprint",
+            "type": "string"
+          },
+          "disclaimer": {
+            "default": "仅用于日常饮食记录参考，不构成医疗或营养诊断。",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "facts": {
+            "$ref": "#/components/schemas/WeeklyReportFacts"
+          },
+          "fallback_used": {
+            "title": "Fallback Used",
+            "type": "boolean"
+          },
+          "latency_ms": {
+            "minimum": 0.0,
+            "title": "Latency Ms",
+            "type": "integer"
+          },
+          "model": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Model",
+            "type": "string"
+          },
+          "narrative": {
+            "$ref": "#/components/schemas/WeeklyReportNarrative"
+          },
+          "prompt_version": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Prompt Version",
+            "type": "string"
+          },
+          "provider": {
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Provider",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": "1.0",
+            "default": "1.0",
+            "title": "Schema Version",
+            "type": "string"
+          },
+          "trace_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Trace Id"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/AiUsage"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "provider",
+          "model",
+          "prompt_version",
+          "fallback_used",
+          "latency_ms",
+          "usage",
+          "data_fingerprint",
+          "facts",
+          "narrative"
+        ],
+        "title": "WeeklyReportResponse",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "scheme": "bearer",
+        "type": "http"
+      }
+    }
+  },
+  "info": {
+    "title": "NutriPilot API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Root  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Root",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/v1/ai/assistant/conversations": {
+      "get": {
+        "operationId": "read_assistant_conversations_api_v1_ai_assistant_conversations_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AssistantConversationSummaryResponse"
+                  },
+                  "title": "Response Read Assistant Conversations Api V1 Ai Assistant Conversations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Assistant Conversations",
+        "tags": [
+          "ai"
+        ]
+      },
+      "post": {
+        "operationId": "add_assistant_conversation_api_v1_ai_assistant_conversations_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantConversationCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantConversationDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Assistant Conversation",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/assistant/conversations/{conversation_id}": {
+      "delete": {
+        "operationId": "remove_assistant_conversation_api_v1_ai_assistant_conversations__conversation_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Assistant Conversation",
+        "tags": [
+          "ai"
+        ]
+      },
+      "get": {
+        "operationId": "read_assistant_conversation_api_v1_ai_assistant_conversations__conversation_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantConversationDetailResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Assistant Conversation",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/assistant/conversations/{conversation_id}/messages": {
+      "post": {
+        "operationId": "add_assistant_message_api_v1_ai_assistant_conversations__conversation_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "conversation_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Conversation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantConversationMessageCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantConversationTurnResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Assistant Message",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/assistant:answer": {
+      "post": {
+        "operationId": "answer_question_api_v1_ai_assistant_answer_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssistantQuestionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AssistantAnswerResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Answer Question",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/credentials": {
+      "delete": {
+        "operationId": "remove_ai_credential_api_v1_ai_credentials_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Ai Credential",
+        "tags": [
+          "ai"
+        ]
+      },
+      "get": {
+        "operationId": "read_ai_credential_api_v1_ai_credentials_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiCredentialStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Ai Credential",
+        "tags": [
+          "ai"
+        ]
+      },
+      "put": {
+        "operationId": "upsert_ai_credential_api_v1_ai_credentials_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiCredentialUpsertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiCredentialStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Upsert Ai Credential",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/food-text:analyze": {
+      "post": {
+        "operationId": "analyze_text_api_v1_ai_food_text_analyze_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FoodTextAnalyzeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FoodTextAnalyzeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Analyze Text",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/metrics": {
+      "get": {
+        "operationId": "read_ai_metrics_api_v1_ai_metrics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AiMetricsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Ai Metrics",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/reports/weekly:generate": {
+      "post": {
+        "operationId": "create_weekly_report_api_v1_ai_reports_weekly_generate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WeeklyReportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyReportResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Weekly Report",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "login_api_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "log_out_api_v1_auth_logout_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Log Out",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "operationId": "refresh_api_v1_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Refresh",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "operationId": "register_api_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Register",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/foods": {
+      "get": {
+        "operationId": "search_foods_api_v1_foods_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "query",
+            "required": false,
+            "schema": {
+              "default": "",
+              "maxLength": 200,
+              "title": "Query",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FoodResponse"
+                  },
+                  "title": "Response Search Foods Api V1 Foods Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Search Foods",
+        "tags": [
+          "diet"
+        ]
+      },
+      "post": {
+        "operationId": "add_food_api_v1_foods_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FoodCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FoodResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Food",
+        "tags": [
+          "diet"
+        ]
+      }
+    },
+    "/api/v1/health/live": {
+      "get": {
+        "operationId": "liveness_api_v1_health_live_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Liveness",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "operationId": "readiness_api_v1_health_ready_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Readiness",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/logs": {
+      "get": {
+        "operationId": "read_logs_api_v1_logs_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date_from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Date From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "date_to",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Date To",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 10000,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LogResponse"
+                  },
+                  "title": "Response Read Logs Api V1 Logs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Logs",
+        "tags": [
+          "diet"
+        ]
+      },
+      "post": {
+        "operationId": "add_log_api_v1_logs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Idempotent replay"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "description": "Key conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Add Log",
+        "tags": [
+          "diet"
+        ]
+      }
+    },
+    "/api/v1/logs/{log_id}": {
+      "delete": {
+        "operationId": "remove_log_api_v1_logs__log_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "log_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Log Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expected_version",
+            "required": true,
+            "schema": {
+              "minimum": 1,
+              "title": "Expected Version",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Log",
+        "tags": [
+          "diet"
+        ]
+      },
+      "get": {
+        "operationId": "read_log_api_v1_logs__log_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "log_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Log Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Log",
+        "tags": [
+          "diet"
+        ]
+      },
+      "put": {
+        "operationId": "update_log_api_v1_logs__log_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "log_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Log Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Log",
+        "tags": [
+          "diet"
+        ]
+      }
+    },
+    "/api/v1/meta/config": {
+      "get": {
+        "operationId": "public_runtime_config_api_v1_meta_config_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicRuntimeConfigResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Public Runtime Config",
+        "tags": [
+          "meta"
+        ]
+      }
+    },
+    "/api/v1/stats/daily": {
+      "get": {
+        "operationId": "read_daily_summary_api_v1_stats_daily_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "summary_date",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "Summary Date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailySummaryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Daily Summary",
+        "tags": [
+          "diet"
+        ]
+      }
+    },
+    "/api/v1/sync/changes": {
+      "get": {
+        "operationId": "read_sync_changes_api_v1_sync_changes_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "after",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "After",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncPageResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Sync Changes",
+        "tags": [
+          "diet"
+        ]
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "operationId": "read_current_user_api_v1_users_me_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Current User",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/v1/users/me/profile": {
+      "get": {
+        "operationId": "read_profile_api_v1_users_me_profile_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Profile",
+        "tags": [
+          "users"
+        ]
+      },
+      "put": {
+        "operationId": "put_profile_api_v1_users_me_profile_put",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpsertRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Put Profile",
+        "tags": [
+          "users"
+        ]
+      }
+    }
+  }
+}

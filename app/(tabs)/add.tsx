@@ -24,6 +24,22 @@ export default function AddScreen() {
       <Text style={styles.title}>选择记录类型</Text>
       <Text style={styles.subtitle}>记录今天的每一餐</Text>
 
+      <TouchableOpacity style={styles.aiCard} onPress={() => router.push("/ai-add")}>
+        <View style={styles.aiIcon}>
+          <Ionicons name="sparkles" size={28} color="#6A1B9A" />
+        </View>
+        <View style={styles.aiContent}>
+          <View style={styles.aiTitleRow}>
+            <Text style={styles.aiTitle}>AI 自然语言记录</Text>
+            <Text style={styles.aiBadge}>Phase 2</Text>
+          </View>
+          <Text style={styles.aiDescription}>
+            说一句“午餐吃了200克鸡胸肉和一碗米饭”生成待确认草稿
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color="#9E9E9E" />
+      </TouchableOpacity>
+
       <View style={styles.grid}>
         {mealOptions.map((option) => (
           <TouchableOpacity
@@ -53,6 +69,37 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f5f5f5", padding: 20 },
   title: { fontSize: 24, fontWeight: "bold", color: "#333" },
   subtitle: { fontSize: 14, color: "#666", marginTop: 4, marginBottom: 24 },
+  aiCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 18,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: "#E1BEE7",
+  },
+  aiIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 14,
+    backgroundColor: "#F3E5F5",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  aiContent: { flex: 1 },
+  aiTitleRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  aiTitle: { fontSize: 16, fontWeight: "700", color: "#263238" },
+  aiBadge: {
+    fontSize: 10,
+    color: "#6A1B9A",
+    backgroundColor: "#F3E5F5",
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 5,
+  },
+  aiDescription: { color: "#607D8B", fontSize: 12, lineHeight: 17, marginTop: 5 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   optionCard: {
     width: "47%",

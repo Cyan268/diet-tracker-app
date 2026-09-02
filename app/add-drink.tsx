@@ -1,13 +1,30 @@
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Alert } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  Alert,
+} from "react-native";
 import { router } from "expo-router";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { getBrands, getDrinkNames, getOptionsWithFallback } from "../src/db/repositories/drinkOptionRepository";
+import {
+  getBrands,
+  getDrinkNames,
+  getOptionsWithFallback,
+} from "../src/db/repositories/drinkOptionRepository";
 import { addLog } from "../src/db/repositories/logRepository";
 import { calcDrink } from "../src/features/drink/drinkCalculator";
 import { getToday } from "../src/utils/date";
 import { round } from "../src/utils/number";
 import type { DrinkOption } from "../src/types/drink";
+import { DRINK_CATALOG_VERSION } from "../src/data/drinkCatalog";
+
+function normalizeSearchText(value: string): string {
+  return value.toLocaleLowerCase().replace(/[\s./_-]+/g, "");
+}
 
 export default function AddDrinkScreen() {
   const [brands, setBrands] = useState<string[]>([]);
@@ -25,6 +42,8 @@ export default function AddDrinkScreen() {
   const [selectedToppings, setSelectedToppings] = useState<DrinkOption[]>([]);
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const [brandQuery, setBrandQuery] = useState("");
+  const [drinkQuery, setDrinkQuery] = useState("");
 
   useEffect(() => {
     getBrands().then(setBrands);
@@ -39,6 +58,7 @@ export default function AddDrinkScreen() {
         setSelectedSugar(null);
         setSelectedMilk(null);
         setSelectedToppings([]);
+        setDrinkQuery("");
       });
     }
   }, [selectedBrand]);
@@ -57,7 +77,9 @@ export default function AddDrinkScreen() {
         setToppingOptions(toppings);
         setSelectedSize(sizes[0] ?? null);
         setSelectedSugar(sugars[0] ?? null);
-        setSelectedMilk(null);
+        setSelectedMilk(
+          milks.find((option) => ["无", "按门店默认"].includes(option.optionName)) ?? null
+        );
         setSelectedToppings([]);
       });
     }
@@ -70,8 +92,20 @@ export default function AddDrinkScreen() {
     });
   };
 
-  const otherOptions = [selectedSugar, selectedMilk, ...selectedToppings].filter(Boolean) as DrinkOption[];
+  const otherOptions = [selectedSugar, selectedMilk, ...selectedToppings].filter(
+    Boolean
+  ) as DrinkOption[];
   const calcResult = selectedSize ? calcDrink(selectedSize, otherOptions) : null;
+  const normalizedBrandQuery = normalizeSearchText(brandQuery.trim());
+  const normalizedDrinkQuery = normalizeSearchText(drinkQuery.trim());
+  const filteredBrands = brands.filter((brand) =>
+    normalizeSearchText(brand).includes(normalizedBrandQuery)
+  );
+  const filteredDrinkNames = drinkNames.filter((drinkName) =>
+    normalizeSearchText(drinkName).includes(normalizedDrinkQuery)
+  );
+  const hasFixedNoMilk =
+    milkOptions.length === 1 && ["无", "按门店默认"].includes(milkOptions[0].optionName);
 
   const handleSave = async () => {
     if (!selectedSize || !selectedBrand || !selectedDrink) {
@@ -103,7 +137,7 @@ export default function AddDrinkScreen() {
         note: note || undefined,
       });
       router.back();
-    } catch (e) {
+    } catch {
       Alert.alert("错误", "保存失败，请重试");
     } finally {
       setSaving(false);
@@ -125,7 +159,12 @@ export default function AddDrinkScreen() {
             style={[styles.optionChip, selected?.id === opt.id && styles.optionChipActive]}
             onPress={() => onSelect(opt)}
           >
-            <Text style={[styles.optionChipText, selected?.id === opt.id && styles.optionChipTextActive]}>
+            <Text
+              style={[
+                styles.optionChipText,
+                selected?.id === opt.id && styles.optionChipTextActive,
+              ]}
+            >
               {opt.optionName}
             </Text>
           </TouchableOpacity>
@@ -146,34 +185,70 @@ export default function AddDrinkScreen() {
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.groupTitle}>品牌</Text>
+        <View style={styles.groupHeadingRow}>
+          <Text style={styles.groupTitle}>品牌</Text>
+          <Text style={styles.countText}>{brands.length} 个</Text>
+        </View>
+        <View style={styles.searchBox}>
+          <Ionicons name="search-outline" size={18} color="#999" />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="搜索蜜雪冰城、瑞幸、Manner…"
+            value={brandQuery}
+            onChangeText={setBrandQuery}
+          />
+        </View>
         <View style={styles.optionRow}>
-          {brands.map((b) => (
+          {filteredBrands.map((b) => (
             <TouchableOpacity
               key={b}
               style={[styles.optionChip, selectedBrand === b && styles.optionChipActive]}
               onPress={() => setSelectedBrand(b)}
             >
-              <Text style={[styles.optionChipText, selectedBrand === b && styles.optionChipTextActive]}>{b}</Text>
+              <Text
+                style={[styles.optionChipText, selectedBrand === b && styles.optionChipTextActive]}
+              >
+                {b}
+              </Text>
             </TouchableOpacity>
           ))}
+          {filteredBrands.length === 0 && <Text style={styles.noOption}>没有匹配的品牌</Text>}
         </View>
       </View>
 
       {selectedBrand && (
         <View style={styles.section}>
-          <Text style={styles.groupTitle}>饮品</Text>
+          <View style={styles.groupHeadingRow}>
+            <Text style={styles.groupTitle}>饮品</Text>
+            <Text style={styles.countText}>{drinkNames.length} 款</Text>
+          </View>
+          <View style={styles.searchBox}>
+            <Ionicons name="search-outline" size={18} color="#999" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="搜索该品牌饮品"
+              value={drinkQuery}
+              onChangeText={setDrinkQuery}
+            />
+          </View>
           <View style={styles.optionRow}>
-            {drinkNames.map((d) => (
+            {filteredDrinkNames.map((d) => (
               <TouchableOpacity
                 key={d}
                 style={[styles.optionChip, selectedDrink === d && styles.optionChipActive]}
                 onPress={() => setSelectedDrink(d)}
               >
-                <Text style={[styles.optionChipText, selectedDrink === d && styles.optionChipTextActive]}>{d}</Text>
+                <Text
+                  style={[
+                    styles.optionChipText,
+                    selectedDrink === d && styles.optionChipTextActive,
+                  ]}
+                >
+                  {d}
+                </Text>
               </TouchableOpacity>
             ))}
-            {drinkNames.length === 0 && <Text style={styles.noOption}>暂无饮品</Text>}
+            {filteredDrinkNames.length === 0 && <Text style={styles.noOption}>没有匹配的饮品</Text>}
           </View>
         </View>
       )}
@@ -182,7 +257,21 @@ export default function AddDrinkScreen() {
         <>
           {renderOptionGroup("杯型", sizeOptions, selectedSize, setSelectedSize)}
           {renderOptionGroup("糖度", sugarOptions, selectedSugar, setSelectedSugar)}
-          {renderOptionGroup("奶基", milkOptions, selectedMilk, setSelectedMilk)}
+          {hasFixedNoMilk ? (
+            <View style={styles.group}>
+              <Text style={styles.groupTitle}>奶基</Text>
+              <View style={styles.fixedOptionRow}>
+                <Ionicons name="information-circle-outline" size={18} color="#4CAF50" />
+                <Text style={styles.fixedOptionText}>
+                  {milkOptions[0].optionName === "无"
+                    ? "该饮品默认不加奶"
+                    : "该品牌饮品按门店默认配方记录"}
+                </Text>
+              </View>
+            </View>
+          ) : (
+            renderOptionGroup("奶基", milkOptions, selectedMilk, setSelectedMilk)
+          )}
 
           <View style={styles.group}>
             <Text style={styles.groupTitle}>小料（可多选）</Text>
@@ -195,7 +284,9 @@ export default function AddDrinkScreen() {
                     style={[styles.optionChip, active && styles.optionChipActive]}
                     onPress={() => toggleTopping(t)}
                   >
-                    <Text style={[styles.optionChipText, active && styles.optionChipTextActive]}>{t.optionName}</Text>
+                    <Text style={[styles.optionChipText, active && styles.optionChipTextActive]}>
+                      {t.optionName}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -227,6 +318,10 @@ export default function AddDrinkScreen() {
                   <Text style={styles.previewLabel}>咖啡因(mg)</Text>
                 </View>
               </View>
+              <Text style={styles.estimateNote}>
+                估算值 · 菜单版本 {DRINK_CATALOG_VERSION}
+                。实际数值会因杯型、冷热、糖度和门店配方变化。
+              </Text>
             </View>
           )}
 
@@ -256,9 +351,34 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 4 },
   title: { fontSize: 18, fontWeight: "600", color: "#333" },
-  section: { backgroundColor: "#fff", marginHorizontal: 16, marginTop: 12, padding: 14, borderRadius: 12 },
-  group: { backgroundColor: "#fff", marginHorizontal: 16, marginTop: 12, padding: 14, borderRadius: 12 },
+  section: {
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+  },
+  group: {
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    borderRadius: 12,
+  },
   groupTitle: { fontSize: 14, fontWeight: "600", color: "#333", marginBottom: 10 },
+  groupHeadingRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  countText: { fontSize: 12, color: "#999", marginBottom: 10 },
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    height: 42,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    marginBottom: 10,
+  },
+  searchInput: { flex: 1, fontSize: 14, color: "#333" },
   optionRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   optionChip: {
     paddingHorizontal: 14,
@@ -272,6 +392,8 @@ const styles = StyleSheet.create({
   optionChipText: { fontSize: 13, color: "#666" },
   optionChipTextActive: { color: "#4CAF50", fontWeight: "600" },
   noOption: { fontSize: 13, color: "#ccc" },
+  fixedOptionRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  fixedOptionText: { fontSize: 13, color: "#4F6F52", flex: 1 },
   noteInput: {
     backgroundColor: "#fff",
     marginHorizontal: 16,
@@ -294,6 +416,7 @@ const styles = StyleSheet.create({
   previewItem: { alignItems: "center" },
   previewValue: { fontSize: 20, fontWeight: "bold", color: "#4CAF50" },
   previewLabel: { fontSize: 11, color: "#999", marginTop: 2 },
+  estimateNote: { fontSize: 11, color: "#999", lineHeight: 17, marginTop: 10 },
   saveBtn: {
     backgroundColor: "#4CAF50",
     marginHorizontal: 16,

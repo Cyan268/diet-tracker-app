@@ -1,0 +1,21 @@
+[Unit]
+Description=NutriPilot verified local PostgreSQL backup
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/nutripilot/current
+ExecStart=/usr/bin/python3 /opt/nutripilot/current/scripts/deploy/database_recovery.py backup --env-file /etc/nutripilot/releases/current.env --state-dir /var/lib/nutripilot/release-state --backup-dir /var/lib/nutripilot/backups --keep 7
+TimeoutStartSec=10min
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/nutripilot/backups /var/lib/nutripilot/release-state
+
+[Install]
+WantedBy=multi-user.target

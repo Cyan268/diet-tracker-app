@@ -1,0 +1,109 @@
+{
+  "task": "U1-01",
+  "date": "2026-09-01",
+  "baseCommit": "1991882902d0e8d9befab4c3d3d9f794297e62df",
+  "status": "local_acceptance_complete",
+  "scope": "Local synthetic fixture only; no commit/push, SSH, DNS, production data, paid model call, registry publish, or server mutation.",
+  "artifacts": {
+    "applicationImage": "nutripilot:vps-u1-local",
+    "applicationImageId": "sha256:0dfbd796794deac8af538c1df845c966d154b84e45d468ffa3b90a7aadfcd0a2",
+    "applicationImageInspectSizeBytes": 77093691,
+    "caddyImage": "caddy:2.10.2-alpine",
+    "sourceMounted": false
+  },
+  "preflight": {
+    "topology": "ok",
+    "productionSettings": "ok",
+    "caddyValidateBeforeStartup": "valid",
+    "caddyValidateWhileRunning": "valid",
+    "smokeReadonlyExitCode": 0
+  },
+  "http": {
+    "web": 200,
+    "spa": 200,
+    "wasm": 200,
+    "wasmMime": "application/wasm",
+    "live": 200,
+    "ready": 200,
+    "missingAsset": 404,
+    "missingApi": 404,
+    "authRequired": 401,
+    "registrationClosed": 403,
+    "unknownHost": 421,
+    "bodyLimitAt1100000Bytes": 413,
+    "untrustedCorsGranted": false
+  },
+  "business": {
+    "login": 200,
+    "create": 201,
+    "idempotentReplay": 200,
+    "update": 200,
+    "staleVersion": 409,
+    "delete": 204,
+    "incrementalSync": 200,
+    "logout": 204
+  },
+  "proxySpoofProbe": {
+    "source": "fresh ephemeral container on edge network through Caddy",
+    "rotatedHeaders": ["X-Forwarded-For", "Forwarded"],
+    "statuses": [401, 401, 401, 401, 401, 429]
+  },
+  "dependencyFailure": {
+    "redisStopped": { "databaseReadiness": 200, "login": 503, "restoredHealthy": true },
+    "postgresStopped": { "liveness": 200, "readiness": 503, "restoredHealthy": true }
+  },
+  "restart": {
+    "rounds": 2,
+    "before": "1|58|64|20260831_0009",
+    "after": "1|58|64|20260831_0009",
+    "stable": true
+  },
+  "browser": {
+    "login": "ok",
+    "sqliteAndWasm": "ok",
+    "record": "apple, snack, 1 item, 104 kcal, synthetic note",
+    "persistedAfterReload": true,
+    "foundInPostgres": true,
+    "javascriptErrors": 0,
+    "warnings": ["React Native Web animation used JavaScript fallback"]
+  },
+  "containerSecurity": {
+    "apiUser": "nutripilot",
+    "apiReadOnlyRoot": true,
+    "apiCapDrop": ["ALL"],
+    "apiSecurityOpt": ["no-new-privileges:true"],
+    "apiHostPorts": {},
+    "postgresHostPorts": {},
+    "redisHostPorts": {},
+    "proxyHostPorts": { "80/tcp": "127.0.0.1:8086", "443/tcp": "127.0.0.1:8446" }
+  },
+  "logPrivacy": {
+    "apiContainsSyntheticNote": false,
+    "proxyContainsSyntheticNote": false,
+    "apiContainsDemoEmail": false,
+    "proxyContainsDemoEmail": false
+  },
+  "tests": {
+    "frontend": "23 suites, 72 tests passed; unchanged frontend after this result",
+    "backendFinal": "147 passed, 0 skipped in 16.45s, isolated PostgreSQL migrated to 20260831_0009",
+    "newPreflightRegression": "passed",
+    "ruff": "passed",
+    "caddyConfig": "valid"
+  },
+  "problems": [
+    "Initial npm registry EIDLETIMEOUT and Caddy pull stalls were environmental and later cleared.",
+    "WSL bash had no Docker Desktop integration; Git Bash was used for Windows local acceptance.",
+    "A one-off proxy collided with the live fixed IP; preflight now execs into a running proxy.",
+    "Git Bash rewrote the container Caddy path; the script excludes only that path from MSYS conversion.",
+    "Rate-limit tests shared a visitor bucket; the spoof probe now uses a fresh network source.",
+    "PostgreSQL tests required the guarded database name, a migrated schema, and backend working directory."
+  ],
+  "unverified": [
+    "public TLS, DNS, firewall, and server capacity",
+    "remote CI image scan, registry publish, release mutex, and rollback",
+    "off-host backup and restore",
+    "future cross-origin private image flow",
+    "Native device"
+  ],
+  "runtimeAtHandoff": "Local Compose services intentionally left healthy for user testing; synthetic volumes and ignored fixture retained."
+}
