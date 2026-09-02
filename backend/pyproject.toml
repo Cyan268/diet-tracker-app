@@ -9,7 +9,7 @@ description = "Backend API for NutriPilot"
 requires-python = ">=3.12"
 dependencies = [
   "alembic>=1.16,<2.0",
-  "cryptography>=44,<47",
+  "cryptography>=50.0.1,<51",
   "email-validator>=2.2,<3.0",
   "fastapi>=0.115,<1.0",
   "httpx2>=2.7,<3.0",

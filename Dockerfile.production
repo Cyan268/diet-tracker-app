@@ -33,7 +33,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 COPY backend/requirements-runtime.lock backend/alembic.ini ./
-RUN pip install --upgrade pip && pip install -r requirements-runtime.lock
+RUN pip install --upgrade pip \
+    && pip install -r requirements-runtime.lock \
+    && pip uninstall --yes setuptools \
+    && pip check
 
 COPY backend/app ./app
 COPY backend/migrations ./migrations
