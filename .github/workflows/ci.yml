@@ -86,7 +86,7 @@ jobs:
       - name: Run tests
         run: |
           alembic upgrade head
-          pytest --cov=app --cov-fail-under=70
+          python -m pytest --cov=app --cov-fail-under=70
 
       - name: Render migration SQL
         run: alembic upgrade head --sql
@@ -164,7 +164,7 @@ jobs:
             --output release-artifacts/release-manifest.json
 
       - name: Record vulnerability report
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.RELEASE_IMAGE }}
           format: json
@@ -174,7 +174,7 @@ jobs:
           exit-code: "0"
 
       - name: Enforce vulnerability gate
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.RELEASE_IMAGE }}
           format: table

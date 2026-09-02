@@ -26,7 +26,7 @@
     "pullRequestSecrets": false,
     "pullRequestDeploy": false,
     "imageTag": "github.sha",
-    "scanner": "aquasecurity/trivy-action@0.36.0",
+    "scanner": "aquasecurity/trivy-action@v0.36.0",
     "scanGate": "HIGH,CRITICAL; ignore-unfixed; exit 1",
     "artifactAction": "actions/upload-artifact@v4",
     "manualPublish": "workflow_dispatch plus exact SHA/branch/confirmation/concurrency/production-release environment",

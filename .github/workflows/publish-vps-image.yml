@@ -85,7 +85,7 @@ jobs:
             .
 
       - name: Record vulnerability report before publishing
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.RELEASE_IMAGE }}
           format: json
@@ -95,7 +95,7 @@ jobs:
           exit-code: "0"
 
       - name: Enforce vulnerability gate before publishing
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.RELEASE_IMAGE }}
           format: table
