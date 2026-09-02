@@ -3,11 +3,11 @@
 - 状态：已接受
 - 日期：2026-07-15
 
-> 2026-08-31 审计注记：下面保留原决策背景。全局自增 ID 不等于事务提交顺序；当前 Web 使用 regular transaction 而非 Native 的 exclusive API，已有 Mock 不能证明跨平台并发隔离。两项均进入 [U0 风险清单](../upgrade/RISKS.md) R03/R07，后续 U0-02/U4-01 定义兼容方案并验证。本注记不直接改变 v1 游标契约，也不声称风险已修复。
+> 实现注记：全局自增 ID 不等于事务提交顺序；Web 使用 regular transaction，而 Native 可以使用 exclusive API。Mock 测试不能单独证明跨平台并发隔离，因此 v1 游标契约不能被描述为稳定快照协议。
 
 ## 背景
 
-2026-08-31 实施更新：[U4-01](../upgrade/tasks/U4-01.md) 已为现有日志写入器增加每用户状态行锁，v1 ID 在锁后分配；客户端 Web 使用共享 FIFO 写入队列和 regular transaction，Native 使用同一队列及 exclusive API。Web 实测通过，Native 实测待办。以下“独占事务”历史表述不能扩展到 Web；历史漏拉恢复及新协议仍待 U4-02。
+当前日志写入器使用每用户状态行锁，事件序号在锁后分配；客户端 Web 使用共享 FIFO 写入队列和 regular transaction，Native 使用同一队列及 exclusive API。以下“独占事务”表述不能扩展到 Web；稳定快照和历史缺口恢复协议仍未实现。
 
 Outbox 只能把当前设备的修改推向云端，不能让另一台设备看到变化。按日期反复下载全部记录既浪费流量，也无法表示已删除记录；只依赖 `updated_at` 还会遇到相同时间戳、服务器时钟精度和分页边界问题。
 

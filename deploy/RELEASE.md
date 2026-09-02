@@ -1,6 +1,6 @@
 # NutriPilot 发布、迁移与应用回滚手册
 
-本手册对应 U1-02。它描述可复现的发布控制面，不构成连接生产服务器的授权。公网主机初始化、异地备份恢复、DNS/HTTPS、防火墙和容量验收属于 U1-03。
+本手册描述可复现的发布控制面。公网主机初始化、备份恢复、DNS/HTTPS、防火墙和容量验收仍需由部署者在受控维护窗口中完成。
 
 ## 1. 发布不变量
 
@@ -36,7 +36,7 @@
 
 从 CI 下载 `release-manifest.json`，把 manifest 中的五个 `reference` 原样写入相应 release env；`NUTRIPILOT_RELEASE` 写完整 Git SHA。不要只复制 SHA tag，生产 Compose 必须使用 digest。状态目录和 release env 应仅由部署管理员写入。
 
-首次上线前还必须完成 U1-03 的服务器、域名、旧数据去留和异地备份授权。当前自动备份只验证本机 `.dump` 可被 `pg_restore --list` 读取并绑定 SHA-256；同盘备份不能抵抗磁盘或主机丢失，也不等于执行过恢复。
+首次上线前必须确认服务器、域名、旧数据去留和备份方案。当前自动备份只验证本机 `.dump` 可被 `pg_restore --list` 读取并绑定 SHA-256；同盘备份不能抵抗磁盘或主机丢失，也不等于执行过恢复。
 
 ## 4. 执行发布
 
@@ -83,13 +83,13 @@ python scripts/deploy/release_controller.py rollback \
 
 ## 7. 本地复现
 
-U1-02 fixture 使用独立项目 `nutripilot-u1-release-local`、loopback 8087/8447 和独立卷：
+本地发布 fixture 使用独立项目 `nutripilot-release-test`、loopback 8087/8447 和独立卷：
 
 ```powershell
 node scripts/deploy/init-local-release-test.mjs
 python scripts/deploy/release_controller.py manifest --local <其余参数> --output <manifest>
-python scripts/deploy/release_controller.py apply --local --candidate <manifest> --env-file <env> --state-dir deploy/.local/u1-02/state --smoke-url http://localhost:8087
-python scripts/deploy/release_controller.py rollback --local --env-file <previous-env> --state-dir deploy/.local/u1-02/state --smoke-url http://localhost:8087
+python scripts/deploy/release_controller.py apply --local --candidate <manifest> --env-file <env> --state-dir deploy/.local/release-test/state --smoke-url http://localhost:8087
+python scripts/deploy/release_controller.py rollback --local --env-file <previous-env> --state-dir deploy/.local/release-test/state --smoke-url http://localhost:8087
 ```
 
-`--local` 只放宽 Git SHA/digest 约束，仍校验镜像 ID、Compose 对齐、互斥、Schema、ready 与安全头。完整实测命令、故障和结果见 [U1-02 任务记录](../docs/upgrade/tasks/U1-02.md)。
+`--local` 只放宽 Git SHA/digest 约束，仍校验镜像 ID、Compose 对齐、互斥、Schema、ready 与安全头。

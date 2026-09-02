@@ -1,24 +1,16 @@
 # NutriPilot
 
-NutriPilot 是一个正在演进中的 AI 多模态饮食记录与个性化营养分析平台。
+NutriPilot 是一个开源的 AI 饮食记录与个性化营养分析应用。
 
-项目已具备 Expo 离线记录、FastAPI 后端、认证与增量同步、文本 AI 本地确认、只读助手和营养周报。2026-07-26 完成过 Render 公网演示验收。当前升级重点是持久化草稿与云端原子确认、可靠 Worker、图片分析、同步正确性，以及自有服务器发布和备份恢复；这些升级能力尚未全部实现。
+项目采用 Expo/React Native 前端与 FastAPI 后端，支持离线记录、账号认证、增量同步、自然语言结构化记录、用户自行配置模型 API Key、只读饮食助手和个性化营养周报。服务端使用 PostgreSQL 与 Redis，仓库同时提供本地开发、Render 和单 VPS 容器化部署配置。
 
-2026-08-31 升级起点与实测结果见 [U0 基线](docs/upgrade/BASELINE.md)，后续按 [升级开发计划](docs/UPGRADE_DEVELOPMENT_PLAN.md) 分任务推进。
+## 部署方式
 
-最新进展：[U1-02 安全发布链路](docs/upgrade/tasks/U1-02.md) 已完成本地验收：Git SHA/digest manifest、Trivy CI 门禁、发布互斥、可验证迁移前备份、失败停止和兼容 Schema 的应用回滚。前端 72、真实 PostgreSQL 后端 155 项通过；远程 GitHub workflow/GHCR、公网服务器、异地恢复和 Native 实测仍待完成。
+- 本地开发：根目录 `compose.yaml` 与下文的 Expo/FastAPI 启动说明。
+- Render：根目录 `render.yaml` 提供同源 Web/API Blueprint。
+- 单 VPS：使用 [VPS 部署手册](deploy/README.md)和[发布、迁移与回滚手册](deploy/RELEASE.md)。生产发布使用 Git SHA 和镜像 digest，不在服务器上重新构建镜像。
 
-## 历史公网演示
-
-VPS 生产包见 [部署手册](deploy/README.md)，发布/迁移/回滚见 [release 手册](deploy/RELEASE.md)。[U1-01](docs/upgrade/tasks/U1-01.md) 完成本地生产拓扑，[U1-02](docs/upgrade/tasks/U1-02.md) 完成本地确定性发布和应用回滚；公网 HTTPS、异地备份恢复和服务器容量仍属于 U1-03，不能称新服务器已部署。
-
-2026-07-26 已完成真实验收；2026-08-31 从本机只读探测超时，当前可用性未确认，不能把下面地址视作本轮已通过的在线服务。
-
-- 地址：[https://nutripilot-demo.onrender.com](https://nutripilot-demo.onrender.com)
-- 演示账号：`demo@nutripilot.example`
-- 演示密码：`NutriPilot-Demo-2026!`
-- 共享 Demo 的设计为规则型 Provider，禁止保存个人 API Key；个人账号的用户级 Key 能力已实现，但历史公网配置关闭公开注册。
-- 历史部署使用 Render 免费方案；不要在可重置的共享账号中存真实私人饮食数据。自有服务器部署尚未验收。
+共享演示账号仅用于体验，可能被定期重置；不要在其中保存真实个人信息、私人饮食数据或个人 API Key。部署者可以通过配置关闭公开注册。
 
 ## 当前技术栈
 
@@ -69,7 +61,7 @@ VPS 生产包见 [部署手册](deploy/README.md)，发布/迁移/回滚见 [rel
 
 本项目不是给现有应用简单添加一个聊天框，而是构建一条可靠、可评测的 AI 饮食记录链路：
 
-1. 用户通过自然语言描述饮食；图片为本轮规划，语音不在首轮范围内。
+1. 用户通过自然语言描述饮食；图片分析属于后续能力，当前不处理语音。
 2. AI 返回经过 Schema 校验的结构化记录草稿。
 3. 系统匹配标准食品数据并展示置信度和待确认信息。
 4. 用户确认后，由确定性代码计算营养数据并保存。
@@ -78,15 +70,7 @@ VPS 生产包见 [部署手册](deploy/README.md)，发布/迁移/回滚见 [rel
 
 ## 文档导航
 
-- [升级开发计划](docs/UPGRADE_DEVELOPMENT_PLAN.md)
-- [升级基线与验证证据](docs/upgrade/BASELINE.md)
-- [升级风险登记](docs/upgrade/RISKS.md)
-- [升级六项架构决策与面试要点（U0-02，待实施设计）](docs/upgrade/tasks/U0-02.md)
-- [开发与学习路线](docs/ROADMAP.md)
 - [架构说明](docs/ARCHITECTURE.md)
-- [开发学习日志](docs/LEARNING_LOG.md)
-- [面试问题库](docs/INTERVIEW_QA.md)
-- [项目指标记录](docs/METRICS.md)
 - [AI 评测、回归基线与复现方式](docs/AI_EVALUATION.md)
 - [可追溯 Tool Calling 饮食助手](docs/TOOL_CALLING_ASSISTANT.md)
 - [AI 对话状态与消息持久化](docs/CONVERSATION_STATE.md)
@@ -150,9 +134,13 @@ npm run deploy:smoke -- https://your-deployment.example
 
 Render 免费演示拓扑由根目录的 `render.yaml` 描述。创建真实公网资源前先阅读 [公网发布指南](docs/DEPLOYMENT_RELEASE.md)；该操作需要个人平台账号，并可能涉及免费额度到期或后续费用。
 
-## 当前阶段
+## 已知边界
 
-Phase 0 工程化基线和 Phase 1 全栈离线同步已经完成。Phase 2 已完成自然语言结构化记录的文本闭环、OpenAI Responses Provider、严格 Schema、有限重试、规则降级、用户确认后原子写入、调用指标，以及用户级 API Key 配置。Key 只在设置时提交，后端使用 AES-GCM 按用户加密保存；客户端与查询接口都不会持久化或回传完整 Key。Phase 3 已建立首版脱敏 AI 评测集、Prompt/模型版本记录和自动回归门禁，并完成多轮可追溯 Tool Calling 助手与个性化周报。Phase 4 已完成结构化日志、请求追踪、可选 Sentry SDK、可原子重置的双周演示数据、Redis 演示保护、认证双层限流、可信代理解析、生产预检、非 root 容器、同源 Web/API 生产镜像、Render Blueprint 和公网冒烟脚本，并通过本地生产拓扑与浏览器验收；真实 Sentry 项目、生产告警、实际 HTTPS 公网部署、WAF/验证码和简历材料仍待完成。Android 真机联调暂缓。具体进度和验收标准以 [开发与学习路线](docs/ROADMAP.md) 为准。
+- 当前 AI 记录入口以文本为主，图片分析和持久化后台 Worker 尚未开放。
+- 默认规则 Provider 不产生模型费用；真实模型调用需要用户配置自己的 API Key。
+- 共享 Demo 的限流、配额和重置机制不能替代 WAF、验证码或完整账号风控。
+- 单 VPS 部署是单机架构，不提供高可用；本机备份不能抵抗服务器或系统盘整体丢失。
+- 营养目录中的品牌饮品数据均为估算值，不代表品牌官方配方或所有门店的实时菜单。
 
 ## 免责声明
 

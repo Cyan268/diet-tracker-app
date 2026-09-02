@@ -2,12 +2,12 @@ import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "../..");
-const source = join(root, "deploy/.local/u1-01/config.env");
-const directory = join(root, "deploy/.local/u1-02");
+const source = join(root, "deploy/.local/topology-test/config.env");
+const directory = join(root, "deploy/.local/release-test");
 
 try {
   await access(directory);
-  throw new Error("U1-02 local fixture already exists; refusing to overwrite release state.");
+  throw new Error("Release fixture already exists; refusing to overwrite release state.");
 } catch (error) {
   if (error.code !== "ENOENT") throw error;
 }
@@ -18,7 +18,7 @@ await mkdir(join(directory, "state"), { mode: 0o700 });
 
 function releaseConfig(image, release) {
   const replacements = new Map([
-    ["NUTRIPILOT_PROJECT_NAME", "nutripilot-u1-release-local"],
+    ["NUTRIPILOT_PROJECT_NAME", "nutripilot-release-test"],
     ["NUTRIPILOT_APP_IMAGE", image],
     ["NUTRIPILOT_RELEASE", release],
     ["NUTRIPILOT_HTTP_PORT", "8087"],
@@ -40,13 +40,13 @@ function releaseConfig(image, release) {
 
 await writeFile(
   join(directory, "previous.env"),
-  releaseConfig("nutripilot:vps-u1-02-previous", "u1-02-previous"),
+  releaseConfig("nutripilot:vps-release-previous", "release-test-previous"),
   { flag: "wx", mode: 0o600 }
 );
 await writeFile(
   join(directory, "candidate.env"),
-  releaseConfig("nutripilot:vps-u1-02-candidate", "u1-02-candidate"),
+  releaseConfig("nutripilot:vps-release-candidate", "release-test-candidate"),
   { flag: "wx", mode: 0o600 }
 );
 
-console.log("Created isolated U1-02 release fixture; no secret values were copied or printed.");
+console.log("Created isolated release fixture; no secret values were copied or printed.");
