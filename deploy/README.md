@@ -1,6 +1,6 @@
 # U1：独立 VPS 生产包
 
-本目录不修改现有 Render 服务，也不使用根目录的开发 `compose.yaml`。U1-01 生产包与 U1-02 发布/迁移/应用回滚均已完成本地验收；服务器 HTTPS、异地备份恢复和首次公网验收属于 U1-03。实际结果见 [U1-01](../docs/upgrade/tasks/U1-01.md)、[U1-02](../docs/upgrade/tasks/U1-02.md)和独立的[发布手册](RELEASE.md)。
+本目录提供独立的单 VPS 生产拓扑，不修改 Render 服务，也不与根目录的开发 `compose.yaml` 混用。正式发布、数据库迁移和应用回滚请使用独立的[发布手册](RELEASE.md)。
 
 ## 1. 运行边界
 
@@ -14,7 +14,7 @@
 - 只有 Caddy 发布业务端口。PG、Redis、API 和 Caddy 管理端口 2019 均不发布。
 - edge 连接 Caddy/API 并提供出网；data 为 internal，仅 API、维护容器、PG、Redis 加入。代理不能访问 data 网络。
 - API 固定信任代理 IPv4 `/32`；Caddy 用实际 TCP 对端重建 X-Forwarded-For。Uvicorn 不采信代理头。此配置不支持直接加 CDN/LB；增加一跳须重新验证。
-- 预留独立 Worker 的同镜像契约，但没有启用空壳服务。U3-01 实现入口、租约和健康检查后再添加 Worker 及受限出网。
+- 预留独立 Worker 的同镜像契约，但当前没有启用空壳服务。实现持久任务入口、租约和健康检查后，才能添加 Worker 及受限出网。
 - `maintenance` 在 ops profile 中，只执行显式命令；不随默认 up 启动，也没有固定 edge IP，不会与运行中的 API 抢地址。
 - 单服务器仍是单点，不是高可用。API 单进程，资源限制是初始保护值，不是容量测量结果。
 
@@ -33,7 +33,7 @@ docker build -f Dockerfile.production --target vps \
 
 必须指定 `--target vps`。Dockerfile 的默认最后阶段仍为 render，保留旧 Render 启动契约。VPS Compose 再明确指定 `app.cli.serve_vps`，启动只做静态预检、设置 Schema 就绪要求和启动一个 API 进程，不迁移、不种子、不自动重置。
 
-Dockerfile 支持 NODE_IMAGE/PYTHON_IMAGE 构建参数以固定官方 digest。U1-02 已由 CI/人工发布 workflow 生成全部镜像的 digest manifest、扫描报告和 current/previous 回滚集合；生产执行禁止只写 latest。Compose 中的 PG/Redis tag 只是默认模板，实际 release env 必须与 manifest 的 digest reference 完全一致。
+Dockerfile 支持 NODE_IMAGE/PYTHON_IMAGE 构建参数以固定官方 digest。CI 与人工发布 workflow 会生成全部镜像的 digest manifest、扫描报告和 current/previous 回滚集合；生产执行禁止只写 latest。Compose 中的 PG/Redis tag 只是默认模板，实际 release env 必须与 manifest 的 digest reference 完全一致。
 
 ## 3. 配置与密钥
 
@@ -78,7 +78,7 @@ bash scripts/deploy/smoke-readonly.sh https://YOUR_HOST
 
 预检验证拓扑/配置/挂载读取/Caddy 语法，不验证数据库可达，也不会启动依赖、迁移或初始化；一次性检查可能创建 Compose 网络。API readiness 检查数据库和镜像要求的 Alembic head；缺迁移返回 503。Redis 健康由其独立容器探针及认证失败关闭行为观察，不能用 API readiness=200 表示全部依赖正常。Worker 健康未来单独增加。
 
-迁移失败必须停在失败处，不继续“更新服务”。U1-02 控制器已经实现发布互斥、必要时生成并验证本机备份、失败停止和兼容应用回滚；仍没有生产 restore 或异地上传，恢复验收属于 U1-03。手工执行本节命令不会自动获得控制器保证。
+迁移失败必须停在失败处，不继续“更新服务”。发布控制器实现了发布互斥、必要时生成并验证本机备份、失败停止和兼容应用回滚；当前没有自动异地上传。手工执行本节命令不会自动获得控制器保证。
 
 需要清空共享演示账号时另行明确执行 `python -m app.cli.reset_demo --allow-production`；它会轮换账号身份、使旧 Token 失效。它不是普通重启步骤。禁止对真实用户数据执行 Demo 重置。
 
@@ -88,23 +88,23 @@ bash scripts/deploy/smoke-readonly.sh https://YOUR_HOST
 node scripts/deploy/init-local-test.mjs
 # 再次运行拒绝覆盖已有测试密钥；无需反复初始化。
 docker build -f Dockerfile.production --target vps -t nutripilot:vps-u1-local .
-docker compose --env-file deploy/.local/u1-01/config.env -f deploy/compose.prod.yml --profile ops config --format json | backend/.venv/Scripts/python.exe -m app.cli.vps_topology --local
-docker compose --env-file deploy/.local/u1-01/config.env -f deploy/compose.prod.yml up -d postgres redis
-docker compose --env-file deploy/.local/u1-01/config.env -f deploy/compose.prod.yml run --rm maintenance alembic upgrade head
-docker compose --env-file deploy/.local/u1-01/config.env -f deploy/compose.prod.yml run --rm maintenance python -m app.cli.seed_demo --allow-production
-docker compose --env-file deploy/.local/u1-01/config.env -f deploy/compose.prod.yml up -d api proxy
+docker compose --env-file deploy/.local/topology-test/config.env -f deploy/compose.prod.yml --profile ops config --format json | backend/.venv/Scripts/python.exe -m app.cli.vps_topology --local
+docker compose --env-file deploy/.local/topology-test/config.env -f deploy/compose.prod.yml up -d postgres redis
+docker compose --env-file deploy/.local/topology-test/config.env -f deploy/compose.prod.yml run --rm maintenance alembic upgrade head
+docker compose --env-file deploy/.local/topology-test/config.env -f deploy/compose.prod.yml run --rm maintenance python -m app.cli.seed_demo --allow-production
+docker compose --env-file deploy/.local/topology-test/config.env -f deploy/compose.prod.yml up -d api proxy
 ```
 
 Windows 上不要直接假设 `bash` 是 Git Bash：本机 `C:\Windows\System32\bash.exe` 通常进入 WSL，若未开启 Docker Desktop 的 WSL integration，脚本内会找不到 Docker。可以使用已安装的 Git Bash：
 
 ```powershell
-& 'C:\Program Files\Git\bin\bash.exe' scripts/deploy/preflight.sh deploy/.local/u1-01/config.env --local
+& 'C:\Program Files\Git\bin\bash.exe' scripts/deploy/preflight.sh deploy/.local/topology-test/config.env --local
 & 'C:\Program Files\Git\bin\bash.exe' scripts/deploy/smoke-readonly.sh http://localhost:8086
 ```
 
 预检脚本已经处理 Git Bash 对 `/etc/caddy/Caddyfile` 的路径改写；代理运行时改为在现有容器内 validate，避免一次性容器争抢固定 IP。
 
-配置仅绑定 loopback 8086/8446；本地入口为 `http://localhost:8086`（浏览器安全上下文例外），不证明公网 HTTPS/TLS 验收完成。测试账号为 `demo@nutripilot.example`，密码 `U1-Local-Demo-Only-2026!`，只用于此独立 fixture，严禁用于公网。真实随机密钥保留在被忽略的 `deploy/.local/u1-01`，脚本不打印它们。
+配置仅绑定 loopback 8086/8446；本地入口为 `http://localhost:8086`（浏览器安全上下文例外），不证明公网 HTTPS/TLS 验收完成。测试账号为 `demo@nutripilot.example`，密码 `NutriPilot-Local-Demo-Only-2026!`，只用于此独立 fixture，严禁用于公网。真实随机密钥保留在被忽略的 `deploy/.local/topology-test`，脚本不打印它们。
 
 在 backend 执行 `python scripts/check_vps_local.py --phase http` 或 `--phase business`：前者验证 HTTP/SPA/WASM/安全头/鉴权门禁/请求体上限，后者只对本地测试账号写入合成记录，验证重放、乐观锁及同步墓碑并退出。`spoof` 和依赖停机 phase 是故障实验辅助，需在单独测试网络/受控停机窗口执行；不可针对生产运行。
 
@@ -118,9 +118,9 @@ COOP same-origin、COEP credentialless、nosniff 保留；WASM MIME 由同源 Fa
 
 检查项目至少包括：非法 Host 不路由至 API、CORS 无越权许可、伪造多个 X-Forwarded-For 仍触发同一访客限流桶、不同真实容器来源不被合成一个桶、数据库/Redis/API 无宿主端口、API 连续重启不改账号/日志/Schema。HTTP 冒烟、浏览器 Web SQLite 和真实 HTTPS 是三个不同证据层级。
 
-正式公网发布仍需要 U1-03 的 required reviewer 仓库设置确认、服务器执行、异地备份恢复、HTTPS 和容量证据；本目录和 U1-02 工作流存在不意味着服务器已上线。
+正式公网发布仍需配置 required reviewer、服务器防火墙、DNS/HTTPS、恢复演练和容量检查；仓库中存在部署文件或工作流并不表示某个实例已经上线。
 
-## U1-03 本机备份与隔离恢复
+## 本机备份与隔离恢复
 
 `database_recovery.py` 在活动发布锁内生成 PostgreSQL custom-format dump，先用
 `pg_restore --list` 解析，再记录 SHA-256、不可变 PostgreSQL 镜像以及核心业务表行数。

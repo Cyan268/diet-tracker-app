@@ -82,7 +82,10 @@ def main() -> None:
                 "POST",
                 "/api/v1/auth/login",
                 200,
-                json={"email": "demo@nutripilot.example", "password": "U1-Local-Demo-Only-2026!"},
+                json={
+                    "email": "demo@nutripilot.example",
+                    "password": "NutriPilot-Local-Demo-Only-2026!",
+                },
             ).json()
             client.headers["Authorization"] = "Bearer " + auth["access_token"]
             check("identity", "GET", "/api/v1/users/me", 200)

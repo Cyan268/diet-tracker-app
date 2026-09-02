@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { resolve, join } from "node:path";
 
 const root = resolve(import.meta.dirname, "../..");
-const directory = join(root, "deploy/.local/u1-01");
+const directory = join(root, "deploy/.local/topology-test");
 try {
   await access(directory);
   throw new Error("Local fixture already exists; refusing to overwrite secrets or test data.");
@@ -21,7 +21,7 @@ const files = {
   nutripilot_jwt_secret: randomBytes(32).toString("hex"),
   nutripilot_credential_encryption_key: randomBytes(32).toString("hex"),
   nutripilot_rate_limit_hmac_secret: randomBytes(32).toString("hex"),
-  nutripilot_demo_reset_password: "U1-Local-Demo-Only-2026!",
+  nutripilot_demo_reset_password: "NutriPilot-Local-Demo-Only-2026!",
 };
 for (const [name, value] of Object.entries(files)) {
   // Parent is 0700; readable bind-mounted file for the non-root API container.
@@ -30,9 +30,9 @@ for (const [name, value] of Object.entries(files)) {
 await writeFile(
   join(directory, "config.env"),
   [
-    "NUTRIPILOT_PROJECT_NAME=nutripilot-u1-local",
-    "NUTRIPILOT_APP_IMAGE=nutripilot:vps-u1-local",
-    "NUTRIPILOT_RELEASE=u1-01-local-working-tree",
+    "NUTRIPILOT_PROJECT_NAME=nutripilot-topology-test",
+    "NUTRIPILOT_APP_IMAGE=nutripilot:vps-local",
+    "NUTRIPILOT_RELEASE=topology-test-working-tree",
     "NUTRIPILOT_PUBLIC_HOST=localhost",
     "NUTRIPILOT_SITE_ADDRESS=http://localhost",
     "NUTRIPILOT_BIND_ADDRESS=127.0.0.1",
@@ -48,5 +48,5 @@ await writeFile(
   { flag: "wx", mode: 0o600 }
 );
 console.log(
-  "Created isolated local fixture under deploy/.local/u1-01 (secret values not printed)."
+  "Created isolated local fixture under deploy/.local/topology-test (secret values not printed)."
 );

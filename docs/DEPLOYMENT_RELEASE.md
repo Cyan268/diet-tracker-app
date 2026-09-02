@@ -22,7 +22,7 @@
 - 真实 Sentry 项目、告警、WAF、验证码、自定义域名和持续可用性探测；
 - 免费 PostgreSQL 到期前的数据迁移或付费升级。
 
-因此简历当前只能写“实现可复现的生产发布包并完成本地生产拓扑验收”，不能写“已上线公网生产系统”。
+部署包可复现并不自动证明某个公网实例正在运行；上线状态仍需以目标环境的 HTTPS、健康检查、备份恢复和监控结果为准。
 
 ## 2. 为什么把 Web 与 API 收敛为同源服务
 
@@ -65,7 +65,7 @@ FastAPI release container
 
 ## 3. 平台比较与当前选择
 
-### Render：零费用面试演示首选
+### Render：低成本预览环境
 
 Render 的 Blueprint 可以描述 Docker Web Service、PostgreSQL 和 Redis 兼容的 Key Value；Web Service 提供托管 TLS、健康检查和回滚。免费实例适合 hobby/preview，不适合作为长期生产承诺：
 
