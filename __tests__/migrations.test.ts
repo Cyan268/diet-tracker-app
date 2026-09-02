@@ -16,8 +16,8 @@ function createMockDatabase(currentVersion: number): {
 
 describe("database migrations", () => {
   it("为全新或旧版数据库返回按顺序排列的待执行迁移", () => {
-    expect(getPendingMigrations(0).map((migration) => migration.version)).toEqual([1, 2, 3]);
-    expect(getPendingMigrations(1).map((migration) => migration.version)).toEqual([2, 3]);
+    expect(getPendingMigrations(0).map((migration) => migration.version)).toEqual([1, 2, 3, 4]);
+    expect(getPendingMigrations(1).map((migration) => migration.version)).toEqual([2, 3, 4]);
     expect(getPendingMigrations(LATEST_SCHEMA_VERSION)).toEqual([]);
   });
 

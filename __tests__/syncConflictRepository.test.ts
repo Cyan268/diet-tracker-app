@@ -67,6 +67,7 @@ describe("sync conflict repository", () => {
     const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
     const db = {
       getFirstAsync: jest.fn(async (sql: string) => {
+        if (sql.includes("SELECT id, payload FROM outbox_events")) return null;
         if (sql.includes("FROM sync_conflicts")) return conflict;
         if (sql.includes("FROM outbox_events")) return event;
         if (sql.includes("FROM food_logs")) return local;
@@ -80,15 +81,17 @@ describe("sync conflict repository", () => {
 
     await keepLocalVersion("conflict-1");
 
-    const recreate = runAsync.mock.calls.find(
-      ([sql]) => sql.includes("UPDATE outbox_events") && sql.includes("operation = 'create'")
-    );
+    const recreate = runAsync.mock.calls.find(([sql]) => sql.includes("INSERT INTO outbox_events"));
     expect(recreate).toBeDefined();
-    expect(JSON.parse(recreate?.[1] as string)).toMatchObject({
-      client_id: "local-1",
+    expect(JSON.parse(recreate?.[5] as string)).toMatchObject({
       custom_name: "本机早餐",
     });
-    expect(runAsync.mock.calls.some(([sql]) => sql.includes("server_id = NULL"))).toBe(true);
+    expect(JSON.parse(recreate?.[5] as string).client_id).not.toBe("local-1");
+    expect(
+      runAsync.mock.calls.some(
+        ([sql, serverId]) => sql.includes("remote_client_id") && serverId === null
+      )
+    ).toBe(true);
     expect(runAsync.mock.calls.some(([sql]) => sql.includes("DELETE FROM sync_conflicts"))).toBe(
       true
     );

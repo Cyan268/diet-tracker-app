@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     database_url: str = "postgresql+psycopg://nutripilot:nutripilot@localhost:5432/nutripilot"
     database_echo: bool = False
+    required_schema_revision: str | None = None
     redis_url: str = "redis://localhost:6379/0"
     public_registration_enabled: bool = True
     auth_protection_enabled: bool = True
@@ -41,6 +42,7 @@ class Settings(BaseSettings):
     auth_register_attempts_per_window: int = Field(default=5, ge=1, le=1000)
     auth_visitor_requests_per_window: int = Field(default=30, ge=1, le=5000)
     trusted_proxy_cidrs: list[str] = Field(default_factory=list)
+    vps_proxy_address: str | None = None
     rate_limit_hmac_secret: SecretStr = Field(
         default=SecretStr("development-only-rate-limit-hmac-secret"),
         min_length=32,
@@ -186,4 +188,12 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    return load_settings()
+
+
+def load_settings() -> Settings:
+    """Load optional mounted secrets without changing legacy environment precedence."""
+    directory = os.getenv("NUTRIPILOT_SECRETS_DIR")
+    if directory and not Path(directory).is_dir():
+        raise ValueError("configured secrets directory is unavailable")
+    return Settings(_secrets_dir=directory)

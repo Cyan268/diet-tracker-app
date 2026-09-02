@@ -31,6 +31,8 @@ async def run() -> None:
     settings = get_settings()
     validate_seed_environment(settings.environment, args.allow_production)
     password = os.getenv("NUTRIPILOT_DEMO_PASSWORD")
+    if password is None and settings.demo_reset_password is not None:
+        password = settings.demo_reset_password.get_secret_value()
     if password is None:
         raise RuntimeError("NUTRIPILOT_DEMO_PASSWORD must be set")
     anchor_date = args.anchor_date or resolve_demo_anchor_date(settings)

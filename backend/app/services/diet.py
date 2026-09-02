@@ -9,7 +9,7 @@ from sqlalchemy import delete, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import FoodItem, FoodLog, SyncChange, UserProfile
+from app.models import FoodItem, FoodLog, UserProfile
 from app.repositories.diet import (
     get_log,
     get_log_by_client_id,
@@ -21,11 +21,11 @@ from app.schemas.diet import (
     FoodCreateRequest,
     LogContent,
     LogCreateRequest,
-    LogResponse,
     MealBreakdown,
     NutritionValues,
 )
 from app.schemas.profile import DailyTargetsResponse, ProfileUpsertRequest
+from app.services.log_changes import lock_user_sync_state, record_log_change
 
 
 class ResourceNotFoundError(ValueError):
@@ -53,22 +53,6 @@ class NutritionSnapshot:
     sugar: Decimal
     sodium: Decimal
     caffeine: Decimal
-
-
-def _record_log_change(session: AsyncSession, log: FoodLog, operation: str) -> None:
-    payload = None
-    if operation == "upsert":
-        payload = LogResponse.model_validate(log).model_dump(mode="json")
-    session.add(
-        SyncChange(
-            user_id=log.user_id,
-            aggregate_id=log.id,
-            client_id=log.client_id,
-            operation=operation,
-            version=log.version,
-            payload=payload,
-        )
-    )
 
 
 def _decimal(value: float | Decimal) -> Decimal:
@@ -186,6 +170,7 @@ async def create_log(
     user_id: UUID,
     request: LogCreateRequest,
 ) -> tuple[FoodLog, bool]:
+    state = await lock_user_sync_state(session, user_id)
     payload_hash = _fingerprint(request)
     existing = await get_log_by_client_id(session, user_id, request.client_id)
     if existing is not None:
@@ -206,7 +191,7 @@ async def create_log(
     try:
         await session.flush()
         await session.refresh(log)
-        _record_log_change(session, log, "upsert")
+        record_log_change(session, state, log, "upsert")
         await session.commit()
     except IntegrityError as error:
         await session.rollback()
@@ -225,6 +210,7 @@ async def replace_log(
     expected_version: int,
     content: LogContent,
 ) -> FoodLog:
+    state = await lock_user_sync_state(session, user_id)
     if await get_log(session, log_id, user_id) is None:
         raise ResourceNotFoundError
     snapshot = await _resolve_snapshot(session, user_id, content)
@@ -245,7 +231,7 @@ async def replace_log(
     if updated is None:
         raise ResourceNotFoundError
     await session.refresh(updated)
-    _record_log_change(session, updated, "upsert")
+    record_log_change(session, state, updated, "upsert")
     await session.commit()
     await session.refresh(updated)
     return updated
@@ -257,6 +243,7 @@ async def delete_log(
     log_id: UUID,
     expected_version: int,
 ) -> None:
+    state = await lock_user_sync_state(session, user_id)
     existing = await get_log(session, log_id, user_id)
     if existing is None:
         raise ResourceNotFoundError
@@ -270,7 +257,7 @@ async def delete_log(
     if result.rowcount != 1:
         await session.rollback()
         raise VersionConflictError
-    _record_log_change(session, existing, "delete")
+    record_log_change(session, state, existing, "delete")
     await session.commit()
 
 

@@ -1,6 +1,6 @@
 import type { AuthUser } from "@/api/types";
 import { ApiError } from "@/api/http";
-import { AuthSession, type SessionStatus } from "./authSession";
+import { AuthSession, SessionChangedError, type SessionStatus } from "./authSession";
 import { SecureSessionStorage } from "./secureSessionStorage";
 import { syncPendingEvents, type SyncResult } from "@/features/sync/outboxSyncService";
 import { activateLocalAccount, clearLocalAccount } from "@/db/accountScope";
@@ -39,11 +39,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [lastSyncAt, setLastSyncAt] = useState<number | null>(null);
+  const viewEpoch = useRef(0);
 
   useEffect(() => {
+    const operation = ++viewEpoch.current;
     session
       .restore()
       .then((snapshot) => {
+        if (operation !== viewEpoch.current) return;
         if (!snapshot.user) {
           clearLocalAccount();
           setUser(null);
@@ -51,11 +54,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
           return;
         }
         return activateLocalAccount(snapshot.user.id).then(() => {
+          if (operation !== viewEpoch.current) return;
           setUser(snapshot.user);
           setStatus(snapshot.status);
         });
       })
       .catch(() => {
+        if (operation !== viewEpoch.current) return;
+        clearLocalAccount();
         setUser(null);
         setStatus("unauthenticated");
       });
@@ -63,8 +69,16 @@ export function AuthProvider({ children }: PropsWithChildren) {
 
   const authenticate = useCallback(
     async (mode: "login" | "register", email: string, password: string) => {
+      const operation = ++viewEpoch.current;
+      clearLocalAccount();
+      setUser(null);
+      setStatus("unauthenticated");
+      setLastSyncAt(null);
+      setSyncing(false);
       const authenticatedUser = await session[mode](email, password);
+      if (operation !== viewEpoch.current) throw new SessionChangedError();
       await activateLocalAccount(authenticatedUser.id);
+      if (operation !== viewEpoch.current) throw new SessionChangedError();
       setUser(authenticatedUser);
       setStatus("authenticated");
     },
@@ -80,33 +94,39 @@ export function AuthProvider({ children }: PropsWithChildren) {
     [authenticate]
   );
   const logout = useCallback(async () => {
-    await session.logout();
+    ++viewEpoch.current;
     clearLocalAccount();
     setUser(null);
     setLastSyncAt(null);
     setStatus("unauthenticated");
+    setSyncing(false);
+    await session.logout();
   }, [session]);
   const apiRequest = useCallback(
     <T,>(path: string, init?: RequestInit) => session.request<T>(path, init),
     [session]
   );
   const syncNow = useCallback(async () => {
+    const operation = viewEpoch.current;
     setSyncing(true);
     try {
       const result = await syncPendingEvents(session);
+      if (operation !== viewEpoch.current) throw new SessionChangedError();
       if (!result.pullFailed) setStatus("authenticated");
       setLastSyncAt(Date.now());
       return result;
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        await session.logout();
+      if (operation === viewEpoch.current && error instanceof ApiError && error.status === 401) {
+        ++viewEpoch.current;
         clearLocalAccount();
         setUser(null);
         setStatus("unauthenticated");
+        setSyncing(false);
+        await session.logout();
       }
       throw error;
     } finally {
-      setSyncing(false);
+      if (operation === viewEpoch.current) setSyncing(false);
     }
   }, [session]);
 

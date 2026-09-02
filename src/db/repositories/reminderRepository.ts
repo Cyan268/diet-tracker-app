@@ -1,6 +1,7 @@
 import { getDatabase } from "../database";
 import type { ReminderRuleRow } from "../rows";
 import type { ReminderRule } from "@/types/reminder";
+import { withWriteTransaction } from "../transactions";
 
 type BindValue = string | number | null;
 
@@ -51,5 +52,7 @@ export async function updateRule(
   if (fields.length === 0) return;
 
   values.push(id);
-  await db.runAsync(`UPDATE reminder_rules SET ${fields.join(", ")} WHERE id = ?`, ...values);
+  await withWriteTransaction(db, async (txn) => {
+    await txn.runAsync(`UPDATE reminder_rules SET ${fields.join(", ")} WHERE id = ?`, ...values);
+  });
 }

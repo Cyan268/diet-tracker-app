@@ -8,6 +8,7 @@ from app.models.profile import UserProfile
 from app.models.refresh_token import RefreshToken
 from app.models.sync_change import SyncChange
 from app.models.user import User
+from app.models.user_sync_state import UserSyncState
 
 __all__ = [
     "Base",
@@ -21,4 +22,5 @@ __all__ = [
     "SyncChange",
     "User",
     "UserProfile",
+    "UserSyncState",
 ]

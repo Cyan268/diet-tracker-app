@@ -1,7 +1,7 @@
 import { ApiError } from "@/api/http";
 import type { ProfileResponse } from "@/api/types";
 import { getProfile, replaceProfileFromRemote } from "@/db/repositories/profileRepository";
-import type { AuthSession } from "@/features/auth/authSession";
+import type { AuthRequestScope } from "@/features/auth/authSession";
 import { syncRemoteProfile } from "@/features/sync/profileSyncService";
 import type { UserProfile } from "@/types/profile";
 
@@ -9,6 +9,8 @@ jest.mock("@/db/repositories/profileRepository", () => ({
   getProfile: jest.fn(),
   replaceProfileFromRemote: jest.fn(),
 }));
+
+jest.mock("@/db/accountScope", () => ({ getCurrentUserId: () => "user-1" }));
 
 const getProfileMock = jest.mocked(getProfile);
 const replaceProfileMock = jest.mocked(replaceProfileFromRemote);
@@ -45,8 +47,13 @@ const LOCAL: UserProfile = {
   updatedAt: "2026-07-22T00:00:00Z",
 };
 
-function authWith(request: jest.Mock): AuthSession {
-  return { request } as unknown as AuthSession;
+function authWith(request: jest.Mock): AuthRequestScope {
+  return {
+    request,
+    ownerUserId: "user-1",
+    epoch: 1,
+    assertCurrent: () => undefined,
+  } as unknown as AuthRequestScope;
 }
 
 describe("profile sync service", () => {
@@ -59,7 +66,9 @@ describe("profile sync service", () => {
     await expect(syncRemoteProfile(authWith(request))).resolves.toBe("pulled");
     expect(request).toHaveBeenCalledWith("/api/v1/users/me/profile");
     expect(replaceProfileMock).toHaveBeenCalledWith(
-      expect.objectContaining({ gender: "female", heightCm: 165, updatedAt: REMOTE.updated_at })
+      expect.objectContaining({ gender: "female", heightCm: 165, updatedAt: REMOTE.updated_at }),
+      "user-1",
+      expect.any(Function)
     );
   });
 

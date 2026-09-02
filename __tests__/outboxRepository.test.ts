@@ -36,7 +36,11 @@ function mockDatabase(existingCreateId: string | null): {
 } {
   const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
   const db = {
-    getFirstAsync: jest.fn().mockResolvedValue(existingCreateId ? { id: existingCreateId } : null),
+    getFirstAsync: jest
+      .fn()
+      .mockResolvedValue(
+        existingCreateId ? { id: existingCreateId, payload: buildLogSyncPayload(LOG) } : null
+      ),
     runAsync,
   } as unknown as SQLiteDatabase;
   return { db, runAsync };

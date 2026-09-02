@@ -2,15 +2,23 @@
 
 NutriPilot 是一个正在演进中的 AI 多模态饮食记录与个性化营养分析平台。
 
-项目当前由 React Native + Expo 客户端起步，已经支持饮食记录、营养计算、饮品配置、趋势统计、提醒和数据导出。后续将沿着“自然语言/图片输入 → AI 结构化识别 → 用户确认 → 确定性营养计算 → 趋势分析 → 个性化建议”的主线，补齐后端、云同步、AI 工程、测试、部署与可观测性。
+项目已具备 Expo 离线记录、FastAPI 后端、认证与增量同步、文本 AI 本地确认、只读助手和营养周报。2026-07-26 完成过 Render 公网演示验收。当前升级重点是持久化草稿与云端原子确认、可靠 Worker、图片分析、同步正确性，以及自有服务器发布和备份恢复；这些升级能力尚未全部实现。
 
-## 在线演示
+2026-08-31 升级起点与实测结果见 [U0 基线](docs/upgrade/BASELINE.md)，后续按 [升级开发计划](docs/UPGRADE_DEVELOPMENT_PLAN.md) 分任务推进。
+
+最新进展：[U1-02 安全发布链路](docs/upgrade/tasks/U1-02.md) 已完成本地验收：Git SHA/digest manifest、Trivy CI 门禁、发布互斥、可验证迁移前备份、失败停止和兼容 Schema 的应用回滚。前端 72、真实 PostgreSQL 后端 155 项通过；远程 GitHub workflow/GHCR、公网服务器、异地恢复和 Native 实测仍待完成。
+
+## 历史公网演示
+
+VPS 生产包见 [部署手册](deploy/README.md)，发布/迁移/回滚见 [release 手册](deploy/RELEASE.md)。[U1-01](docs/upgrade/tasks/U1-01.md) 完成本地生产拓扑，[U1-02](docs/upgrade/tasks/U1-02.md) 完成本地确定性发布和应用回滚；公网 HTTPS、异地备份恢复和服务器容量仍属于 U1-03，不能称新服务器已部署。
+
+2026-07-26 已完成真实验收；2026-08-31 从本机只读探测超时，当前可用性未确认，不能把下面地址视作本轮已通过的在线服务。
 
 - 地址：[https://nutripilot-demo.onrender.com](https://nutripilot-demo.onrender.com)
 - 演示账号：`demo@nutripilot.example`
 - 演示密码：`NutriPilot-Demo-2026!`
-- 公网 Demo 使用无外部费用的规则型 AI Provider；用户在个人账号中配置 API Key 后，可切换到 OpenAI Provider。
-- 服务运行在 Render 免费方案上，长时间无访问后首次唤醒可能需要 50 秒以上，请耐心等待。
+- 共享 Demo 的设计为规则型 Provider，禁止保存个人 API Key；个人账号的用户级 Key 能力已实现，但历史公网配置关闭公开注册。
+- 历史部署使用 Render 免费方案；不要在可重置的共享账号中存真实私人饮食数据。自有服务器部署尚未验收。
 
 ## 当前技术栈
 
@@ -61,7 +69,7 @@ NutriPilot 是一个正在演进中的 AI 多模态饮食记录与个性化营�
 
 本项目不是给现有应用简单添加一个聊天框，而是构建一条可靠、可评测的 AI 饮食记录链路：
 
-1. 用户通过自然语言、图片或语音描述饮食。
+1. 用户通过自然语言描述饮食；图片为本轮规划，语音不在首轮范围内。
 2. AI 返回经过 Schema 校验的结构化记录草稿。
 3. 系统匹配标准食品数据并展示置信度和待确认信息。
 4. 用户确认后，由确定性代码计算营养数据并保存。
@@ -70,6 +78,10 @@ NutriPilot 是一个正在演进中的 AI 多模态饮食记录与个性化营�
 
 ## 文档导航
 
+- [升级开发计划](docs/UPGRADE_DEVELOPMENT_PLAN.md)
+- [升级基线与验证证据](docs/upgrade/BASELINE.md)
+- [升级风险登记](docs/upgrade/RISKS.md)
+- [升级六项架构决策与面试要点（U0-02，待实施设计）](docs/upgrade/tasks/U0-02.md)
 - [开发与学习路线](docs/ROADMAP.md)
 - [架构说明](docs/ARCHITECTURE.md)
 - [开发学习日志](docs/LEARNING_LOG.md)

@@ -135,3 +135,44 @@ def test_main_redacts_invalid_environment_value(monkeypatch, capsys) -> None:
     assert '"status": "failed"' in output
     assert "environment variable parsing failed" in output
     assert sensitive_invalid_value not in output
+
+
+def test_vps_preflight_rejects_broad_proxy_trust_and_automatic_reset() -> None:
+    settings = production_settings(
+        vps_proxy_address="172.30.91.2",
+        demo_reset_interval_minutes=60,
+        demo_reset_password="test-only-demo-password",
+    )
+    errors = production_preflight_errors(settings, portfolio=True, behind_proxy=True, vps=True)
+    assert "VPS must trust exactly its configured proxy host address" in errors
+    assert "VPS startup must not schedule automatic demo resets" in errors
+    assert "VPS same-origin deployment must use an empty CORS allowlist" in errors
+
+
+def test_vps_preflight_accepts_one_explicit_proxy_only() -> None:
+    settings = production_settings(
+        vps_proxy_address="172.30.91.2",
+        trusted_proxy_cidrs=["172.30.91.2/32"],
+        cors_origins=[],
+        web_dist_dir=WEB_FIXTURE,
+    )
+    assert (
+        production_preflight_errors(
+            settings,
+            portfolio=True,
+            behind_proxy=True,
+            single_origin_web=True,
+            vps=True,
+        )
+        == []
+    )
+
+
+def test_vps_preflight_rejects_mismatched_or_missing_proxy() -> None:
+    for address in (None, "172.30.91.3"):
+        settings = production_settings(
+            vps_proxy_address=address,
+            trusted_proxy_cidrs=["172.30.91.2/32"],
+            cors_origins=[],
+        )
+        assert production_preflight_errors(settings, portfolio=True, behind_proxy=True, vps=True)

@@ -2,7 +2,7 @@ import { getDatabase } from "../database";
 import type { DailySummaryRow, FoodLogRow, MealBreakdownRow, NutritionTotalsRow } from "../rows";
 import { v4 as uuidv4 } from "uuid";
 import type { FoodLog, DailySummary } from "@/types/log";
-import { enqueueLogEvent } from "./outboxRepository";
+import { buildLogSyncPayload, enqueueLogEvent } from "./outboxRepository";
 import { getCurrentUserId } from "../accountScope";
 import { withWriteTransaction } from "../transactions";
 
@@ -34,8 +34,8 @@ export type NewFoodLog = Omit<FoodLog, "id" | "createdAt" | "updatedAt">;
 
 export async function addLogs(logs: NewFoodLog[]): Promise<FoodLog[]> {
   if (logs.length === 0) return [];
-  const db = await getDatabase();
   const ownerUserId = getCurrentUserId();
+  const db = await getDatabase();
   const now = new Date().toISOString();
   const createdLogs = logs.map((log) => ({
     ...log,
@@ -68,7 +68,7 @@ export async function addLogs(logs: NewFoodLog[]): Promise<FoodLog[]> {
         now,
         now
       );
-      await enqueueLogEvent(txn, createdLog, "create", now);
+      await enqueueLogEvent(txn, createdLog, "create", now, undefined, ownerUserId);
     }
   });
 
@@ -171,8 +171,8 @@ export async function updateLog(
     >
   > & { note?: string | null }
 ): Promise<FoodLog | null> {
-  const db = await getDatabase();
   const ownerUserId = getCurrentUserId();
+  const db = await getDatabase();
   let result: FoodLog | null = null;
   await withWriteTransaction(db, async (txn) => {
     const existing = await txn.getFirstAsync<FoodLogRow>(
@@ -246,14 +246,19 @@ export async function updateLog(
     );
     if (!updated) return;
     result = rowToFoodLog(updated);
-    await enqueueLogEvent(txn, result, "update", now);
+    const payload = JSON.stringify({
+      ...JSON.parse(buildLogSyncPayload(result)),
+      server_id: updated.server_id,
+      expected_version: updated.server_version,
+    });
+    await enqueueLogEvent(txn, result, "update", now, payload, ownerUserId);
   });
   return result;
 }
 
 export async function deleteLog(id: string): Promise<void> {
-  const db = await getDatabase();
   const ownerUserId = getCurrentUserId();
+  const db = await getDatabase();
   await withWriteTransaction(db, async (txn) => {
     const existing = await txn.getFirstAsync<FoodLogRow>(
       "SELECT * FROM food_logs WHERE id = ? AND owner_user_id = ?",
@@ -267,7 +272,7 @@ export async function deleteLog(id: string): Promise<void> {
       server_id: existing.server_id,
       expected_version: existing.server_version,
     });
-    await enqueueLogEvent(txn, log, "delete", now, deletePayload);
+    await enqueueLogEvent(txn, log, "delete", now, deletePayload, ownerUserId);
     await txn.runAsync("DELETE FROM food_logs WHERE id = ? AND owner_user_id = ?", id, ownerUserId);
   });
 }

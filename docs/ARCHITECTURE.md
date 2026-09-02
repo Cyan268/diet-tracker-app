@@ -2,25 +2,31 @@
 
 ## 1. 当前架构
 
-当前应用是单机、本地优先的 React Native 应用：
+截至 2026-08-31，当前应用是离线优先的 Expo 客户端与 FastAPI 模块化单体，不再是纯单机应用：
 
 ```text
-Expo 页面
-   ↓
-Feature / Service
-   ↓
-Repository
-   ↓
-SQLite
+Expo 页面 → Feature / Repository → SQLite + Outbox
+             ↓ 带鉴权的 HTTP
+FastAPI → Auth / Diet / Sync / AI / Assistant / Weekly Report
+             ↓
+        PostgreSQL + Redis
 
-Expo 页面 → Open Food Facts 公共 API
+Expo 食品搜索 → Open Food Facts 公共 API
 ```
 
-优点：开发简单、离线可用、已有清晰的 Repository 和 Feature 分层。
+现有能力：账号认证、普通离线记录、日志增量同步、用户级加密 AI 凭证、文本解析、本地确认、只读助手和周报。Render 同源镜像曾在 2026-07-26 验收；本轮运行结果以 [U0 基线](upgrade/BASELINE.md) 为准。
 
-限制：没有账号和跨设备同步；外部 API 直接暴露给客户端；无法安全保存模型密钥；无法进行统一限流、监控和 AI 调用审计。
+尚缺持久化分析任务/草稿、云端批量确认、图片私有存储、同步有序游标与恢复协议、自有服务器运维闭环。已实现能力仍有明确故障边界，见 [风险登记](upgrade/RISKS.md)。
+
+U4-01 已实现提交有序的内部写入基础，但对外仍为 v1 全局游标；v2/稳定快照未实现。现有日志写入器先锁 user_sync_state，再写日志、递增 user_seq 和事件，一次提交。客户端首次发送前冻结请求、后继意图有序排队，所有同步携带 owner+epoch，运行期写事务经同实例 FIFO 门禁。真实 Web/PG 验证及 Native 未验证边界见 [U4-01](upgrade/tasks/U4-01.md)。
+
+2026-08-31 已完成 U0-02 的目标设计，见 [六项 ADR 索引与验收映射](upgrade/tasks/U0-02.md)。ADR-009～014 是后续实施约束，不是当前运行架构：云端唯一确认、外层原子事务、分层身份、持久 Worker 和 v2 稳定快照均仍待实现。推荐先完成 U4-01 正确性修复，再发布新 AI 批量写入。
 
 ## 2. 目标架构
+
+U1-01 已提供 [独立 VPS Compose](../deploy/compose.prod.yml) 与显式维护入口，API 生产启动不再自动迁移/重置；旧 Render CMD 保留。新镜像、Caddy、Web SQLite/同步、重启和依赖故障已在隔离本地拓扑验收，但真实服务器 HTTPS、备份与发布回滚尚未完成。详细证据见 [U1-01](upgrade/tasks/U1-01.md)。
+
+以下包含升级目标；Background Worker、Object Storage 不是当前已部署组件。
 
 ```text
 React Native / Expo
@@ -127,7 +133,7 @@ tests         API 与模型测试
 - Liveness：只证明 API 进程仍能响应，不访问外部依赖。
 - Readiness：执行 `SELECT 1` 检查 PostgreSQL；不可用时返回 503，让负载均衡停止发送流量。
 
-Docker Desktop 4.82.0 已在本机使用 WSL2 后端运行。PostgreSQL 17、Redis 7.4 和 API 容器健康，Alembic 已在真实 PostgreSQL 从 v1 执行到 v6；注册、日志新增/更新/删除、tombstone 拉取和加密 AI 凭证 CRUD 冒烟链路通过。双请求竞争测试已验证幂等唯一约束、乐观锁原子更新和 Refresh Token 行锁；更高并发量、连接池容量和 P95 延迟仍需压力测试。
+历史 Docker 联调验证过 PostgreSQL 17、Redis 7.4、真实 Alembic 迁移与三类双请求竞争；历史后续迁移已到 v8。2026-08-31 本机 Docker 引擎未运行，本轮只执行到 v8 的离线 SQL 与 SQLite/Mock 测试，真实 PostgreSQL 结果不能直接沿用。历史压测和当前基线分别见 PERFORMANCE 与 upgrade/BASELINE。
 
 ## 7. 认证与令牌轮换
 
@@ -183,7 +189,7 @@ Access Token 只驻留内存；Refresh Token 和最小用户对象作为一个�
 
 ```text
 本地新增 / 编辑 / 删除
-  → withExclusiveTransactionAsync
+  → withWriteTransaction（Native exclusive / Web regular）
       ├─ 修改 food_logs
       └─ 插入或合并 outbox_events
   → 自动/手动同步
@@ -204,14 +210,14 @@ PostgreSQL 业务事务
   └─ 追加 sync_changes（单调递增 cursor）
 
 Expo GET /sync/changes?after=cursor
-  → SQLite 独占事务
+  → SQLite 写事务（Native exclusive / Web regular）
       ├─ 无本地修改：应用 upsert 或 delete tombstone
       ├─ 有并发修改：写入 sync_conflicts 并阻塞 Outbox
       └─ 整页成功后推进账号独立 cursor
   → lastSyncAt 通知首页和统计重新读取 SQLite
 ```
 
-upsert 事件保存变更发生时的完整快照，而不是拉取时再查询当前记录，因此即使同一记录随后被修改或删除，分页仍能按顺序重放。删除事件保留 tombstone，否则客户端无法区分“服务端已删除”和“本页没有返回”。
+upsert 事件保存变更发生时的完整快照，而不是拉取时再查询当前记录；delete 保留 tombstone。但当前全局自增游标不保证事务提交顺序，迟提交的小 ID 可能漏拉。Web 与 Native 的实际并发隔离也未被 Mock 测试证明。U4-01 将先验证这些边界，再升级协议，不能直接把现状称为不会丢失的同步。
 
 冲突页面提供整条记录级二选一：“使用云端”会取消本地 Outbox 并应用远端状态；“保留本机”会把本地事件的基准版本更新到远端最新版本后重试。若远端已经删除，保留本机会将本地记录作为新资源重新创建。该策略不会静默覆盖，但暂不支持字段级自动合并。
 
@@ -410,4 +416,4 @@ HTTPS request
 
 Web 未显式配置 API URL 时使用当前 Origin，消除静态站 URL、API URL 和 CORS 的创建循环。FastAPI 只对无扩展名浏览器路径回退 `index.html`；缺失 API、JS 或 WASM 保持 404。所有 Web 文件带 COOP/COEP，`assets/` 使用一年 immutable 缓存，HTML/metadata 使用 `no-store`。
 
-Render 的 PostgreSQL 连接串在 Settings 层选择异步 psycopg 驱动；平台外部 Host 通过自引用环境变量加入 `TrustedHostMiddleware`，Secret 由平台生成或首次部署时填写。免费拓扑不猜测代理 CIDR，因此不采信转发 Header，访客桶退化为共享平台代理桶，账号桶仍按 HMAC 邮箱隔离。完整取舍和发布步骤见 [`docs/DEPLOYMENT_RELEASE.md`](DEPLOYMENT_RELEASE.md)。
+Render 的 PostgreSQL 连接串在 Settings 层选择异步 psycopg 驱动；Host/Release 在没有显式配置时直接回退读取 Render 内置运行变量，不使用 Blueprint 自引用转发。Secret 由平台生成或首次部署时填写。历史免费拓扑不猜测代理 CIDR，因此不采信转发 Header，访客桶退化为共享平台代理桶，账号桶仍按 HMAC 邮箱隔离。新 VPS 部署必须与该路径隔离，移除启动迁移和重置耦合。完整取舍见 [`docs/DEPLOYMENT_RELEASE.md`](DEPLOYMENT_RELEASE.md)。

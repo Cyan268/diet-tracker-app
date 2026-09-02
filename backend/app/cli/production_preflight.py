@@ -1,12 +1,13 @@
 import argparse
 import json
+from ipaddress import ip_address, ip_network
 from pathlib import Path
 from urllib.parse import urlsplit
 
 from pydantic import ValidationError
 from pydantic_settings import SettingsError
 
-from app.core.config import Settings
+from app.core.config import Settings, load_settings
 
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 
@@ -28,6 +29,7 @@ def production_preflight_errors(
     portfolio: bool,
     behind_proxy: bool,
     single_origin_web: bool = False,
+    vps: bool = False,
 ) -> list[str]:
     errors: list[str] = []
     if settings.environment != "production":
@@ -48,6 +50,25 @@ def production_preflight_errors(
 
     if behind_proxy and not settings.trusted_proxy_cidrs:
         errors.append("trusted_proxy_cidrs must be configured behind a proxy")
+
+    if vps:
+        try:
+            address = ip_address(settings.vps_proxy_address or "")
+            networks = [ip_network(value) for value in settings.trusted_proxy_cidrs]
+            if len(networks) != 1 or networks[0] != ip_network(
+                f"{address}/{address.max_prefixlen}"
+            ):
+                errors.append("VPS must trust exactly its configured proxy host address")
+        except ValueError:
+            errors.append("VPS proxy address must be an explicit IP address")
+        if settings.demo_reset_interval_minutes != 0:
+            errors.append("VPS startup must not schedule automatic demo resets")
+        if settings.cors_origins:
+            errors.append("VPS same-origin deployment must use an empty CORS allowlist")
+        if any("*" in host for host in settings.effective_allowed_hosts):
+            errors.append("VPS allowed_hosts must not contain wildcard patterns")
+        if settings.log_format != "json" or settings.database_echo:
+            errors.append("VPS requires JSON logs and disabled SQL echo")
 
     for origin in settings.cors_origins:
         parsed = urlsplit(origin)
@@ -96,10 +117,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="require an embedded Expo Web build instead of a separate CORS origin",
     )
+    parser.add_argument("--vps", action="store_true", help="require the single-VPS safety contract")
     args = parser.parse_args(argv)
 
     try:
-        settings = Settings()
+        settings = load_settings()
     except SettingsError:
         print(
             json.dumps(
@@ -113,12 +135,16 @@ def main(argv: list[str] | None = None) -> int:
     except ValidationError as error:
         print(json.dumps({"status": "failed", "errors": _validation_messages(error)}))
         return 1
+    except (OSError, ValueError):
+        print(json.dumps({"status": "failed", "errors": ["settings: secret files unavailable"]}))
+        return 1
 
     errors = production_preflight_errors(
         settings,
         portfolio=args.portfolio,
         behind_proxy=args.behind_proxy,
         single_origin_web=args.single_origin_web,
+        vps=args.vps,
     )
     print(
         json.dumps(
@@ -128,6 +154,7 @@ def main(argv: list[str] | None = None) -> int:
                     "portfolio": args.portfolio,
                     "behind_proxy": args.behind_proxy,
                     "single_origin_web": args.single_origin_web,
+                    "vps": args.vps,
                 },
                 "errors": errors,
             }

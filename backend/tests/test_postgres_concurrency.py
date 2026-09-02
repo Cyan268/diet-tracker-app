@@ -1,18 +1,8 @@
 import asyncio
-import os
 from copy import deepcopy
 from uuid import uuid4
 
-import pytest
 from httpx2 import AsyncClient
-
-RUN_POSTGRES_E2E = os.getenv("NUTRIPILOT_POSTGRES_E2E") == "1"
-BASE_URL = os.getenv("NUTRIPILOT_E2E_BASE_URL", "http://127.0.0.1:8000")
-
-pytestmark = pytest.mark.skipif(
-    not RUN_POSTGRES_E2E,
-    reason="set NUTRIPILOT_POSTGRES_E2E=1 to run against Docker PostgreSQL",
-)
 
 
 async def register(client: AsyncClient, prefix: str) -> dict[str, object]:
@@ -52,47 +42,49 @@ def bearer(auth: dict[str, object]) -> dict[str, str]:
     return {"Authorization": f"Bearer {auth['access_token']}"}
 
 
-async def test_concurrent_idempotent_create_returns_one_resource() -> None:
-    async with AsyncClient(base_url=BASE_URL, timeout=20) as client:
-        auth = await register(client, "idempotency-race")
-        payload = custom_log()
+async def test_concurrent_idempotent_create_returns_one_resource(
+    pg_api_client: AsyncClient,
+) -> None:
+    client = pg_api_client
+    auth = await register(client, "idempotency-race")
+    payload = custom_log()
 
-        first, second = await asyncio.gather(
-            client.post("/api/v1/logs", headers=bearer(auth), json=payload),
-            client.post("/api/v1/logs", headers=bearer(auth), json=payload),
-        )
+    first, second = await asyncio.gather(
+        client.post("/api/v1/logs", headers=bearer(auth), json=payload),
+        client.post("/api/v1/logs", headers=bearer(auth), json=payload),
+    )
 
     assert sorted([first.status_code, second.status_code]) == [200, 201]
     assert first.json()["id"] == second.json()["id"]
     assert first.json()["client_id"] == payload["client_id"]
 
 
-async def test_concurrent_update_allows_only_one_expected_version() -> None:
-    async with AsyncClient(base_url=BASE_URL, timeout=20) as client:
-        auth = await register(client, "optimistic-race")
-        created = (
-            await client.post("/api/v1/logs", headers=bearer(auth), json=custom_log())
-        ).json()
-        first_payload = custom_log()
-        first_payload.pop("client_id")
-        first_payload["expected_version"] = 1
-        first_payload["note"] = "writer one"
-        second_payload = deepcopy(first_payload)
-        second_payload["note"] = "writer two"
+async def test_concurrent_update_allows_only_one_expected_version(
+    pg_api_client: AsyncClient,
+) -> None:
+    client = pg_api_client
+    auth = await register(client, "optimistic-race")
+    created = (await client.post("/api/v1/logs", headers=bearer(auth), json=custom_log())).json()
+    first_payload = custom_log()
+    first_payload.pop("client_id")
+    first_payload["expected_version"] = 1
+    first_payload["note"] = "writer one"
+    second_payload = deepcopy(first_payload)
+    second_payload["note"] = "writer two"
 
-        first, second = await asyncio.gather(
-            client.put(
-                f"/api/v1/logs/{created['id']}",
-                headers=bearer(auth),
-                json=first_payload,
-            ),
-            client.put(
-                f"/api/v1/logs/{created['id']}",
-                headers=bearer(auth),
-                json=second_payload,
-            ),
-        )
-        current = await client.get(f"/api/v1/logs/{created['id']}", headers=bearer(auth))
+    first, second = await asyncio.gather(
+        client.put(
+            f"/api/v1/logs/{created['id']}",
+            headers=bearer(auth),
+            json=first_payload,
+        ),
+        client.put(
+            f"/api/v1/logs/{created['id']}",
+            headers=bearer(auth),
+            json=second_payload,
+        ),
+    )
+    current = await client.get(f"/api/v1/logs/{created['id']}", headers=bearer(auth))
 
     assert sorted([first.status_code, second.status_code]) == [200, 409]
     assert current.status_code == 200
@@ -100,20 +92,22 @@ async def test_concurrent_update_allows_only_one_expected_version() -> None:
     assert current.json()["note"] in {"writer one", "writer two"}
 
 
-async def test_concurrent_refresh_detects_replay_and_revokes_token_family() -> None:
-    async with AsyncClient(base_url=BASE_URL, timeout=30) as client:
-        auth = await register(client, "refresh-race")
-        refresh_body = {"refresh_token": auth["refresh_token"]}
+async def test_concurrent_refresh_detects_replay_and_revokes_token_family(
+    pg_api_client: AsyncClient,
+) -> None:
+    client = pg_api_client
+    auth = await register(client, "refresh-race")
+    refresh_body = {"refresh_token": auth["refresh_token"]}
 
-        first, second = await asyncio.gather(
-            client.post("/api/v1/auth/refresh", json=refresh_body),
-            client.post("/api/v1/auth/refresh", json=refresh_body),
-        )
-        winner = first if first.status_code == 200 else second
-        family_retry = await client.post(
-            "/api/v1/auth/refresh",
-            json={"refresh_token": winner.json()["refresh_token"]},
-        )
+    first, second = await asyncio.gather(
+        client.post("/api/v1/auth/refresh", json=refresh_body),
+        client.post("/api/v1/auth/refresh", json=refresh_body),
+    )
+    winner = first if first.status_code == 200 else second
+    family_retry = await client.post(
+        "/api/v1/auth/refresh",
+        json={"refresh_token": winner.json()["refresh_token"]},
+    )
 
     assert sorted([first.status_code, second.status_code]) == [200, 401]
     assert family_retry.status_code == 401

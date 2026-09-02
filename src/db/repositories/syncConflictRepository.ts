@@ -2,7 +2,9 @@ import type { SyncChangeResponse } from "@/api/types";
 import { getCurrentUserId } from "@/db/accountScope";
 import { getDatabase } from "@/db/database";
 import type { FoodLogRow, OutboxEventRow, SyncConflictRow } from "@/db/rows";
-import { buildLogSyncPayload } from "@/db/repositories/outboxRepository";
+import type { SQLiteDatabase } from "expo-sqlite";
+import { v4 as uuidv4 } from "uuid";
+import { buildLogSyncPayload, enqueueLogEvent } from "@/db/repositories/outboxRepository";
 import { upsertRemoteLog } from "@/features/sync/pullSyncService";
 import type { FoodLog } from "@/types/log";
 import { withWriteTransaction } from "@/db/transactions";
@@ -73,10 +75,10 @@ export async function listSyncConflicts(): Promise<SyncConflict[]> {
 }
 
 async function getConflictAndEvent(
+  db: SQLiteDatabase,
+  ownerUserId: string,
   conflictId: string
 ): Promise<{ conflict: SyncConflictRow; event: OutboxEventRow; local: FoodLogRow | null }> {
-  const db = await getDatabase();
-  const ownerUserId = getCurrentUserId();
   const conflict = await db.getFirstAsync<SyncConflictRow>(
     "SELECT * FROM sync_conflicts WHERE id = ? AND owner_user_id = ?",
     conflictId,
@@ -85,7 +87,7 @@ async function getConflictAndEvent(
   if (!conflict) throw new Error("sync conflict not found");
   const event = await db.getFirstAsync<OutboxEventRow>(
     `SELECT * FROM outbox_events
-     WHERE owner_user_id = ? AND aggregate_id = ? ORDER BY created_at LIMIT 1`,
+     WHERE owner_user_id = ? AND aggregate_id = ? ORDER BY queue_order DESC LIMIT 1`,
     ownerUserId,
     conflict.aggregate_id
   );
@@ -99,90 +101,89 @@ async function getConflictAndEvent(
 }
 
 export async function acceptRemoteVersion(conflictId: string): Promise<void> {
-  const { conflict } = await getConflictAndEvent(conflictId);
-  const remote = JSON.parse(conflict.remote_payload) as SyncChangeResponse;
+  const ownerUserId = getCurrentUserId();
   const db = await getDatabase();
   await withWriteTransaction(db, async (txn) => {
+    const { conflict } = await getConflictAndEvent(txn, ownerUserId, conflictId);
+    const remote = JSON.parse(conflict.remote_payload) as SyncChangeResponse;
     await txn.runAsync(
       "DELETE FROM outbox_events WHERE owner_user_id = ? AND aggregate_id = ?",
-      conflict.owner_user_id,
+      ownerUserId,
       conflict.aggregate_id
     );
     if (remote.operation === "upsert") {
-      await upsertRemoteLog(txn, conflict.owner_user_id, conflict.aggregate_id, remote);
+      await upsertRemoteLog(txn, ownerUserId, conflict.aggregate_id, remote);
     } else {
       await txn.runAsync(
         "DELETE FROM food_logs WHERE owner_user_id = ? AND id = ?",
-        conflict.owner_user_id,
+        ownerUserId,
         conflict.aggregate_id
       );
     }
-    await txn.runAsync("DELETE FROM sync_conflicts WHERE id = ?", conflict.id);
+    await txn.runAsync(
+      "DELETE FROM sync_conflicts WHERE id = ? AND owner_user_id = ?",
+      conflict.id,
+      ownerUserId
+    );
   });
 }
 
 export async function keepLocalVersion(conflictId: string): Promise<void> {
-  const { conflict, event, local } = await getConflictAndEvent(conflictId);
-  const remote = JSON.parse(conflict.remote_payload) as SyncChangeResponse;
+  const ownerUserId = getCurrentUserId();
   const db = await getDatabase();
   const now = new Date().toISOString();
   await withWriteTransaction(db, async (txn) => {
-    if (remote.operation === "upsert") {
-      if (event.operation === "delete") {
-        await txn.runAsync(
-          `UPDATE outbox_events
-           SET payload = json_set(payload, '$.server_id', ?, '$.expected_version', ?),
-               status = 'pending', attempt_count = 0, next_attempt_at = ?,
-               last_error = NULL, updated_at = ?
-           WHERE id = ?`,
-          remote.server_id,
-          remote.version,
+    const { conflict, event, local } = await getConflictAndEvent(txn, ownerUserId, conflictId);
+    const remote = JSON.parse(conflict.remote_payload) as SyncChangeResponse;
+    // Explicit conflict resolution replaces the queue with a NEW event; never mutate a frozen request.
+    await txn.runAsync(
+      "DELETE FROM outbox_events WHERE owner_user_id = ? AND aggregate_id = ?",
+      ownerUserId,
+      conflict.aggregate_id
+    );
+    if (event.operation === "delete") {
+      if (remote.operation === "upsert") {
+        await enqueueLogEvent(
+          txn,
+          { id: conflict.aggregate_id } as FoodLog,
+          "delete",
           now,
-          now,
-          event.id
-        );
-      } else {
-        if (!local) throw new Error("local record not found");
-        await txn.runAsync(
-          `UPDATE food_logs
-           SET server_id = ?, server_version = ?, sync_status = 'pending', last_sync_error = NULL
-           WHERE id = ? AND owner_user_id = ?`,
-          remote.server_id,
-          remote.version,
-          local.id,
-          conflict.owner_user_id
-        );
-        await txn.runAsync(
-          `UPDATE outbox_events
-           SET operation = 'update', status = 'pending', attempt_count = 0,
-               next_attempt_at = ?, last_error = NULL, updated_at = ?
-           WHERE id = ?`,
-          now,
-          now,
-          event.id
+          JSON.stringify({ server_id: remote.server_id, expected_version: remote.version }),
+          ownerUserId
         );
       }
     } else {
       if (!local) throw new Error("local record not found");
+      const clientId = remote.operation === "delete" ? uuidv4() : remote.client_id;
       await txn.runAsync(
-        `UPDATE food_logs
-         SET server_id = NULL, server_version = NULL,
-             sync_status = 'pending', last_sync_error = NULL
-         WHERE id = ? AND owner_user_id = ?`,
+        `UPDATE food_logs SET server_id = ?, server_version = ?, remote_client_id = ?,
+         sync_status = 'pending', last_sync_error = NULL WHERE id = ? AND owner_user_id = ?`,
+        remote.operation === "delete" ? null : remote.server_id,
+        remote.operation === "delete" ? null : remote.version,
+        clientId,
         local.id,
-        conflict.owner_user_id
+        ownerUserId
       );
-      await txn.runAsync(
-        `UPDATE outbox_events
-         SET operation = 'create', payload = ?, status = 'pending', attempt_count = 0,
-             next_attempt_at = ?, last_error = NULL, updated_at = ?
-         WHERE id = ?`,
-        buildLogSyncPayload(rowToLog(local)),
+      const payload = JSON.stringify({
+        ...JSON.parse(buildLogSyncPayload(rowToLog(local))),
+        client_id: clientId,
+        ...(remote.operation === "upsert"
+          ? { server_id: remote.server_id, expected_version: remote.version }
+          : {}),
+      });
+      await enqueueLogEvent(
+        txn,
+        rowToLog(local),
+        remote.operation === "delete" ? "create" : "update",
         now,
-        now,
-        event.id
+        payload,
+        ownerUserId
       );
     }
-    await txn.runAsync("DELETE FROM sync_conflicts WHERE id = ?", conflict.id);
+    await txn.runAsync(
+      "DELETE FROM sync_conflicts WHERE id = ? AND owner_user_id = ?",
+      conflict.id,
+      ownerUserId
+    );
   });
 }

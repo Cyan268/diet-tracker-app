@@ -39,11 +39,13 @@ class AssistantMessage(Base):
     __table_args__ = (
         CheckConstraint("role IN ('user', 'assistant')", name="role_allowed"),
         CheckConstraint("sequence >= 1", name="sequence_positive"),
-        UniqueConstraint("conversation_id", "sequence", name="conversation_sequence"),
+        UniqueConstraint(
+            "conversation_id", "sequence", name="uq_assistant_messages_conversation_sequence"
+        ),
         UniqueConstraint(
             "conversation_id",
             "client_message_id",
-            name="conversation_client_message",
+            name="uq_assistant_messages_conversation_client_message",
         ),
         Index("ix_assistant_messages_conversation_sequence", "conversation_id", "sequence"),
     )

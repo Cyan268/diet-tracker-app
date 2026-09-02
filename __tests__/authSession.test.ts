@@ -42,6 +42,57 @@ class MemoryStorage implements SessionStorage {
 }
 
 describe("AuthSession", () => {
+  it("does not retry an old user's 401 with a newly logged-in user's token", async () => {
+    const storage = new MemoryStorage();
+    let finishOld!: (response: Response) => void;
+    const oldResponse = new Promise<Response>((resolve) => {
+      finishOld = resolve;
+    });
+    const other = { ...USER, id: "user-b", email: "b@example.com" };
+    const fetcher = jest.fn(async (url: string, init?: RequestInit) => {
+      if (url.endsWith("/login")) {
+        const isB = String(init?.body).includes(other.email);
+        return jsonResponse(200, {
+          access_token: isB ? "access-b" : "access-a",
+          refresh_token: isB ? "refresh-b" : "refresh-a",
+          user: isB ? other : USER,
+        });
+      }
+      if (url.endsWith("/protected")) return oldResponse;
+      return jsonResponse(200, { access_token: "refreshed-b", refresh_token: "rotated-b" });
+    });
+    const session = new AuthSession(storage, fetcher, "https://api.test");
+    await session.login(USER.email, "password");
+    const pending = session.request("/protected");
+    const rejected = expect(pending).rejects.toThrow(/session changed/i);
+    await session.login(other.email, "password");
+    finishOld(jsonResponse(401, { detail: "expired" }));
+    await rejected;
+    expect(fetcher.mock.calls.filter(([url]) => url.endsWith("/refresh"))).toHaveLength(0);
+    expect(storage.value?.user.id).toBe(other.id);
+  });
+
+  it("does not resurrect a session when an in-flight refresh returns after logout", async () => {
+    const storage = new MemoryStorage({ refreshToken: "old", user: USER });
+    let finish!: (response: Response) => void;
+    const deferred = new Promise<Response>((resolve) => {
+      finish = resolve;
+    });
+    const fetcher = jest.fn(async (url: string) =>
+      url.endsWith("/refresh") ? deferred : jsonResponse(204)
+    );
+    const session = new AuthSession(storage, fetcher, "https://api.test");
+    const restoring = session.restore();
+    const rejected = expect(restoring).rejects.toThrow(/session changed/i);
+    // Allow storage read and refresh dispatch before logout.
+    await Promise.resolve();
+    await Promise.resolve();
+    await session.logout();
+    finish(jsonResponse(200, { access_token: "late", refresh_token: "late-refresh" }));
+    await rejected;
+    expect(storage.value).toBeNull();
+  });
+
   it("stores only the refresh session and sends the access token from memory", async () => {
     const storage = new MemoryStorage();
     const fetcher = jest

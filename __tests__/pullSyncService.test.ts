@@ -1,7 +1,7 @@
 import type { SyncChangeResponse, SyncPageResponse } from "@/api/types";
-import { activateLocalAccount, clearLocalAccount } from "@/db/accountScope";
+import { activateLocalAccount, clearLocalAccount, getCurrentUserId } from "@/db/accountScope";
 import type { FoodLogRow, OutboxEventRow } from "@/db/rows";
-import type { AuthSession } from "@/features/auth/authSession";
+import type { AuthRequestScope } from "@/features/auth/authSession";
 import { pullRemoteChanges } from "@/features/sync/pullSyncService";
 import type { SQLiteDatabase } from "expo-sqlite";
 
@@ -71,7 +71,12 @@ describe("pull sync service", () => {
     const { db, runAsync } = createDatabase(null, null);
     mockGetDatabase.mockResolvedValue(db);
     await activateLocalAccount("user-1");
-    const auth = { request: jest.fn().mockResolvedValue(page(REMOTE)) } as unknown as AuthSession;
+    const auth = {
+      ownerUserId: getCurrentUserId(),
+      epoch: 1,
+      assertCurrent: () => undefined,
+      request: jest.fn().mockResolvedValue(page(REMOTE)),
+    } as unknown as AuthRequestScope;
 
     const result = await pullRemoteChanges(auth);
 
@@ -86,7 +91,12 @@ describe("pull sync service", () => {
     const { db, runAsync } = createDatabase(null, null, "previous-demo-user");
     mockGetDatabase.mockResolvedValue(db);
     await activateLocalAccount("new-demo-user");
-    const auth = { request: jest.fn().mockResolvedValue(page(REMOTE)) } as unknown as AuthSession;
+    const auth = {
+      ownerUserId: getCurrentUserId(),
+      epoch: 1,
+      assertCurrent: () => undefined,
+      request: jest.fn().mockResolvedValue(page(REMOTE)),
+    } as unknown as AuthRequestScope;
 
     const result = await pullRemoteChanges(auth);
 
@@ -114,7 +124,12 @@ describe("pull sync service", () => {
     const { db, runAsync } = createDatabase(local, event);
     mockGetDatabase.mockResolvedValue(db);
     await activateLocalAccount("user-1");
-    const auth = { request: jest.fn().mockResolvedValue(page(REMOTE)) } as unknown as AuthSession;
+    const auth = {
+      ownerUserId: getCurrentUserId(),
+      epoch: 1,
+      assertCurrent: () => undefined,
+      request: jest.fn().mockResolvedValue(page(REMOTE)),
+    } as unknown as AuthRequestScope;
 
     const result = await pullRemoteChanges(auth);
 
@@ -138,8 +153,11 @@ describe("pull sync service", () => {
     mockGetDatabase.mockResolvedValue(db);
     await activateLocalAccount("user-1");
     const auth = {
+      ownerUserId: getCurrentUserId(),
+      epoch: 1,
+      assertCurrent: () => undefined,
       request: jest.fn().mockResolvedValue(page(tombstone)),
-    } as unknown as AuthSession;
+    } as unknown as AuthRequestScope;
 
     const result = await pullRemoteChanges(auth);
 

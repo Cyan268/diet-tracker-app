@@ -16,6 +16,7 @@
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --runInBand",
+    "test:web:sqlite": "node scripts/start-web-sqlite-check.mjs",
     "api:types": "openapi-typescript backend/openapi.json -o src/api/generated/schema.ts && prettier --write src/api/generated/schema.ts",
     "api:types:check": "npm run api:types && git diff --exit-code -- src/api/generated/schema.ts",
     "load:test": "docker compose --profile loadtest run --rm loadtest run --summary-export=/results/postgres-local-baseline.json /scripts/api-baseline.js",

@@ -32,25 +32,30 @@ export async function enqueueLogEvent(
   log: FoodLog,
   operation: OutboxOperation,
   now: string,
-  payloadOverride?: string
+  payloadOverride?: string,
+  ownerUserId = getCurrentUserId()
 ): Promise<void> {
-  const ownerUserId = getCurrentUserId();
   const payload = payloadOverride ?? buildLogSyncPayload(log);
-  const existingCreate = await db.getFirstAsync<{ id: string }>(
-    `SELECT id FROM outbox_events
+  const existingCreate = await db.getFirstAsync<{ id: string; payload: string }>(
+    `SELECT id, payload FROM outbox_events
      WHERE owner_user_id = ? AND aggregate_type = 'food_log' AND aggregate_id = ?
-       AND operation = 'create' AND status IN ('pending', 'failed')
+       AND operation = 'create' AND status = 'pending'
+       AND first_attempt_at IS NULL AND attempt_count = 0
      LIMIT 1`,
     ownerUserId,
     log.id
   );
 
   if (existingCreate && operation !== "delete") {
+    const content = JSON.parse(payload) as Record<string, unknown>;
+    delete content.server_id;
+    delete content.expected_version;
+    content.client_id = JSON.parse(existingCreate.payload).client_id;
     await db.runAsync(
       `UPDATE outbox_events
        SET payload = ?, status = 'pending', next_attempt_at = ?, last_error = NULL, updated_at = ?
        WHERE id = ?`,
-      payload,
+      JSON.stringify(content),
       now,
       now,
       existingCreate.id
@@ -70,16 +75,19 @@ export async function enqueueLogEvent(
   await db.runAsync(
     `DELETE FROM outbox_events
      WHERE owner_user_id = ? AND aggregate_type = 'food_log' AND aggregate_id = ?
-       AND operation = ? AND status IN ('pending', 'failed')`,
+       AND (operation = ? OR (? = 'delete' AND operation = 'update'))
+       AND status = 'pending' AND first_attempt_at IS NULL AND attempt_count = 0`,
     ownerUserId,
     log.id,
+    operation,
     operation
   );
   await db.runAsync(
     `INSERT INTO outbox_events (
        id, owner_user_id, aggregate_type, aggregate_id, operation, payload,
-       status, attempt_count, next_attempt_at, last_error, created_at, updated_at
-     ) VALUES (?, ?, 'food_log', ?, ?, ?, 'pending', 0, ?, NULL, ?, ?)`,
+       status, attempt_count, next_attempt_at, last_error, created_at, updated_at, queue_order
+     ) VALUES (?, ?, 'food_log', ?, ?, ?, 'pending', 0, ?, NULL, ?, ?,
+       (SELECT COALESCE(MAX(queue_order), 0) + 1 FROM outbox_events))`,
     uuidv4(),
     ownerUserId,
     log.id,
@@ -94,13 +102,16 @@ export async function enqueueLogEvent(
 export async function getReadyOutboxEvents(
   db: SQLiteDatabase,
   now: string,
-  limit = 20
+  limit = 20,
+  ownerUserId = getCurrentUserId()
 ): Promise<OutboxEventRow[]> {
-  const ownerUserId = getCurrentUserId();
   return db.getAllAsync<OutboxEventRow>(
-    `SELECT * FROM outbox_events
-     WHERE owner_user_id = ? AND status IN ('pending', 'failed') AND next_attempt_at <= ?
-     ORDER BY created_at LIMIT ?`,
+    `SELECT e.* FROM outbox_events e
+     WHERE e.owner_user_id = ? AND e.status IN ('pending', 'failed') AND e.next_attempt_at <= ?
+       AND NOT EXISTS (SELECT 1 FROM outbox_events p
+         WHERE p.owner_user_id = e.owner_user_id AND p.aggregate_id = e.aggregate_id
+           AND p.queue_order < e.queue_order)
+     ORDER BY e.queue_order LIMIT ?`,
     ownerUserId,
     now,
     limit

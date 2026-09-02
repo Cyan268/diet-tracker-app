@@ -41,6 +41,7 @@ export interface FoodLogRow {
   created_at: string;
   updated_at: string;
   server_id: string | null;
+  remote_client_id?: string | null;
   server_version: number | null;
   sync_status: "pending" | "synced" | "failed";
   last_sync_error: string | null;
@@ -56,6 +57,10 @@ export interface OutboxEventRow {
   payload: string;
   status: "pending" | "processing" | "failed" | "blocked";
   attempt_count: number;
+  first_attempt_at?: string | null;
+  request_path?: string | null;
+  request_body?: string | null;
+  queue_order?: number;
   next_attempt_at: string;
   last_error: string | null;
   created_at: string;

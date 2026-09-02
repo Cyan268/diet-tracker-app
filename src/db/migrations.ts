@@ -118,6 +118,32 @@ const migrations: readonly Migration[] = [
       `);
     },
   },
+  {
+    version: 4,
+    name: "freeze_outbox_requests",
+    up: async (db) => {
+      await db.execAsync(`
+        ALTER TABLE outbox_events ADD COLUMN first_attempt_at TEXT;
+        ALTER TABLE outbox_events ADD COLUMN request_path TEXT;
+        ALTER TABLE outbox_events ADD COLUMN request_body TEXT;
+        ALTER TABLE outbox_events ADD COLUMN queue_order INTEGER NOT NULL DEFAULT 0;
+        UPDATE outbox_events SET queue_order = rowid;
+        UPDATE outbox_events SET first_attempt_at = updated_at
+          WHERE attempt_count > 0 OR status IN ('processing', 'failed', 'blocked');
+        CREATE UNIQUE INDEX idx_outbox_order ON outbox_events(queue_order);
+        CREATE INDEX idx_outbox_predecessor
+          ON outbox_events(owner_user_id, aggregate_id, queue_order);
+        ALTER TABLE food_logs ADD COLUMN remote_client_id TEXT;
+        UPDATE food_logs SET remote_client_id = (
+          SELECT json_extract(payload, '$.client_id') FROM outbox_events
+          WHERE aggregate_id = food_logs.id AND owner_user_id = food_logs.owner_user_id
+            AND operation = 'create' LIMIT 1
+        );
+        CREATE UNIQUE INDEX idx_food_logs_remote_client
+          ON food_logs(owner_user_id, remote_client_id) WHERE remote_client_id IS NOT NULL;
+      `);
+    },
+  },
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.at(-1)?.version ?? 0;

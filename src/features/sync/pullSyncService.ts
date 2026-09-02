@@ -1,8 +1,8 @@
 import type { SyncChangeResponse, SyncPageResponse } from "@/api/types";
-import { getCurrentUserId } from "@/db/accountScope";
 import { getDatabase } from "@/db/database";
 import type { FoodLogRow, OutboxEventRow } from "@/db/rows";
-import type { AuthSession } from "@/features/auth/authSession";
+import type { AuthRequestScope } from "@/features/auth/authSession";
+import { assertSyncScope } from "./syncScope";
 import type { SQLiteDatabase } from "expo-sqlite";
 import { v4 as uuidv4 } from "uuid";
 import { withWriteTransaction } from "@/db/transactions";
@@ -19,10 +19,11 @@ async function findLocalLog(
 ): Promise<FoodLogRow | null> {
   return db.getFirstAsync<FoodLogRow>(
     `SELECT * FROM food_logs
-     WHERE owner_user_id = ? AND (server_id = ? OR id = ?)
+     WHERE owner_user_id = ? AND (server_id = ? OR remote_client_id = ? OR id = ?)
      LIMIT 1`,
     ownerUserId,
     change.server_id,
+    change.client_id,
     change.client_id
   );
 }
@@ -35,7 +36,7 @@ async function findLocalEvent(
   return db.getFirstAsync<OutboxEventRow>(
     `SELECT * FROM outbox_events
      WHERE owner_user_id = ? AND aggregate_id = ?
-     ORDER BY created_at LIMIT 1`,
+     ORDER BY queue_order LIMIT 1`,
     ownerUserId,
     aggregateId
   );
@@ -96,10 +97,11 @@ export async function upsertRemoteLog(
     `INSERT INTO food_logs (
        id, owner_user_id, server_id, server_version, date, meal_type,
        food_item_id, custom_name, amount, unit, kcal, protein, fat, carbs,
-       sugar, sodium, caffeine, note, created_at, updated_at, sync_status, last_sync_error
-     ) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced', NULL)
+       sugar, sodium, caffeine, note, created_at, updated_at, sync_status, last_sync_error, remote_client_id
+     ) VALUES (?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced', NULL, ?)
      ON CONFLICT(id) DO UPDATE SET
        server_id = excluded.server_id,
+       remote_client_id = excluded.remote_client_id,
        server_version = excluded.server_version,
        date = excluded.date,
        meal_type = excluded.meal_type,
@@ -137,7 +139,8 @@ export async function upsertRemoteLog(
     log.caffeine,
     log.note,
     log.created_at,
-    log.updated_at
+    log.updated_at,
+    change.client_id
   );
 }
 
@@ -238,10 +241,12 @@ async function applyDelete(
   return 0;
 }
 
-async function applyPage(page: SyncPageResponse, ownerUserId: string): Promise<number> {
+async function applyPage(page: SyncPageResponse, scope: AuthRequestScope): Promise<number> {
+  const ownerUserId = scope.ownerUserId;
   const db = await getDatabase();
   let conflicts = 0;
   await withWriteTransaction(db, async (txn) => {
+    assertSyncScope(scope);
     for (const change of page.changes) {
       conflicts +=
         change.operation === "upsert"
@@ -259,12 +264,14 @@ async function applyPage(page: SyncPageResponse, ownerUserId: string): Promise<n
       page.next_cursor,
       now
     );
+    assertSyncScope(scope);
   });
   return conflicts;
 }
 
-export async function pullRemoteChanges(auth: AuthSession): Promise<PullResult> {
-  const ownerUserId = getCurrentUserId();
+export async function pullRemoteChanges(auth: AuthRequestScope): Promise<PullResult> {
+  assertSyncScope(auth);
+  const ownerUserId = auth.ownerUserId;
   const db = await getDatabase();
   const cursorRow = await db.getFirstAsync<{ log_cursor: number }>(
     "SELECT log_cursor FROM sync_cursors WHERE owner_user_id = ?",
@@ -275,13 +282,15 @@ export async function pullRemoteChanges(auth: AuthSession): Promise<PullResult> 
   let conflicts = 0;
 
   for (let pageNumber = 0; pageNumber < 100; pageNumber += 1) {
+    assertSyncScope(auth);
     const page = await auth.request<SyncPageResponse>(
       `/api/v1/sync/changes?after=${cursor}&limit=100`
     );
     if (page.next_cursor < cursor || (page.has_more && page.next_cursor === cursor)) {
       throw new Error("sync cursor did not advance");
     }
-    conflicts += await applyPage(page, ownerUserId);
+    assertSyncScope(auth);
+    conflicts += await applyPage(page, auth);
     pulled += page.changes.length;
     cursor = page.next_cursor;
     if (!page.has_more) return { pulled, conflicts };

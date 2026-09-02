@@ -1,5 +1,8 @@
 name: CI
 
+permissions:
+  contents: read
+
 on:
   push:
   pull_request:
@@ -16,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -31,6 +34,21 @@ jobs:
   backend-quality:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: u4test
+          POSTGRES_PASSWORD: u4test-local-only
+          POSTGRES_DB: nutripilot_u4_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U u4test -d nutripilot_u4_test"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      NUTRIPILOT_DATABASE_URL: postgresql+psycopg://u4test:u4test-local-only@127.0.0.1:5432/nutripilot_u4_test
+      NUTRIPILOT_TEST_DATABASE_URL: postgresql+psycopg://u4test:u4test-local-only@127.0.0.1:5432/nutripilot_u4_test
     defaults:
       run:
         working-directory: backend
@@ -55,13 +73,15 @@ jobs:
         run: python -m pip check
 
       - name: Lint
-        run: ruff check app tests migrations scripts
+        run: ruff check app tests migrations scripts ../scripts/deploy/release_controller.py
 
       - name: Check formatting
-        run: ruff format --check app tests migrations scripts
+        run: ruff format --check app tests migrations scripts ../scripts/deploy/release_controller.py
 
       - name: Run tests
-        run: pytest --cov=app --cov-fail-under=70
+        run: |
+          alembic upgrade head
+          pytest --cov=app --cov-fail-under=70
 
       - name: Render migration SQL
         run: alembic upgrade head --sql
@@ -88,16 +108,81 @@ jobs:
   release-image:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      RELEASE_IMAGE: nutripilot-vps:${{ github.sha }}
+      CADDY_IMAGE: caddy:2.10.2-alpine
+      POSTGRES_IMAGE: postgres:17-alpine
+      REDIS_IMAGE: redis:7.4-alpine
+      SCHEMA_REVISION: "20260831_0009"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
       - name: Build same-origin release image
-        run: docker build --file Dockerfile.production --tag nutripilot-release:ci .
+        run: |
+          docker build \
+            --file Dockerfile.production \
+            --target vps \
+            --build-arg BUILD_REVISION="${GITHUB_SHA}" \
+            --build-arg SOURCE_REVISION="${GITHUB_SHA}" \
+            --tag "${RELEASE_IMAGE}" \
+            .
 
       - name: Verify release contents and identity
         run: |
-          test "$(docker run --rm --entrypoint id nutripilot-release:ci -u)" != "0"
-          docker run --rm --entrypoint sh nutripilot-release:ci -c \
+          test "$(docker run --rm --entrypoint id "${RELEASE_IMAGE}" -u)" != "0"
+          docker run --rm --entrypoint sh "${RELEASE_IMAGE}" -c \
             "test -f /app/web/index.html && test -f /app/alembic.ini"
+          test "$(docker image inspect "${RELEASE_IMAGE}" --format '{{ index .Config.Labels "io.nutripilot.release" }}')" = "${GITHUB_SHA}"
+          test "$(docker image inspect "${RELEASE_IMAGE}" --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}')" = "${GITHUB_SHA}"
+
+      - name: Pull pinned infrastructure images
+        run: |
+          docker pull "${CADDY_IMAGE}"
+          docker pull "${POSTGRES_IMAGE}"
+          docker pull "${REDIS_IMAGE}"
+
+      - name: Create release manifest
+        run: |
+          mkdir -p release-artifacts
+          python scripts/deploy/release_controller.py manifest \
+            --local \
+            --release "${GITHUB_SHA}" \
+            --source-revision "${GITHUB_SHA}" \
+            --image "${RELEASE_IMAGE}" \
+            --proxy-image "${CADDY_IMAGE}" \
+            --postgres-image "${POSTGRES_IMAGE}" \
+            --redis-image "${REDIS_IMAGE}" \
+            --schema "${SCHEMA_REVISION}" \
+            --compatible-schema "${SCHEMA_REVISION}" \
+            --output release-artifacts/release-manifest.json
+
+      - name: Record vulnerability report
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: ${{ env.RELEASE_IMAGE }}
+          format: json
+          output: release-artifacts/trivy.json
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+
+      - name: Enforce vulnerability gate
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: ${{ env.RELEASE_IMAGE }}
+          format: table
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+          skip-setup-trivy: true
+
+      - name: Upload immutable release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-evidence-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-artifacts/
+          if-no-files-found: warn
+          retention-days: 30

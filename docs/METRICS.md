@@ -2,16 +2,38 @@
 
 简历只使用本文件中有采集方法和原始依据的指标。未测量的数据不得写成简历成果。
 
+2026-08-31 U0 复核：第 1～3.1 节保留 U0 时的指标基线，不与后续测试数量混用；其 Docker/PostgreSQL、性能、漏洞审计、Expo Doctor 与公网运行值除明确更新外均为历史记录。U0 时 Docker 引擎未运行，旧 Render 探测超时，不能声称当前健康。[完整基线与原始证据](upgrade/BASELINE.md)
+
+## U4-01 最新增量验证
+
+更新顺序提示：下节保留 U4-01 当时值；U1-01 最终结果为前端 72 通过、后端 147 通过/0 跳过、真实 PG v9 与 schema drift 检查通过。新镜像、Caddy、浏览器 Web SQLite/同步及故障实验均完成本地验收；本轮未重新测前端覆盖率、性能或 AI 质量。详见 [U1-01 证据](upgrade/tasks/U1-01.md#最终验证证据)。
+
+2026-08-31，基于 `1991882` 的未提交工作区；[任务与范围](upgrade/tasks/U4-01.md)、[原始输出](upgrade/evidence/U4-01-checks.json)。没有重新采集性能或线上 AI 质量数据。
+
+| 指标                      | 本轮值                                    | 采集方法 / 限制                           |
+| ------------------------- | ----------------------------------------- | ----------------------------------------- |
+| 前端测试                  | 23 套件、72 通过                          | npm run check / test:coverage             |
+| 前端覆盖率                | 行 59.96%、分支 48.98%                    | 仅 src/features、src/services；非全 App   |
+| 后端测试                  | 130 通过、0 跳过                          | pytest --cov=app；9 项真实 PG             |
+| 后端综合覆盖率            | 81.18%                                    | app 行/分支综合；无生产流量               |
+| 真实 PG 正确性            | 9 项通过                                  | 并发 3 + 顺序 5 + 迁移 1；loopback 临时库 |
+| 本地 schema               | SQLite v4 / Alembic v9                    | 新库升级及带数据旧库迁移测试              |
+| Web SQLite                | 实际 Worker/WASM 回滚与队列隔离通过       | SQLite 3.50.3；内存测试库                 |
+| 构建/契约                 | Web 导出、API 类型及 OpenAPI 不变检查通过 | 未部署；沙箱子进程限制后批准重试          |
+| Ruff                      | 0 问题，116 文件格式通过                  | app/tests/migrations/scripts              |
+| 额外 schema drift         | 失败：旧助手表约束名不一致                | R13，非新增同步列漂移                     |
+| Native / 远程 CI / 新 VPS | 未执行                                    | 不声称全平台或已上线                      |
+
 ## 1. 工程质量基线
 
 | 指标                   |               当前值 |                        目标 | 采集方式                             |
 | ---------------------- | -------------------: | --------------------------: | ------------------------------------ |
 | TS/TSX 源文件数        |                   68 |                      仅记录 | `rg --files app src`                 |
-| TS/TSX 代码行数        |             约 9,667 |                      仅记录 | PowerShell 行数统计                  |
+| TS/TSX 代码行数        |               10,889 |                      仅记录 | 2026-08-31 PowerShell 含生成文件统计 |
 | TypeScript strict      |               已开启 |                        保持 | `tsconfig.json`                      |
 | 类型检查               |                 通过 |                 CI 持续通过 | `npx tsc --noEmit`                   |
 | 自动化测试数           |                   58 |                    持续补充 | `npm test`                           |
-| 自动化测试覆盖率       |      行覆盖率 26.81% |            核心业务逻辑优先 | `npm run test:coverage`              |
+| 自动化测试覆盖率       |      行覆盖率 50.95% |            核心业务逻辑优先 | 2026-08-31 `npm run test:coverage`   |
 | CI                     |               已配置 | 类型检查、零警告 Lint、测试 | GitHub Actions                       |
 | Expo Doctor            |           18/18 通过 |                    持续通过 | `npx expo-doctor`                    |
 | npm 高危/严重漏洞      |                    0 |                    保持为 0 | `npm audit`                          |
@@ -19,6 +41,8 @@
 | `src`/`app` 显式 `any` |                    0 |                    保持为 0 | `rg -n "\\bany\\b" src app`          |
 
 ## 2. AI 功能指标
+
+前端覆盖率范围限 `src/features/**`、`src/services/**`，不是整个 App；本次分支覆盖率 41.96%。以下 AI 质量为已有规则基线，U0 未新增真实模型评测。
 
 | 指标           |             当前值 | 含义                                          |
 | -------------- | -----------------: | --------------------------------------------- |
@@ -42,37 +66,37 @@
 
 ## 3.1 后端工程基线
 
-| 指标                       |                                                        当前值 | 采集方式                                     |
-| -------------------------- | ------------------------------------------------------------: | -------------------------------------------- |
-| 后端测试                   |                                      121 个通过、3 个可选跳过 | `pytest`                                     |
-| 后端行/分支综合覆盖率      |                                                        80.50% | 发布候选包 `pytest --cov=app`                |
-| Ruff                       |                                                      0 个问题 | `ruff check app tests migrations scripts`    |
-| Python 依赖完整性          |                                                          通过 | `python -m pip check`                        |
-| Alembic 离线迁移           |                                            v1-v8 SQL 生成成功 | `alembic upgrade head --sql`                 |
-| 认证 API 行为              |                    注册、登录、鉴权、轮换、重放检测、登出通过 | SQLite 集成测试                              |
-| PostgreSQL 并发正确性      |                                              3 个竞争测试通过 | opt-in Pytest + Docker PostgreSQL            |
-| PostgreSQL API 性能基线    | 2,950 请求、97.61 req/s、错误率 0%；三个接口 P95 均小于 40 ms | k6 30 秒混合负载；详见 `docs/PERFORMANCE.md` |
-| 饮食领域 API               |                           资料、食品、日志 CRUD、每日统计通过 | SQLite 集成测试                              |
-| 数据隔离                   |                                私有食品与饮食记录跨用户不可见 | 双用户 API 集成测试                          |
-| 离线重试契约               |                          同键同内容返回原记录，同键异内容 409 | 幂等集成测试                                 |
-| 乐观并发控制               |                     过期 `expected_version` 更新/删除返回 409 | API 集成测试                                 |
-| FastAPI 根路由             |                                                      HTTP 200 | Uvicorn 本地冒烟测试                         |
-| Liveness                   |                                                      HTTP 200 | `/api/v1/health/live`                        |
-| Readiness（无 PostgreSQL） |                                                      HTTP 503 | `/api/v1/health/ready`                       |
-| Docker Compose             |                        3 个服务运行，PostgreSQL/Redis healthy | `docker compose ps`                          |
-| 真实 PostgreSQL 迁移       |                                            Alembic v1-v8 成功 | 容器日志 + `alembic_version` 查询            |
-| PostgreSQL API 冒烟        |             日志 CRUD、同步、演示账号重置和旧令牌失效链路通过 | 本地 HTTP 链路                               |
-| 演示数据可复现性           |                58 条双周日志、2 个私有食品；两周各 7 个记录日 | CLI + PostgreSQL API 冒烟                    |
-| 演示账号滥用保护           |                AI 200/200/429；日志配额 403；第二重置实例跳过 | Redis 7.4 + PostgreSQL 17 + Docker API 冒烟  |
-| 认证入口保护               |        同访客轮换邮箱 401/401/429；异访客 401；账号成功后清桶 | Redis 7.4 + PostgreSQL 17 + Docker API 冒烟  |
-| 代理与 Host 边界           |                 可信链右向左解析；伪造前缀无效；非法 Host 400 | 单测 + Docker API 冒烟                       |
-| API 容器身份               |                                 `uid=999(nutripilot)` 非 root | `docker compose exec api id`                 |
-| 生产配置预检               |                    Portfolio + Proxy 模拟生产配置 `status=ok` | `python -m app.cli.production_preflight`     |
-| OpenAPI Path               |                                                            23 | FastAPI `app.openapi()`                      |
-| 客户端生成契约             |                                               已生成并进入 CI | `npm run api:types`                          |
-| SQLite Schema              |                                                            v3 | `PRAGMA user_version`                        |
-| 移动认证状态机             |                                              6 个关键分支通过 | Jest `authSession.test.ts`                   |
-| Outbox/账号隔离            |                                              8 个相关测试通过 | Jest migration/outbox/isolation tests        |
+| 指标                       |                                                        当前值 | 采集方式                                          |
+| -------------------------- | ------------------------------------------------------------: | ------------------------------------------------- |
+| 后端测试                   |                                      121 个通过、3 个可选跳过 | `pytest`                                          |
+| 后端行/分支综合覆盖率      |                                                        80.44% | 2026-08-31 `pytest --cov=app`                     |
+| Ruff                       |                                                      0 个问题 | `ruff check app tests migrations scripts`         |
+| Python 依赖完整性          |                                                          通过 | `python -m pip check`                             |
+| Alembic 离线迁移           |                                            v1-v8 SQL 生成成功 | `alembic upgrade head --sql`                      |
+| 认证 API 行为              |                    注册、登录、鉴权、轮换、重放检测、登出通过 | SQLite 集成测试                                   |
+| PostgreSQL 并发正确性      |                                  历史 3 个通过；本轮 3 个跳过 | opt-in Pytest；本轮 Docker 不可用                 |
+| PostgreSQL API 性能基线    | 2,950 请求、97.61 req/s、错误率 0%；三个接口 P95 均小于 40 ms | k6 30 秒混合负载；详见 `docs/PERFORMANCE.md`      |
+| 饮食领域 API               |                           资料、食品、日志 CRUD、每日统计通过 | SQLite 集成测试                                   |
+| 数据隔离                   |                                私有食品与饮食记录跨用户不可见 | 双用户 API 集成测试                               |
+| 离线重试契约               |                          同键同内容返回原记录，同键异内容 409 | 幂等集成测试                                      |
+| 乐观并发控制               |                     过期 `expected_version` 更新/删除返回 409 | API 集成测试                                      |
+| FastAPI 根路由             |                                                      HTTP 200 | Uvicorn 本地冒烟测试                              |
+| Liveness                   |                                                      HTTP 200 | `/api/v1/health/live`                             |
+| Readiness（无 PostgreSQL） |                                                      HTTP 503 | `/api/v1/health/ready`                            |
+| Docker Compose             |                                  本轮静态解析通过，引擎未运行 | `docker compose config --quiet`、`docker version` |
+| 真实 PostgreSQL 迁移       |                                            Alembic v1-v8 成功 | 容器日志 + `alembic_version` 查询                 |
+| PostgreSQL API 冒烟        |             日志 CRUD、同步、演示账号重置和旧令牌失效链路通过 | 本地 HTTP 链路                                    |
+| 演示数据可复现性           |                58 条双周日志、2 个私有食品；两周各 7 个记录日 | CLI + PostgreSQL API 冒烟                         |
+| 演示账号滥用保护           |                AI 200/200/429；日志配额 403；第二重置实例跳过 | Redis 7.4 + PostgreSQL 17 + Docker API 冒烟       |
+| 认证入口保护               |        同访客轮换邮箱 401/401/429；异访客 401；账号成功后清桶 | Redis 7.4 + PostgreSQL 17 + Docker API 冒烟       |
+| 代理与 Host 边界           |                 可信链右向左解析；伪造前缀无效；非法 Host 400 | 单测 + Docker API 冒烟                            |
+| API 容器身份               |                                 `uid=999(nutripilot)` 非 root | `docker compose exec api id`                      |
+| 生产配置预检               |                    Portfolio + Proxy 模拟生产配置 `status=ok` | `python -m app.cli.production_preflight`          |
+| OpenAPI Path               |                                                            23 | FastAPI `app.openapi()`                           |
+| 客户端生成契约             |                                               已生成并进入 CI | `npm run api:types`                               |
+| SQLite Schema              |                                                            v3 | `PRAGMA user_version`                             |
+| 移动认证状态机             |                                              6 个关键分支通过 | Jest `authSession.test.ts`                        |
+| Outbox/账号隔离            |                                              8 个相关测试通过 | Jest migration/outbox/isolation tests             |
 
 ## 3.2 公网部署验收
 

@@ -1,0 +1,82 @@
+{
+  "task": "U1-02",
+  "date": "2026-09-01",
+  "baseCommit": "1991882902d0e8d9befab4c3d3d9f794297e62df",
+  "status": "local_acceptance_complete",
+  "scope": "Local synthetic release fixture only; no commit/push, registry publish, SSH, DNS, production secret, production data, paid model call, or server mutation.",
+  "releaseController": {
+    "productionIdentity": "full Git SHA plus digest references; latest rejected",
+    "mutex": "atomic state-directory lock with owner metadata",
+    "sequence": [
+      "static config preflight",
+      "pull or local ID verification",
+      "candidate topology, settings, and Caddy preflight",
+      "start PostgreSQL and Redis",
+      "verified backup when required",
+      "stop old writers",
+      "upgrade and migration drift check",
+      "schema target check",
+      "start API and Caddy",
+      "ready and HTTP smoke",
+      "atomic current/previous promotion"
+    ],
+    "rollback": "application-only after schema compatibility check; no database downgrade"
+  },
+  "ci": {
+    "pullRequestSecrets": false,
+    "pullRequestDeploy": false,
+    "imageTag": "github.sha",
+    "scanner": "aquasecurity/trivy-action@0.36.0",
+    "scanGate": "HIGH,CRITICAL; ignore-unfixed; exit 1",
+    "artifactAction": "actions/upload-artifact@v4",
+    "manualPublish": "workflow_dispatch plus exact SHA/branch/confirmation/concurrency/production-release environment",
+    "remoteRun": "not executed; repository required reviewers still need GitHub settings configuration"
+  },
+  "localRelease": {
+    "project": "nutripilot-u1-release-local",
+    "url": "http://localhost:8087",
+    "previousImageId": "sha256:18da6c09991cc27bf2d10465327b4243aba264e219e6c55f833224d6898ed223",
+    "candidateImageId": "sha256:2d0365ae448d77f300bdfb9454056cbcb58fa1f4b1c837df0f8743259d98c55e",
+    "firstSchemaBefore": null,
+    "schemaAfter": "20260831_0009",
+    "candidateApplied": true,
+    "backup": {
+      "format": "PostgreSQL custom",
+      "pgRestoreListVerified": true,
+      "sizeBytes": 32475,
+      "sha256": "e35f48c505554c96b7201e7e950ab6939b4d62e3da2fe2f4e6b47c7c3fb683b7"
+    },
+    "intentionalFailure": "declared target 20990101_intentional_failure; actual schema remained 20260831_0009; apply stopped before candidate restart and state promotion",
+    "rollbackRelease": "u1-02-previous",
+    "rollbackSchema": "20260831_0009",
+    "databaseDowngrade": false,
+    "readyAfterRollback": 200,
+    "stateAfterRollback": {
+      "current": "u1-02-previous",
+      "previous": "u1-02-candidate"
+    }
+  },
+  "tests": {
+    "releaseController": "8 passed",
+    "backendWithRealPostgres": "155 passed, 0 skipped",
+    "frontend": "23 suites, 72 tests passed",
+    "ruff": "passed",
+    "workflowYaml": "parsed",
+    "gitDiffCheck": "passed except existing CRLF notices"
+  },
+  "problems": [
+    "Docker Hub stalled while refreshing python:3.13-slim; local release choreography reused the already accepted U1-01 image and created distinct OCI label variants, while CI remains a full Dockerfile build.",
+    "Candidate Caddy validation first omitted the caddy executable because the official image has no entrypoint.",
+    "Caddy file capabilities conflicted with cap-drop ALL plus no-new-privileges in the disconnected validation container; network-none and read-only isolation were retained.",
+    "Sandbox-created pytest temporary directories received unusable Windows ACLs; tests passed outside the sandbox and in CI-compatible paths.",
+    "Docker Scout refused local analysis without Docker ID login; no scan result was claimed, and CI uses Trivy without that account dependency."
+  ],
+  "unverified": [
+    "remote GitHub Actions run and GHCR push",
+    "GitHub environment required-reviewer repository setting",
+    "public server deployment, TLS, DNS, firewall, and capacity",
+    "off-host encrypted backup and isolated restore",
+    "production data migration"
+  ],
+  "runtimeAtHandoff": "U1-02 local release stack remains healthy on loopback 8087 after rollback; U1-01 stack on 8086 was not modified."
+}

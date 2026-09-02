@@ -39,7 +39,7 @@ function createDatabase(event: OutboxEventRow): {
   const runAsync = jest.fn().mockResolvedValue({ changes: 1 });
   const db = {
     getAllAsync: jest.fn().mockResolvedValue([event]),
-    getFirstAsync: jest.fn().mockResolvedValue({ count: 0 }),
+    getFirstAsync: jest.fn(async (sql) => (sql.includes("SELECT e.*") ? event : { count: 0 })),
     runAsync,
     withExclusiveTransactionAsync: jest.fn(async (task) => task(db)),
   } as unknown as SQLiteDatabase;
@@ -59,6 +59,14 @@ describe("outbox sync service", () => {
     await activateLocalAccount("user-1");
     const auth = {
       request: jest.fn().mockResolvedValue({ id: "server-log-1", version: 1 }),
+      capture(this: { request: jest.Mock }) {
+        return {
+          ownerUserId: "user-1",
+          epoch: 1,
+          assertCurrent: () => undefined,
+          request: this.request,
+        };
+      },
     } as unknown as AuthSession;
 
     const result = await syncPendingEvents(auth);
@@ -88,12 +96,22 @@ describe("outbox sync service", () => {
     await activateLocalAccount("user-1");
     const auth = {
       request: jest.fn().mockRejectedValue(new ApiError(409, { detail: "conflict" })),
+      capture(this: { request: jest.Mock }) {
+        return {
+          ownerUserId: "user-1",
+          epoch: 1,
+          assertCurrent: () => undefined,
+          request: this.request,
+        };
+      },
     } as unknown as AuthSession;
 
     const result = await syncPendingEvents(auth);
 
     expect(result.blocked).toBe(1);
-    const failureCall = runAsync.mock.calls.find(([sql]) => sql.includes("attempt_count"));
+    const failureCall = runAsync.mock.calls.find(
+      ([sql]) => sql.includes("last_error = ?") && sql.includes("UPDATE outbox_events")
+    );
     expect(failureCall?.[1]).toBe("blocked");
   });
 
@@ -103,6 +121,14 @@ describe("outbox sync service", () => {
     await activateLocalAccount("user-1");
     const auth = {
       request: jest.fn().mockResolvedValue({ id: "server-log-1", version: 1 }),
+      capture(this: { request: jest.Mock }) {
+        return {
+          ownerUserId: "user-1",
+          epoch: 1,
+          assertCurrent: () => undefined,
+          request: this.request,
+        };
+      },
     } as unknown as AuthSession;
     mockPullRemoteChanges.mockRejectedValue(new ApiError(401, { detail: "expired" }));
 

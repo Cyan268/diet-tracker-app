@@ -21,10 +21,12 @@ from app.models import (
     SyncChange,
     User,
     UserProfile,
+    UserSyncState,
 )
 from app.repositories.users import get_user_by_email
-from app.schemas.diet import LogCreateRequest, LogResponse, NutritionValues
+from app.schemas.diet import LogCreateRequest, NutritionValues
 from app.services.auth import normalize_email
+from app.services.log_changes import lock_user_sync_state, record_log_change
 
 DEMO_SEED_VERSION = "demo-seed-v1"
 
@@ -131,6 +133,7 @@ def build_demo_log_specs() -> list[DemoLogSpec]:
 
 
 async def _remove_existing_demo_data(session: AsyncSession, user_id: UUID) -> None:
+    await lock_user_sync_state(session, user_id)
     conversation_ids = select(AssistantConversation.id).where(
         AssistantConversation.user_id == user_id
     )
@@ -146,6 +149,7 @@ async def _remove_existing_demo_data(session: AsyncSession, user_id: UUID) -> No
         (FoodLog, FoodLog.user_id),
         (FoodItem, FoodItem.owner_user_id),
         (UserProfile, UserProfile.user_id),
+        (UserSyncState, UserSyncState.user_id),
     ):
         await session.execute(delete(model).where(owner_column == user_id))
     await session.execute(delete(User).where(User.id == user_id))
@@ -202,6 +206,7 @@ async def seed_demo_account(
     # Flush the parent first while keeping the whole seed operation in the same
     # transaction; a later failure will still roll everything back.
     await session.flush()
+    state = await lock_user_sync_state(session, user.id)
     session.add(
         UserProfile(
             user_id=user.id,
@@ -292,19 +297,8 @@ async def seed_demo_account(
         logs.append(log)
     session.add_all(logs)
     await session.flush()
-    session.add_all(
-        [
-            SyncChange(
-                user_id=user.id,
-                aggregate_id=log.id,
-                client_id=log.client_id,
-                operation="upsert",
-                version=log.version,
-                payload=LogResponse.model_validate(log).model_dump(mode="json"),
-            )
-            for log in logs
-        ]
-    )
+    for log in logs:
+        record_log_change(session, state, log, "upsert")
     await session.commit()
     return DemoSeedResult(
         user_id=user.id,

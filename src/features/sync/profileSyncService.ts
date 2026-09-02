@@ -1,7 +1,8 @@
 import { ApiError } from "@/api/http";
 import type { ProfileResponse, ProfileUpsertRequest } from "@/api/types";
 import { getProfile, replaceProfileFromRemote } from "@/db/repositories/profileRepository";
-import type { AuthSession } from "@/features/auth/authSession";
+import type { AuthRequestScope } from "@/features/auth/authSession";
+import { assertSyncScope } from "./syncScope";
 import type { UserProfile } from "@/types/profile";
 
 export type ProfileSyncOutcome = "missing" | "pulled" | "pushed" | "unchanged";
@@ -30,37 +31,50 @@ function toLocalProfile(remote: ProfileResponse): Omit<UserProfile, "id"> {
   };
 }
 
-async function pushProfile(auth: AuthSession, local: UserProfile): Promise<ProfileResponse> {
+async function pushProfile(auth: AuthRequestScope, local: UserProfile): Promise<ProfileResponse> {
+  assertSyncScope(auth);
   return auth.request<ProfileResponse>("/api/v1/users/me/profile", {
     method: "PUT",
     body: JSON.stringify(toRemoteRequest(local)),
   });
 }
 
-export async function syncRemoteProfile(auth: AuthSession): Promise<ProfileSyncOutcome> {
-  const local = await getProfile();
+export async function syncRemoteProfile(auth: AuthRequestScope): Promise<ProfileSyncOutcome> {
+  assertSyncScope(auth);
+  const local = await getProfile(auth.ownerUserId);
   let remote: ProfileResponse | null = null;
 
   try {
+    assertSyncScope(auth);
     remote = await auth.request<ProfileResponse>("/api/v1/users/me/profile");
   } catch (error) {
     if (!(error instanceof ApiError) || error.status !== 404) throw error;
   }
 
+  assertSyncScope(auth);
+
   if (!remote) {
     if (!local) return "missing";
     const saved = await pushProfile(auth, local);
-    await replaceProfileFromRemote(toLocalProfile(saved));
+    assertSyncScope(auth);
+    await replaceProfileFromRemote(toLocalProfile(saved), auth.ownerUserId, () =>
+      assertSyncScope(auth)
+    );
     return "pushed";
   }
 
   if (local && Date.parse(local.updatedAt) > Date.parse(remote.updated_at)) {
     const saved = await pushProfile(auth, local);
-    await replaceProfileFromRemote(toLocalProfile(saved));
+    assertSyncScope(auth);
+    await replaceProfileFromRemote(toLocalProfile(saved), auth.ownerUserId, () =>
+      assertSyncScope(auth)
+    );
     return "pushed";
   }
 
   if (local?.updatedAt === remote.updated_at) return "unchanged";
-  await replaceProfileFromRemote(toLocalProfile(remote));
+  await replaceProfileFromRemote(toLocalProfile(remote), auth.ownerUserId, () =>
+    assertSyncScope(auth)
+  );
   return "pulled";
 }

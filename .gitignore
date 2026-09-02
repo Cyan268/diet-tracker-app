@@ -40,6 +40,8 @@ yarn-error.*
 !backend/.env.production.example
 
 # Python
+deploy/secrets/
+deploy/.local/
 .venv/
 .tmp/
 *.egg-info/

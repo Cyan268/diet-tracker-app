@@ -1,0 +1,10 @@
+Command: docker compose config --quiet; print exit; print observation time; node/npm/python --version
+This is the command-output prefix; subsequent source-file reads are omitted.
+Warning: truncated output (original token count: 6299)
+Total output lines: 581
+
+compose_config_exit=0
+observed_at=2026-08-31T14:19:04.3662701+08:00
+v24.15.0
+11.12.1
+Python 3.13.2
