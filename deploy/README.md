@@ -119,3 +119,26 @@ COOP same-origin、COEP credentialless、nosniff 保留；WASM MIME 由同源 Fa
 检查项目至少包括：非法 Host 不路由至 API、CORS 无越权许可、伪造多个 X-Forwarded-For 仍触发同一访客限流桶、不同真实容器来源不被合成一个桶、数据库/Redis/API 无宿主端口、API 连续重启不改账号/日志/Schema。HTTP 冒烟、浏览器 Web SQLite 和真实 HTTPS 是三个不同证据层级。
 
 正式公网发布仍需要 U1-03 的 required reviewer 仓库设置确认、服务器执行、异地备份恢复、HTTPS 和容量证据；本目录和 U1-02 工作流存在不意味着服务器已上线。
+
+## U1-03 本机备份与隔离恢复
+
+`database_recovery.py` 在活动发布锁内生成 PostgreSQL custom-format dump，先用
+`pg_restore --list` 解析，再记录 SHA-256、不可变 PostgreSQL 镜像以及核心业务表行数。
+默认只保留最近 7 份本机备份。`deploy/systemd` 中的 timer 每天触发一次，安装后仍需
+通过 `systemctl list-timers` 和一次手工运行验收，不能只因文件存在就声称已启用。
+
+```sh
+python3 scripts/deploy/database_recovery.py backup \
+  --env-file /etc/nutripilot/releases/current.env \
+  --state-dir /var/lib/nutripilot/release-state \
+  --backup-dir /var/lib/nutripilot/backups \
+  --keep 7
+
+python3 scripts/deploy/database_recovery.py restore-drill \
+  --receipt /var/lib/nutripilot/backups/<backup>.receipt.json
+```
+
+恢复演练没有“目标数据库”参数：工具只会创建无网络、无映射端口、tmpfs 存储的临时
+PostgreSQL 容器，恢复后比较 Schema 与核心表行数，并在成功或失败时删除容器。它不会
+覆盖生产库。当前用户明确不采用异地对象存储，因此这些备份只能抵抗应用误操作，不能
+抵抗服务器或系统盘整体丢失；不得把它描述为完整灾难恢复。

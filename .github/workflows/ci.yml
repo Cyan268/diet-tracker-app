@@ -78,10 +78,16 @@ jobs:
         run: python -m pip check
 
       - name: Lint
-        run: ruff check app tests migrations scripts ../scripts/deploy/release_controller.py
+        run: >-
+          ruff check app tests migrations scripts
+          ../scripts/deploy/release_controller.py
+          ../scripts/deploy/database_recovery.py
 
       - name: Check formatting
-        run: ruff format --check app tests migrations scripts ../scripts/deploy/release_controller.py
+        run: >-
+          ruff format --check app tests migrations scripts
+          ../scripts/deploy/release_controller.py
+          ../scripts/deploy/database_recovery.py
 
       - name: Run tests
         run: |
