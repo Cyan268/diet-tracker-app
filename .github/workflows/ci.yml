@@ -169,6 +169,9 @@ jobs:
           image-ref: ${{ env.RELEASE_IMAGE }}
           format: json
           output: release-artifacts/trivy.json
+          # pip 26.2 vendors an SBOM for its build-time internals. Scan the
+          # installed filesystem instead of treating that inventory as runtime.
+          skip-files: "**/pip/_vendor/bom.cdx.json"
           ignore-unfixed: true
           severity: CRITICAL,HIGH
           exit-code: "0"
@@ -178,6 +181,7 @@ jobs:
         with:
           image-ref: ${{ env.RELEASE_IMAGE }}
           format: table
+          skip-files: "**/pip/_vendor/bom.cdx.json"
           ignore-unfixed: true
           severity: CRITICAL,HIGH
           exit-code: "1"

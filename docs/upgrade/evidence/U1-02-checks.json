@@ -28,6 +28,9 @@
     "imageTag": "github.sha",
     "scanner": "aquasecurity/trivy-action@v0.36.0",
     "scanGate": "HIGH,CRITICAL; ignore-unfixed; exit 1",
+    "scanExclusions": [
+      "**/pip/_vendor/bom.cdx.json (pip 26.2 vendored build-tool SBOM; installed filesystem remains scanned)"
+    ],
     "artifactAction": "actions/upload-artifact@v4",
     "manualPublish": "workflow_dispatch plus exact SHA/branch/confirmation/concurrency/production-release environment",
     "remoteRun": "not executed; repository required reviewers still need GitHub settings configuration"
