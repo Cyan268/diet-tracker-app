@@ -100,6 +100,16 @@ class Settings(BaseSettings):
     ai_retry_delay_seconds: float = Field(default=0.15, ge=0, le=2)
     ai_input_price_per_million_usd: Decimal | None = Field(default=None, ge=0)
     ai_output_price_per_million_usd: Decimal | None = Field(default=None, ge=0)
+    analysis_accepting_enabled: bool = True
+    analysis_worker_enabled: bool = False
+    analysis_worker_poll_seconds: float = Field(default=1, ge=0.1, le=30)
+    analysis_global_concurrency: int = Field(default=1, ge=1, le=32)
+    analysis_lease_seconds: int = Field(default=120, ge=30, le=900)
+    analysis_heartbeat_seconds: int = Field(default=20, ge=5, le=300)
+    analysis_max_attempts: int = Field(default=3, ge=1, le=10)
+    analysis_max_pending_per_user: int = Field(default=3, ge=1, le=100)
+    analysis_job_ttl_minutes: int = Field(default=10, ge=2, le=1440)
+    analysis_draft_ttl_minutes: int = Field(default=60, ge=5, le=10080)
 
     @field_validator(
         "sentry_dsn",
@@ -176,6 +186,10 @@ class Settings(BaseSettings):
                 raise ValueError("production allowed_hosts must be explicit")
         if self.demo_reset_interval_minutes > 0 and self.demo_reset_password is None:
             raise ValueError("demo_reset_password is required when automatic reset is enabled")
+        if self.analysis_heartbeat_seconds * 2 >= self.analysis_lease_seconds:
+            raise ValueError("analysis lease must exceed two heartbeat intervals")
+        if self.ai_timeout_seconds + self.analysis_heartbeat_seconds >= self.analysis_lease_seconds:
+            raise ValueError("AI timeout and heartbeat must fit inside the analysis lease")
         return self
 
     @property

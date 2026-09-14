@@ -906,6 +906,119 @@
         "title": "FoodCreateRequest",
         "type": "object"
       },
+      "FoodMatchCandidateResponse": {
+        "properties": {
+          "brand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand"
+          },
+          "catalog_revision": {
+            "title": "Catalog Revision",
+            "type": "string"
+          },
+          "food_item_id": {
+            "format": "uuid",
+            "title": "Food Item Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "nutrition_complete": {
+            "title": "Nutrition Complete",
+            "type": "boolean"
+          },
+          "reason": {
+            "enum": [
+              "canonical_exact",
+              "alias_exact",
+              "canonical_similar",
+              "alias_similar"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "source": {
+            "title": "Source",
+            "type": "string"
+          },
+          "source_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Reference"
+          }
+        },
+        "required": [
+          "food_item_id",
+          "catalog_revision",
+          "name",
+          "brand",
+          "source",
+          "source_reference",
+          "nutrition_complete",
+          "score",
+          "reason"
+        ],
+        "title": "FoodMatchCandidateResponse",
+        "type": "object"
+      },
+      "FoodMatchResponse": {
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/FoodMatchCandidateResponse"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "preselected_food_item_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Preselected Food Item Id"
+          },
+          "status": {
+            "enum": [
+              "no_match",
+              "ambiguous",
+              "review"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "preselected_food_item_id",
+          "candidates"
+        ],
+        "title": "FoodMatchResponse",
+        "type": "object"
+      },
       "FoodResponse": {
         "properties": {
           "brand": {
@@ -950,6 +1063,21 @@
             "title": "Created At",
             "type": "string"
           },
+          "current_revision": {
+            "title": "Current Revision",
+            "type": "string"
+          },
+          "density_g_per_ml": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Density G Per Ml"
+          },
           "fat_per_100g": {
             "maximum": 10000.0,
             "minimum": 0.0,
@@ -972,6 +1100,23 @@
             "minLength": 1,
             "title": "Name",
             "type": "string"
+          },
+          "nutrition_basis_quantity": {
+            "title": "Nutrition Basis Quantity",
+            "type": "number"
+          },
+          "nutrition_basis_unit": {
+            "enum": [
+              "g",
+              "ml",
+              "serving"
+            ],
+            "title": "Nutrition Basis Unit",
+            "type": "string"
+          },
+          "nutrition_complete": {
+            "title": "Nutrition Complete",
+            "type": "boolean"
           },
           "protein_per_100g": {
             "maximum": 10000.0,
@@ -1016,6 +1161,17 @@
             "title": "Source",
             "type": "string"
           },
+          "source_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Reference"
+          },
           "sugar_per_100g": {
             "default": 0,
             "maximum": 10000.0,
@@ -1037,6 +1193,12 @@
           "carbs_per_100g",
           "id",
           "source",
+          "source_reference",
+          "current_revision",
+          "nutrition_basis_unit",
+          "nutrition_basis_quantity",
+          "density_g_per_ml",
+          "nutrition_complete",
           "created_at",
           "updated_at"
         ],
@@ -1301,6 +1463,17 @@
             "title": "Carbs",
             "type": "number"
           },
+          "catalog_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalog Revision"
+          },
           "client_id": {
             "format": "uuid",
             "title": "Client Id",
@@ -1321,6 +1494,17 @@
               }
             ],
             "title": "Custom Name"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
           },
           "fat": {
             "title": "Fat",
@@ -1365,6 +1549,28 @@
               }
             ],
             "title": "Note"
+          },
+          "nutrition_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nutrition Source"
+          },
+          "nutrition_source_reference": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nutrition Source Reference"
           },
           "protein": {
             "title": "Protein",
@@ -3169,6 +3375,84 @@
           }
         ],
         "summary": "Add Food",
+        "tags": [
+          "diet"
+        ]
+      }
+    },
+    "/api/v1/foods/match": {
+      "get": {
+        "operationId": "match_foods_api_v1_foods_match_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "query",
+            "required": true,
+            "schema": {
+              "maxLength": 200,
+              "minLength": 1,
+              "title": "Query",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "brand",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 120,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Brand"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "maximum": 10,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FoodMatchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Match Foods",
         "tags": [
           "diet"
         ]

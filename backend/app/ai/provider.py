@@ -10,6 +10,7 @@ class ProviderResult:
     model: str
     input_tokens: int = 0
     output_tokens: int = 0
+    provider_request_id: str | None = None
 
 
 class ProviderError(RuntimeError):

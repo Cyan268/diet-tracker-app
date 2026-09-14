@@ -10,7 +10,6 @@
     "web:build": "expo export --platform web",
     "web:serve": "node scripts/serve-web.mjs",
     "web:preview": "npm run web:build && npm run web:serve",
-    "deploy:smoke": "node scripts/smoke-deployment.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "expo lint --max-warnings=0",
     "test": "jest --runInBand",
@@ -19,9 +18,8 @@
     "test:web:sqlite": "node scripts/start-web-sqlite-check.mjs",
     "api:types": "openapi-typescript backend/openapi.json -o src/api/generated/schema.ts && prettier --write src/api/generated/schema.ts",
     "api:types:check": "npm run api:types && git diff --exit-code -- src/api/generated/schema.ts",
-    "load:test": "docker compose --profile loadtest run --rm loadtest run --summary-export=/results/postgres-local-baseline.json /scripts/api-baseline.js",
-    "format": "prettier --write \"{app,src,__tests__}/**/*.{ts,tsx}\" \"*.{js,json,md}\" \"docs/**/*.md\"",
-    "format:check": "prettier --check \"{app,src,__tests__}/**/*.{ts,tsx}\" \"*.{js,json,md}\" \"docs/**/*.md\"",
+    "format": "prettier --write \"{app,src,__tests__}/**/*.{ts,tsx}\" \"*.{js,json,md}\"",
+    "format:check": "prettier --check \"{app,src,__tests__}/**/*.{ts,tsx}\" \"*.{js,json,md}\"",
     "check": "npm run typecheck && npm run lint && npm run test"
   },
   "dependencies": {

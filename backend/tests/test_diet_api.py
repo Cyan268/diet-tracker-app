@@ -118,6 +118,10 @@ async def test_catalog_food_nutrition_is_calculated_by_server(api_client: AsyncC
     assert response.status_code == 201
     assert response.json()["kcal"] == 570
     assert response.json()["protein"] == 19.5
+    assert response.json()["display_name"] == "燕麦片"
+    assert response.json()["nutrition_source"] == "user"
+    assert response.json()["catalog_revision"] == "user-v1"
+    assert response.json()["nutrition_source_reference"] == "user-provided"
 
 
 async def test_log_create_is_idempotent_and_rejects_key_reuse(api_client: AsyncClient) -> None:
@@ -131,6 +135,9 @@ async def test_log_create_is_idempotent_and_rejects_key_reuse(api_client: AsyncC
     conflict = await api_client.post("/api/v1/logs", headers=headers, json=changed_payload)
 
     assert created.status_code == 201
+    assert created.json()["display_name"] == "自制三明治"
+    assert created.json()["nutrition_source"] == "custom_input"
+    assert created.json()["catalog_revision"] is None
     assert replay.status_code == 200
     assert replay.json()["id"] == created.json()["id"]
     assert conflict.status_code == 409
@@ -241,6 +248,8 @@ async def test_sync_changes_are_cursor_paginated_and_user_scoped(
     assert first_body["has_more"] is True
     assert first_body["changes"][0]["operation"] == "upsert"
     assert first_body["changes"][0]["log"]["version"] == 1
+    assert first_body["changes"][0]["log"]["display_name"] == "自制三明治"
+    assert first_body["changes"][0]["log"]["nutrition_source"] == "custom_input"
 
     second_page = await api_client.get(
         "/api/v1/sync/changes",

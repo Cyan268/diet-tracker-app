@@ -1,0 +1,150 @@
+{
+  "datasetVersion": "food-matching-zh-cn-v1.0.0",
+  "description": "人工构造的名称、别名、品牌歧义、模糊召回和拒绝匹配回归集；不代表线上真实准确率。",
+  "thresholds": {
+    "recall": 0.2,
+    "preselect": 0.92,
+    "ambiguityMargin": 0.05
+  },
+  "minimums": {
+    "statusAccuracy": 1.0,
+    "candidateRecall": 1.0,
+    "top1Accuracy": 1.0,
+    "preselectionPrecision": 1.0
+  },
+  "cases": [
+    {
+      "id": "dev_canonical_rice",
+      "split": "development",
+      "query": "白米饭",
+      "expectedStatus": "review",
+      "expectedName": "白米饭",
+      "expectedBrand": null
+    },
+    {
+      "id": "dev_alias_tomato",
+      "split": "development",
+      "query": "西红柿",
+      "expectedStatus": "review",
+      "expectedName": "番茄",
+      "expectedBrand": null
+    },
+    {
+      "id": "dev_alias_egg",
+      "split": "development",
+      "query": "水煮蛋",
+      "expectedStatus": "review",
+      "expectedName": "鸡蛋（煮）",
+      "expectedBrand": null
+    },
+    {
+      "id": "dev_brand_alias_luckin",
+      "split": "development",
+      "query": "Luckin 生椰拿铁",
+      "brand": "瑞幸咖啡",
+      "expectedStatus": "review",
+      "expectedName": "生椰拿铁",
+      "expectedBrand": "瑞幸咖啡"
+    },
+    {
+      "id": "dev_brand_filter_mango",
+      "split": "development",
+      "query": "杨枝甘露",
+      "brand": "茶百道",
+      "expectedStatus": "review",
+      "expectedName": "杨枝甘露",
+      "expectedBrand": "茶百道"
+    },
+    {
+      "id": "dev_ambiguous_mango",
+      "split": "development",
+      "query": "杨枝甘露",
+      "expectedStatus": "ambiguous"
+    },
+    {
+      "id": "dev_fuzzy_boya",
+      "split": "development",
+      "query": "伯牙绝弦奶茶",
+      "expectedStatus": "review",
+      "expectedName": "伯牙绝弦",
+      "expectedBrand": "霸王茶姬"
+    },
+    {
+      "id": "dev_fuzzy_apple",
+      "split": "development",
+      "query": "苹果切块",
+      "expectedStatus": "review",
+      "expectedName": "苹果",
+      "expectedBrand": null
+    },
+    {
+      "id": "dev_no_match",
+      "split": "development",
+      "query": "月球岩石汤",
+      "expectedStatus": "no_match"
+    },
+    {
+      "id": "test_alias_yogurt",
+      "split": "test",
+      "query": "原味酸奶",
+      "expectedStatus": "review",
+      "expectedName": "酸奶（原味）",
+      "expectedBrand": null
+    },
+    {
+      "id": "test_alias_boiled_egg",
+      "split": "test",
+      "query": "白煮蛋",
+      "expectedStatus": "review",
+      "expectedName": "鸡蛋（煮）",
+      "expectedBrand": null
+    },
+    {
+      "id": "test_brand_alias_onepoint",
+      "split": "test",
+      "query": "一点点四季奶青",
+      "brand": "1点点",
+      "expectedStatus": "review",
+      "expectedName": "四季奶青",
+      "expectedBrand": "1点点"
+    },
+    {
+      "id": "test_brand_alias_coco",
+      "split": "test",
+      "query": "CoCo 珍珠奶茶",
+      "brand": "CoCo都可",
+      "expectedStatus": "review",
+      "expectedName": "珍珠奶茶",
+      "expectedBrand": "CoCo都可"
+    },
+    {
+      "id": "test_brand_filter_americano",
+      "split": "test",
+      "query": "美式",
+      "brand": "M Stand",
+      "expectedStatus": "review",
+      "expectedName": "美式",
+      "expectedBrand": "M Stand"
+    },
+    {
+      "id": "test_ambiguous_americano",
+      "split": "test",
+      "query": "美式",
+      "expectedStatus": "ambiguous"
+    },
+    {
+      "id": "test_fuzzy_broccoli",
+      "split": "test",
+      "query": "清炒西兰花",
+      "expectedStatus": "review",
+      "expectedName": "西兰花",
+      "expectedBrand": null
+    },
+    {
+      "id": "test_no_match",
+      "split": "test",
+      "query": "宇宙尘汤",
+      "expectedStatus": "no_match"
+    }
+  ]
+}

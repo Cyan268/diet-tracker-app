@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.pool import StaticPool
 
 from app.api.dependencies import get_auth_guard, get_demo_guard
-from app.core.database import get_session
+from app.core.database import get_session, get_write_session
 from app.main import app
 from app.models import Base
 
@@ -63,6 +63,7 @@ async def api_client(
             yield session
 
     app.dependency_overrides[get_session] = override_session
+    app.dependency_overrides[get_write_session] = override_session
     app.dependency_overrides[get_demo_guard] = lambda: NoopDemoGuard()
     app.dependency_overrides[get_auth_guard] = lambda: NoopAuthGuard()
     transport = ASGITransport(app=app)
@@ -85,7 +86,7 @@ async def pg_session_factory() -> AsyncIterator[async_sessionmaker[AsyncSession]
             assert (await connection.scalar(text("SELECT version()"))).startswith("PostgreSQL")
             assert (
                 await connection.scalar(text("SELECT version_num FROM alembic_version"))
-                == "20260831_0009"
+                == "20260909_0012"
             )
         yield async_sessionmaker(engine, expire_on_commit=False)
     finally:
@@ -99,6 +100,7 @@ async def pg_api_client(pg_session_factory) -> AsyncIterator[AsyncClient]:
             yield session
 
     app.dependency_overrides[get_session] = override_session
+    app.dependency_overrides[get_write_session] = override_session
     app.dependency_overrides[get_demo_guard] = lambda: NoopDemoGuard()
     app.dependency_overrides[get_auth_guard] = lambda: NoopAuthGuard()
     try:

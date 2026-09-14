@@ -53,6 +53,10 @@ class FoodLog(TimestampMixin, Base):
         ForeignKey("food_items.id", ondelete="SET NULL"),
     )
     custom_name: Mapped[str | None] = mapped_column(String(200))
+    display_name: Mapped[str | None] = mapped_column(String(200))
+    nutrition_source: Mapped[str | None] = mapped_column(String(60))
+    catalog_revision: Mapped[str | None] = mapped_column(String(80))
+    nutrition_source_reference: Mapped[str | None] = mapped_column(String(500))
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 3), nullable=False)
     unit: Mapped[str] = mapped_column(String(30), nullable=False)
     kcal: Mapped[Decimal] = mapped_column(Numeric(10, 3), nullable=False)

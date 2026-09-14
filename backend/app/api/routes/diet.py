@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, Response, status
 
-from app.api.dependencies import CurrentUserDep, DemoGuardDep, SessionDep
+from app.api.dependencies import CurrentUserDep, DemoGuardDep, SessionDep, WriteSessionDep
 from app.repositories.diet import (
     get_log,
     get_log_by_client_id,
@@ -15,6 +15,8 @@ from app.repositories.diet import (
 from app.schemas.diet import (
     DailySummaryResponse,
     FoodCreateRequest,
+    FoodMatchCandidateResponse,
+    FoodMatchResponse,
     FoodResponse,
     LogContent,
     LogCreateRequest,
@@ -34,6 +36,7 @@ from app.services.diet import (
     get_daily_summary,
     replace_log,
 )
+from app.services.food_matching import match_visible_foods
 
 router = APIRouter()
 
@@ -55,6 +58,31 @@ async def search_foods(
 ) -> list[FoodResponse]:
     foods = await search_visible_foods(session, current_user.id, query.strip(), limit)
     return [FoodResponse.model_validate(food) for food in foods]
+
+
+@router.get("/foods/match", response_model=FoodMatchResponse)
+async def match_foods(
+    current_user: CurrentUserDep,
+    session: SessionDep,
+    query: Annotated[str, Query(min_length=1, max_length=200)],
+    brand: Annotated[str | None, Query(max_length=120)] = None,
+    limit: Annotated[int, Query(ge=1, le=10)] = 5,
+) -> FoodMatchResponse:
+    decision = await match_visible_foods(
+        session,
+        current_user.id,
+        query,
+        brand=brand,
+        limit=limit,
+    )
+    return FoodMatchResponse(
+        status=decision.status,
+        preselected_food_item_id=decision.preselected_food_item_id,
+        candidates=[
+            FoodMatchCandidateResponse.model_validate(candidate)
+            for candidate in decision.candidates
+        ],
+    )
 
 
 @router.post("/foods", response_model=FoodResponse, status_code=status.HTTP_201_CREATED)
@@ -81,13 +109,14 @@ async def add_log(
     response: Response,
     current_user: CurrentUserDep,
     session: SessionDep,
+    write_session: WriteSessionDep,
     demo_guard: DemoGuardDep,
 ) -> LogResponse:
     await demo_guard.enforce_rate(current_user, "write")
     if await get_log_by_client_id(session, current_user.id, request.client_id) is None:
         await demo_guard.enforce_capacity(session, current_user, "logs")
     try:
-        log, created = await create_log(session, current_user.id, request)
+        log, created = await create_log(write_session, current_user.id, request)
     except IdempotencyConflictError as error:
         raise HTTPException(
             status_code=409,
@@ -162,14 +191,14 @@ async def update_log(
     log_id: UUID,
     request: LogUpdateRequest,
     current_user: CurrentUserDep,
-    session: SessionDep,
+    write_session: WriteSessionDep,
     demo_guard: DemoGuardDep,
 ) -> LogResponse:
     await demo_guard.enforce_rate(current_user, "write")
     content = LogContent.model_validate(request.model_dump(exclude={"expected_version"}))
     try:
         log = await replace_log(
-            session,
+            write_session,
             current_user.id,
             log_id,
             request.expected_version,
@@ -188,13 +217,13 @@ async def update_log(
 async def remove_log(
     log_id: UUID,
     current_user: CurrentUserDep,
-    session: SessionDep,
+    write_session: WriteSessionDep,
     demo_guard: DemoGuardDep,
     expected_version: Annotated[int, Query(ge=1)],
 ) -> Response:
     await demo_guard.enforce_rate(current_user, "write")
     try:
-        await delete_log(session, current_user.id, log_id, expected_version)
+        await delete_log(write_session, current_user.id, log_id, expected_version)
     except ResourceNotFoundError as error:
         raise _not_found() from error
     except VersionConflictError as error:

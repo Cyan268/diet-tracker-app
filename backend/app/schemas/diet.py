@@ -36,8 +36,39 @@ class FoodResponse(FoodCreateRequest):
 
     id: UUID
     source: str
+    source_reference: str | None
+    current_revision: str
+    nutrition_basis_unit: Literal["g", "ml", "serving"]
+    nutrition_basis_quantity: float
+    density_g_per_ml: float | None
+    nutrition_complete: bool
     created_at: datetime
     updated_at: datetime
+
+
+class FoodMatchCandidateResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    food_item_id: UUID
+    catalog_revision: str
+    name: str
+    brand: str | None
+    source: str
+    source_reference: str | None
+    nutrition_complete: bool
+    score: float
+    reason: Literal[
+        "canonical_exact",
+        "alias_exact",
+        "canonical_similar",
+        "alias_similar",
+    ]
+
+
+class FoodMatchResponse(BaseModel):
+    status: Literal["no_match", "ambiguous", "review"]
+    preselected_food_item_id: UUID | None
+    candidates: list[FoodMatchCandidateResponse]
 
 
 class MealType(StrEnum):
@@ -86,6 +117,10 @@ class LogResponse(BaseModel):
     meal_type: MealType
     food_item_id: UUID | None
     custom_name: str | None
+    display_name: str | None = None
+    nutrition_source: str | None = None
+    catalog_revision: str | None = None
+    nutrition_source_reference: str | None = None
     amount: float
     unit: str
     kcal: float

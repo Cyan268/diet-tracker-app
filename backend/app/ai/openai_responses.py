@@ -143,9 +143,11 @@ class OpenAIResponsesFoodTextProvider:
         input_tokens = usage.get("input_tokens", 0) if isinstance(usage, dict) else 0
         output_tokens = usage.get("output_tokens", 0) if isinstance(usage, dict) else 0
         response_model = payload.get("model") if isinstance(payload, dict) else None
+        response_id = payload.get("id") if isinstance(payload, dict) else None
         return ProviderResult(
             entities=parsed.entities,
             model=response_model if isinstance(response_model, str) else self.model,
             input_tokens=input_tokens if isinstance(input_tokens, int) else 0,
             output_tokens=output_tokens if isinstance(output_tokens, int) else 0,
+            provider_request_id=response_id if isinstance(response_id, str) else None,
         )

@@ -47,9 +47,5 @@ USER nutripilot
 
 EXPOSE 8000
 
-FROM runtime AS vps
-CMD ["python", "-m", "app.cli.serve_vps"]
-
-# Keep this last target as the default for the existing Render deployment.
 FROM runtime AS render
 CMD ["sh", "-c", "python -m app.cli.production_preflight --portfolio --single-origin-web && alembic upgrade head && python -m app.cli.reset_demo --allow-production && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --no-proxy-headers"]

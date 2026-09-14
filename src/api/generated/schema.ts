@@ -247,6 +247,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/foods/match": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Match Foods */
+    get: operations["match_foods_api_v1_foods_match_get"];
+    put?: never;
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/health/live": {
     parameters: {
       query?: never;
@@ -763,6 +780,45 @@ export interface components {
        */
       sugar_per_100g: number;
     };
+    /** FoodMatchCandidateResponse */
+    FoodMatchCandidateResponse: {
+      /** Brand */
+      brand: string | null;
+      /** Catalog Revision */
+      catalog_revision: string;
+      /**
+       * Food Item Id
+       * Format: uuid
+       */
+      food_item_id: string;
+      /** Name */
+      name: string;
+      /** Nutrition Complete */
+      nutrition_complete: boolean;
+      /**
+       * Reason
+       * @enum {string}
+       */
+      reason: "canonical_exact" | "alias_exact" | "canonical_similar" | "alias_similar";
+      /** Score */
+      score: number;
+      /** Source */
+      source: string;
+      /** Source Reference */
+      source_reference: string | null;
+    };
+    /** FoodMatchResponse */
+    FoodMatchResponse: {
+      /** Candidates */
+      candidates: components["schemas"]["FoodMatchCandidateResponse"][];
+      /** Preselected Food Item Id */
+      preselected_food_item_id: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "no_match" | "ambiguous" | "review";
+    };
     /** FoodResponse */
     FoodResponse: {
       /** Brand */
@@ -781,6 +837,10 @@ export interface components {
        * Format: date-time
        */
       created_at: string;
+      /** Current Revision */
+      current_revision: string;
+      /** Density G Per Ml */
+      density_g_per_ml: number | null;
       /** Fat Per 100G */
       fat_per_100g: number;
       /**
@@ -792,6 +852,15 @@ export interface components {
       kcal_per_100g: number;
       /** Name */
       name: string;
+      /** Nutrition Basis Quantity */
+      nutrition_basis_quantity: number;
+      /**
+       * Nutrition Basis Unit
+       * @enum {string}
+       */
+      nutrition_basis_unit: "g" | "ml" | "serving";
+      /** Nutrition Complete */
+      nutrition_complete: boolean;
       /** Protein Per 100G */
       protein_per_100g: number;
       /** Serving Unit */
@@ -805,6 +874,8 @@ export interface components {
       sodium_per_100g: number;
       /** Source */
       source: string;
+      /** Source Reference */
+      source_reference: string | null;
       /**
        * Sugar Per 100G
        * @default 0
@@ -919,6 +990,8 @@ export interface components {
       caffeine: number;
       /** Carbs */
       carbs: number;
+      /** Catalog Revision */
+      catalog_revision?: string | null;
       /**
        * Client Id
        * Format: uuid
@@ -931,6 +1004,8 @@ export interface components {
       created_at: string;
       /** Custom Name */
       custom_name: string | null;
+      /** Display Name */
+      display_name?: string | null;
       /** Fat */
       fat: number;
       /** Food Item Id */
@@ -950,6 +1025,10 @@ export interface components {
       meal_type: components["schemas"]["MealType"];
       /** Note */
       note: string | null;
+      /** Nutrition Source */
+      nutrition_source?: string | null;
+      /** Nutrition Source Reference */
+      nutrition_source_reference?: string | null;
       /** Protein */
       protein: number;
       /** Sodium */
@@ -1890,6 +1969,39 @@ export interface operations {
         };
         content: {
           "application/json": components["schemas"]["FoodResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  match_foods_api_v1_foods_match_get: {
+    parameters: {
+      query: {
+        query: string;
+        brand?: string | null;
+        limit?: number;
+      };
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["FoodMatchResponse"];
         };
       };
       /** @description Validation Error */

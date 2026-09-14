@@ -5,7 +5,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import Settings, get_settings
-from app.core.database import get_session
+from app.core.database import get_session, get_write_session
 from app.core.redis import get_redis_client
 from app.core.security import InvalidAccessTokenError, decode_access_token
 from app.models import User
@@ -16,6 +16,7 @@ from app.services.demo_guard import DemoGuard
 bearer_scheme = HTTPBearer(auto_error=False)
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
+WriteSessionDep = Annotated[AsyncSession, Depends(get_write_session)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 

@@ -29,6 +29,13 @@ async def get_session() -> AsyncIterator[AsyncSession]:
         yield session
 
 
+async def get_write_session() -> AsyncIterator[AsyncSession]:
+    """Yield a session whose transaction is owned only by one write service."""
+
+    async with session_factory() as session:
+        yield session
+
+
 async def check_database() -> None:
     async with engine.connect() as connection:
         await connection.execute(text("SELECT 1"))
