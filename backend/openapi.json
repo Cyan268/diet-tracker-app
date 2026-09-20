@@ -175,6 +175,651 @@
         "title": "AiUsage",
         "type": "object"
       },
+      "AnalysisAcceptedResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "job_id": {
+            "format": "uuid",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "retry_wait",
+              "succeeded",
+              "failed",
+              "unknown",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "status_url": {
+            "title": "Status Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "status",
+          "status_url",
+          "created_at"
+        ],
+        "title": "AnalysisAcceptedResponse",
+        "type": "object"
+      },
+      "AnalysisConfirmRequest": {
+        "properties": {
+          "client_confirmation_id": {
+            "format": "uuid",
+            "title": "Client Confirmation Id",
+            "type": "string"
+          },
+          "entities": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisConfirmationEntity"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Entities",
+            "type": "array"
+          },
+          "expected_draft_version": {
+            "minimum": 1.0,
+            "title": "Expected Draft Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "client_confirmation_id",
+          "expected_draft_version",
+          "entities"
+        ],
+        "title": "AnalysisConfirmRequest",
+        "type": "object"
+      },
+      "AnalysisConfirmationEntity": {
+        "properties": {
+          "amount": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100000.0,
+            "title": "Amount",
+            "type": "number"
+          },
+          "catalog_revision": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Catalog Revision",
+            "type": "string"
+          },
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "food_item_id": {
+            "format": "uuid",
+            "title": "Food Item Id",
+            "type": "string"
+          },
+          "meal_type": {
+            "$ref": "#/components/schemas/MealType"
+          },
+          "source_entity_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Entity Id"
+          },
+          "unit": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_id",
+          "food_item_id",
+          "catalog_revision",
+          "amount",
+          "unit",
+          "meal_type"
+        ],
+        "title": "AnalysisConfirmationEntity",
+        "type": "object"
+      },
+      "AnalysisConfirmationResponse": {
+        "properties": {
+          "confirmation_id": {
+            "format": "uuid",
+            "title": "Confirmation Id",
+            "type": "string"
+          },
+          "confirmed_draft_version": {
+            "title": "Confirmed Draft Version",
+            "type": "integer"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "draft_id": {
+            "format": "uuid",
+            "title": "Draft Id",
+            "type": "string"
+          },
+          "log_identities": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisLogIdentity"
+            },
+            "title": "Log Identities",
+            "type": "array"
+          },
+          "logs": {
+            "items": {
+              "$ref": "#/components/schemas/LogResponse"
+            },
+            "title": "Logs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "confirmation_id",
+          "draft_id",
+          "confirmed_draft_version",
+          "created_at",
+          "log_identities",
+          "logs"
+        ],
+        "title": "AnalysisConfirmationResponse",
+        "type": "object"
+      },
+      "AnalysisCreateRequest": {
+        "properties": {
+          "client_request_id": {
+            "format": "uuid",
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "locale": {
+            "const": "zh-CN",
+            "default": "zh-CN",
+            "title": "Locale",
+            "type": "string"
+          },
+          "log_date": {
+            "format": "date",
+            "title": "Log Date",
+            "type": "string"
+          },
+          "meal_type_hint": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MealType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text": {
+            "maxLength": 1000,
+            "minLength": 2,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_request_id",
+          "text",
+          "log_date"
+        ],
+        "title": "AnalysisCreateRequest",
+        "type": "object"
+      },
+      "AnalysisDraftEntityResponse": {
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "number"
+          },
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/FoodMatchCandidateResponse"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "catalog_revision": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalog Revision"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "matched_food_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matched Food Id"
+          },
+          "meal_type": {
+            "$ref": "#/components/schemas/MealType"
+          },
+          "needs_review": {
+            "title": "Needs Review",
+            "type": "boolean"
+          },
+          "normalized_name": {
+            "title": "Normalized Name",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "integer"
+          },
+          "raw_name": {
+            "title": "Raw Name",
+            "type": "string"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "position",
+          "raw_name",
+          "normalized_name",
+          "amount",
+          "unit",
+          "meal_type",
+          "confidence",
+          "needs_review",
+          "matched_food_id",
+          "catalog_revision",
+          "candidates"
+        ],
+        "title": "AnalysisDraftEntityResponse",
+        "type": "object"
+      },
+      "AnalysisDraftEntityUpdate": {
+        "properties": {
+          "amount": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 100000.0,
+            "title": "Amount",
+            "type": "number"
+          },
+          "catalog_revision": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalog Revision"
+          },
+          "entity_id": {
+            "format": "uuid",
+            "title": "Entity Id",
+            "type": "string"
+          },
+          "matched_food_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Matched Food Id"
+          },
+          "meal_type": {
+            "$ref": "#/components/schemas/MealType"
+          },
+          "normalized_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Normalized Name",
+            "type": "string"
+          },
+          "unit": {
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entity_id",
+          "normalized_name",
+          "amount",
+          "unit",
+          "meal_type",
+          "matched_food_id"
+        ],
+        "title": "AnalysisDraftEntityUpdate",
+        "type": "object"
+      },
+      "AnalysisDraftResponse": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "entities": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisDraftEntityResponse"
+            },
+            "title": "Entities",
+            "type": "array"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "job_id": {
+            "format": "uuid",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "log_date": {
+            "format": "date",
+            "title": "Log Date",
+            "type": "string"
+          },
+          "result_schema_version": {
+            "title": "Result Schema Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "review",
+              "confirmed",
+              "expired",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "job_id",
+          "status",
+          "version",
+          "log_date",
+          "result_schema_version",
+          "expires_at",
+          "created_at",
+          "updated_at",
+          "entities"
+        ],
+        "title": "AnalysisDraftResponse",
+        "type": "object"
+      },
+      "AnalysisDraftUpdateRequest": {
+        "properties": {
+          "entities": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisDraftEntityUpdate"
+            },
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Entities",
+            "type": "array"
+          },
+          "expected_version": {
+            "minimum": 1.0,
+            "title": "Expected Version",
+            "type": "integer"
+          },
+          "log_date": {
+            "format": "date",
+            "title": "Log Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expected_version",
+          "log_date",
+          "entities"
+        ],
+        "title": "AnalysisDraftUpdateRequest",
+        "type": "object"
+      },
+      "AnalysisImageCreateRequest": {
+        "properties": {
+          "client_request_id": {
+            "format": "uuid",
+            "title": "Client Request Id",
+            "type": "string"
+          },
+          "consent_to_provider": {
+            "const": true,
+            "title": "Consent To Provider",
+            "type": "boolean"
+          },
+          "locale": {
+            "const": "zh-CN",
+            "default": "zh-CN",
+            "title": "Locale",
+            "type": "string"
+          },
+          "log_date": {
+            "format": "date",
+            "title": "Log Date",
+            "type": "string"
+          },
+          "meal_type_hint": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MealType"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "upload_id": {
+            "format": "uuid",
+            "title": "Upload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "client_request_id",
+          "upload_id",
+          "log_date",
+          "consent_to_provider"
+        ],
+        "title": "AnalysisImageCreateRequest",
+        "type": "object"
+      },
+      "AnalysisLogIdentity": {
+        "properties": {
+          "client_id": {
+            "format": "uuid",
+            "title": "Client Id",
+            "type": "string"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "log_id": {
+            "format": "uuid",
+            "title": "Log Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entity_id",
+          "client_id",
+          "log_id"
+        ],
+        "title": "AnalysisLogIdentity",
+        "type": "object"
+      },
+      "AnalysisStatusResponse": {
+        "properties": {
+          "attempt_count": {
+            "title": "Attempt Count",
+            "type": "integer"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "draft_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Draft Id"
+          },
+          "failure_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Code"
+          },
+          "job_id": {
+            "format": "uuid",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "retryable": {
+            "title": "Retryable",
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "queued",
+              "running",
+              "retry_wait",
+              "succeeded",
+              "failed",
+              "unknown",
+              "cancelled"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "job_id",
+          "status",
+          "retryable",
+          "attempt_count",
+          "draft_id",
+          "failure_code",
+          "created_at",
+          "updated_at",
+          "completed_at"
+        ],
+        "title": "AnalysisStatusResponse",
+        "type": "object"
+      },
       "AssistantAnswerResponse": {
         "properties": {
           "answer": {
@@ -2138,6 +2783,202 @@
         "title": "TokenResponse",
         "type": "object"
       },
+      "UploadPresignRequest": {
+        "properties": {
+          "content_type": {
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "title": "Content Type",
+            "type": "string"
+          },
+          "sha256": {
+            "maxLength": 64,
+            "minLength": 64,
+            "title": "Sha256",
+            "type": "string"
+          },
+          "size": {
+            "exclusiveMinimum": 0.0,
+            "title": "Size",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "content_type",
+          "size",
+          "sha256"
+        ],
+        "title": "UploadPresignRequest",
+        "type": "object"
+      },
+      "UploadPresignResponse": {
+        "properties": {
+          "method": {
+            "const": "PUT",
+            "default": "PUT",
+            "title": "Method",
+            "type": "string"
+          },
+          "required_content_type": {
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "title": "Required Content Type",
+            "type": "string"
+          },
+          "required_size": {
+            "title": "Required Size",
+            "type": "integer"
+          },
+          "status": {
+            "const": "pending",
+            "title": "Status",
+            "type": "string"
+          },
+          "upload_expires_at": {
+            "format": "date-time",
+            "title": "Upload Expires At",
+            "type": "string"
+          },
+          "upload_id": {
+            "format": "uuid",
+            "title": "Upload Id",
+            "type": "string"
+          },
+          "upload_url": {
+            "title": "Upload Url",
+            "type": "string"
+          },
+          "upload_url_expires_at": {
+            "format": "date-time",
+            "title": "Upload Url Expires At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "upload_id",
+          "status",
+          "upload_url",
+          "required_content_type",
+          "required_size",
+          "upload_url_expires_at",
+          "upload_expires_at"
+        ],
+        "title": "UploadPresignResponse",
+        "type": "object"
+      },
+      "UploadResponse": {
+        "properties": {
+          "content_type": {
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "title": "Content Type",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "declared_size": {
+            "title": "Declared Size",
+            "type": "integer"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "ready",
+              "failed",
+              "delete_pending",
+              "deleted"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "verified_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verified Size"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "content_type",
+          "declared_size",
+          "verified_size",
+          "sha256",
+          "width",
+          "height",
+          "expires_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "UploadResponse",
+        "type": "object"
+      },
       "UserResponse": {
         "properties": {
           "created_at": {
@@ -2212,6 +3053,84 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "WeeklyFactReference": {
+        "additionalProperties": false,
+        "properties": {
+          "calculation": {
+            "maxLength": 300,
+            "minLength": 1,
+            "title": "Calculation",
+            "type": "string"
+          },
+          "display_value": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Display Value",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[a-z][a-z0-9_.-]{2,100}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "food_log_snapshots",
+              "user_profile",
+              "derived"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "display_value",
+          "source",
+          "calculation"
+        ],
+        "title": "WeeklyFactReference",
+        "type": "object"
+      },
+      "WeeklyMealStructureItem": {
+        "additionalProperties": false,
+        "properties": {
+          "kcal_ratio": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Kcal Ratio",
+            "type": "number"
+          },
+          "log_count": {
+            "minimum": 0.0,
+            "title": "Log Count",
+            "type": "integer"
+          },
+          "meal_type": {
+            "$ref": "#/components/schemas/MealType"
+          },
+          "total_kcal": {
+            "minimum": 0.0,
+            "title": "Total Kcal",
+            "type": "number"
+          }
+        },
+        "required": [
+          "meal_type",
+          "log_count",
+          "total_kcal",
+          "kcal_ratio"
+        ],
+        "title": "WeeklyMealStructureItem",
         "type": "object"
       },
       "WeeklyMetricChanges": {
@@ -2307,9 +3226,46 @@
         "title": "WeeklyMetricChanges",
         "type": "object"
       },
+      "WeeklyNarrativeCitation": {
+        "additionalProperties": false,
+        "properties": {
+          "fact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 12,
+            "minItems": 1,
+            "title": "Fact Ids",
+            "type": "array"
+          },
+          "path": {
+            "enum": [
+              "headline",
+              "summary",
+              "highlights.0",
+              "highlights.1",
+              "highlights.2"
+            ],
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "fact_ids"
+        ],
+        "title": "WeeklyNarrativeCitation",
+        "type": "object"
+      },
       "WeeklyPeriodSummary": {
         "additionalProperties": false,
         "properties": {
+          "average_basis": {
+            "const": "calendar_days",
+            "default": "calendar_days",
+            "title": "Average Basis",
+            "type": "string"
+          },
           "average_caffeine": {
             "minimum": 0.0,
             "title": "Average Caffeine",
@@ -2345,6 +3301,12 @@
             "title": "Average Sugar",
             "type": "number"
           },
+          "calendar_days": {
+            "const": 7,
+            "default": 7,
+            "title": "Calendar Days",
+            "type": "integer"
+          },
           "coverage_ratio": {
             "maximum": 1.0,
             "minimum": 0.0,
@@ -2361,6 +3323,41 @@
             "format": "date",
             "title": "End Date",
             "type": "string"
+          },
+          "recorded_day_average_caffeine": {
+            "minimum": 0.0,
+            "title": "Recorded Day Average Caffeine",
+            "type": "number"
+          },
+          "recorded_day_average_carbs": {
+            "minimum": 0.0,
+            "title": "Recorded Day Average Carbs",
+            "type": "number"
+          },
+          "recorded_day_average_fat": {
+            "minimum": 0.0,
+            "title": "Recorded Day Average Fat",
+            "type": "number"
+          },
+          "recorded_day_average_kcal": {
+            "minimum": 0.0,
+            "title": "Recorded Day Average Kcal",
+            "type": "number"
+          },
+          "recorded_day_average_protein": {
+            "minimum": 0.0,
+            "title": "Recorded Day Average Protein",
+            "type": "number"
+          },
+          "recorded_day_average_sodium": {
+            "minimum": 0.0,
+            "title": "Recorded Day Average Sodium",
+            "type": "number"
+          },
+          "recorded_day_average_sugar": {
+            "minimum": 0.0,
+            "title": "Recorded Day Average Sugar",
+            "type": "number"
           },
           "start_date": {
             "format": "date",
@@ -2385,7 +3382,14 @@
           "average_carbs",
           "average_sugar",
           "average_sodium",
-          "average_caffeine"
+          "average_caffeine",
+          "recorded_day_average_kcal",
+          "recorded_day_average_protein",
+          "recorded_day_average_fat",
+          "recorded_day_average_carbs",
+          "recorded_day_average_sugar",
+          "recorded_day_average_sodium",
+          "recorded_day_average_caffeine"
         ],
         "title": "WeeklyPeriodSummary",
         "type": "object"
@@ -2393,6 +3397,12 @@
       "WeeklyReportFacts": {
         "additionalProperties": false,
         "properties": {
+          "business_date_basis": {
+            "const": "user_supplied_log_date",
+            "default": "user_supplied_log_date",
+            "title": "Business Date Basis",
+            "type": "string"
+          },
           "changes": {
             "$ref": "#/components/schemas/WeeklyMetricChanges"
           },
@@ -2400,11 +3410,44 @@
             "title": "Comparison Available",
             "type": "boolean"
           },
+          "completeness_threshold_days": {
+            "const": 4,
+            "default": 4,
+            "title": "Completeness Threshold Days",
+            "type": "integer"
+          },
           "current": {
             "$ref": "#/components/schemas/WeeklyPeriodSummary"
           },
+          "fact_references": {
+            "items": {
+              "$ref": "#/components/schemas/WeeklyFactReference"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Fact References",
+            "type": "array"
+          },
+          "meal_structure": {
+            "items": {
+              "$ref": "#/components/schemas/WeeklyMealStructureItem"
+            },
+            "maxItems": 5,
+            "minItems": 5,
+            "title": "Meal Structure",
+            "type": "array"
+          },
           "previous": {
             "$ref": "#/components/schemas/WeeklyPeriodSummary"
+          },
+          "rounding_policy": {
+            "const": "python_round_half_even_2dp",
+            "default": "python_round_half_even_2dp",
+            "title": "Rounding Policy",
+            "type": "string"
+          },
+          "target_adherence": {
+            "$ref": "#/components/schemas/WeeklyTargetAdherence"
           },
           "targets": {
             "anyOf": [
@@ -2422,7 +3465,10 @@
           "previous",
           "targets",
           "comparison_available",
-          "changes"
+          "changes",
+          "meal_structure",
+          "target_adherence",
+          "fact_references"
         ],
         "title": "WeeklyReportFacts",
         "type": "object"
@@ -2437,6 +3483,15 @@
             "maxItems": 3,
             "minItems": 1,
             "title": "Actions",
+            "type": "array"
+          },
+          "citations": {
+            "items": {
+              "$ref": "#/components/schemas/WeeklyNarrativeCitation"
+            },
+            "maxItems": 5,
+            "minItems": 3,
+            "title": "Citations",
             "type": "array"
           },
           "headline": {
@@ -2465,7 +3520,8 @@
           "headline",
           "summary",
           "highlights",
-          "actions"
+          "actions",
+          "citations"
         ],
         "title": "WeeklyReportNarrative",
         "type": "object"
@@ -2538,8 +3594,8 @@
             "type": "string"
           },
           "schema_version": {
-            "const": "1.0",
-            "default": "1.0",
+            "const": "2.0",
+            "default": "2.0",
             "title": "Schema Version",
             "type": "string"
           },
@@ -2580,6 +3636,52 @@
         ],
         "title": "WeeklyReportResponse",
         "type": "object"
+      },
+      "WeeklyTargetAdherence": {
+        "additionalProperties": false,
+        "properties": {
+          "assessment_days": {
+            "maximum": 7.0,
+            "minimum": 0.0,
+            "title": "Assessment Days",
+            "type": "integer"
+          },
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "kcal_within_target_days": {
+            "anyOf": [
+              {
+                "maximum": 7.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kcal Within Target Days"
+          },
+          "rule": {
+            "const": "recorded_day_kcal_within_target_plus_or_minus_10_percent",
+            "default": "recorded_day_kcal_within_target_plus_or_minus_10_percent",
+            "title": "Rule",
+            "type": "string"
+          },
+          "tolerance_percent": {
+            "const": 10,
+            "default": 10,
+            "title": "Tolerance Percent",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "available",
+          "assessment_days"
+        ],
+        "title": "WeeklyTargetAdherence",
+        "type": "object"
       }
     },
     "securitySchemes": {
@@ -2617,6 +3719,158 @@
         "summary": "Root",
         "tags": [
           "meta"
+        ]
+      }
+    },
+    "/api/v1/ai/analyses": {
+      "post": {
+        "operationId": "create_analysis_api_v1_ai_analyses_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalysisCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisAcceptedResponse"
+                }
+              }
+            },
+            "description": "Idempotent replay"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisAcceptedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "409": {
+            "description": "Idempotency key conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "description": "Pending analysis capacity reached"
+          },
+          "503": {
+            "description": "Analysis intake is paused"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Analysis",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/analyses/{job_id}": {
+      "delete": {
+        "operationId": "cancel_analysis_api_v1_ai_analyses__job_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Cancel Analysis",
+        "tags": [
+          "ai"
+        ]
+      },
+      "get": {
+        "operationId": "read_analysis_status_api_v1_ai_analyses__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Analysis Status",
+        "tags": [
+          "ai"
         ]
       }
     },
@@ -2996,6 +4250,217 @@
         ]
       }
     },
+    "/api/v1/ai/drafts/{draft_id}": {
+      "delete": {
+        "operationId": "discard_draft_api_v1_ai_drafts__draft_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Discard Draft",
+        "tags": [
+          "ai"
+        ]
+      },
+      "get": {
+        "operationId": "read_analysis_draft_api_v1_ai_drafts__draft_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Analysis Draft",
+        "tags": [
+          "ai"
+        ]
+      },
+      "put": {
+        "operationId": "update_draft_api_v1_ai_drafts__draft_id__put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalysisDraftUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisDraftResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Update Draft",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/drafts/{draft_id}/confirm": {
+      "post": {
+        "operationId": "confirm_draft_api_v1_ai_drafts__draft_id__confirm_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "draft_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Draft Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalysisConfirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisConfirmationResponse"
+                }
+              }
+            },
+            "description": "Idempotent replay"
+          },
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisConfirmationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Confirm Draft",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
     "/api/v1/ai/food-text:analyze": {
       "post": {
         "operationId": "analyze_text_api_v1_ai_food_text_analyze_post",
@@ -3037,6 +4502,74 @@
           }
         ],
         "summary": "Analyze Text",
+        "tags": [
+          "ai"
+        ]
+      }
+    },
+    "/api/v1/ai/image-analyses": {
+      "post": {
+        "operationId": "create_image_analysis_api_v1_ai_image_analyses_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalysisImageCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisAcceptedResponse"
+                }
+              }
+            },
+            "description": "Idempotent replay"
+          },
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisAcceptedResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "403": {
+            "description": "Image analysis is unavailable to demo accounts"
+          },
+          "409": {
+            "description": "Upload or credential is not ready"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "description": "Pending analysis capacity reached"
+          },
+          "503": {
+            "description": "Analysis intake is paused"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Create Image Analysis",
         "tags": [
           "ai"
         ]
@@ -3916,6 +5449,267 @@
         "summary": "Read Sync Changes",
         "tags": [
           "diet"
+        ]
+      }
+    },
+    "/api/v1/uploads/presign": {
+      "post": {
+        "operationId": "presign_upload_api_v1_uploads_presign_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadPresignRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadPresignResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Presign Upload",
+        "tags": [
+          "uploads"
+        ]
+      }
+    },
+    "/api/v1/uploads/{upload_id}": {
+      "delete": {
+        "operationId": "remove_upload_api_v1_uploads__upload_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "upload_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Upload Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Remove Upload",
+        "tags": [
+          "uploads"
+        ]
+      },
+      "get": {
+        "operationId": "read_upload_api_v1_uploads__upload_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "upload_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Upload Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Read Upload",
+        "tags": [
+          "uploads"
+        ]
+      }
+    },
+    "/api/v1/uploads/{upload_id}/complete": {
+      "post": {
+        "operationId": "finish_upload_api_v1_uploads__upload_id__complete_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "upload_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Upload Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Finish Upload",
+        "tags": [
+          "uploads"
+        ]
+      }
+    },
+    "/api/v1/uploads/{upload_id}/content": {
+      "put": {
+        "operationId": "put_upload_content_api_v1_uploads__upload_id__content_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "upload_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Upload Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "token",
+            "required": true,
+            "schema": {
+              "maxLength": 2000,
+              "minLength": 40,
+              "title": "Token",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Content-Type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Content-Type"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Content-Length",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Content-Length"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Upload Content",
+        "tags": [
+          "uploads"
         ]
       }
     },

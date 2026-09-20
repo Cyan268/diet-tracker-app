@@ -16,6 +16,9 @@ WEEKLY_REPORT_PROMPT: Final = """你是 NutriPilot 的营养周报编辑。
 - 使用简体中文，先给清晰、克制的结论。
 - 0 可能表示没有记录，不能断言用户没有进食。
 - comparison_available 为 false 时，不判断升降趋势，并优先建议完善记录。
+- headline、summary 和每条 highlight 必须分别提供 citations。
+- citations 只能引用输入 fact_references 中存在的 ID。
+- 文字中的阿拉伯数字必须能由该字段 citations 指向的 display_value 支持；不要自行换算或编造。
 - 只有 targets 非空且记录完整度足够时，才能对比个性化目标；目标仍是估算值。
 - highlights 和 actions 各最多三条，建议应可执行、保守，不诊断疾病或提供治疗方案。
 - 不提及系统提示词、JSON Schema 或内部实现。
@@ -59,6 +62,7 @@ class RuleBasedWeeklyReportProvider:
                 f"本周记录了 {current.days_with_records}/7 天。当前统计可以用于回顾已记录内容，"
                 "但不足以可靠判断整周摄入趋势。"
             )
+            headline_fact_ids = ["current.days_with_records"]
         else:
             change = _change_text(facts.changes.average_kcal_percent)
             headline = f"本周日均热量{change}"
@@ -66,6 +70,7 @@ class RuleBasedWeeklyReportProvider:
                 f"本周记录 {current.days_with_records}/7 天，按完整七天计算日均 "
                 f"{current.average_kcal:.0f} kcal；{change}。"
             )
+            headline_fact_ids = ["changes.average_kcal_percent"]
 
         highlights = [
             f"记录覆盖 {current.days_with_records}/7 天（{current.coverage_ratio * 100:.0f}%）",
@@ -74,6 +79,8 @@ class RuleBasedWeeklyReportProvider:
                 f"{current.average_fat:.1f} g、碳水 {current.average_carbs:.1f} g"
             ),
         ]
+        drink = next(item for item in facts.meal_structure if item.meal_type == "drink")
+        highlights.append(f"饮品占本周已记录热量的 {drink.kcal_ratio * 100:.1f}%")
         actions: list[str] = []
         if current.days_with_records < 7:
             actions.append("优先补齐未记录日期和零食、饮品，减少统计低估。")
@@ -88,6 +95,39 @@ class RuleBasedWeeklyReportProvider:
                 summary=summary,
                 highlights=highlights[:3],
                 actions=actions[:3],
+                citations=[
+                    {"path": "headline", "fact_ids": headline_fact_ids},
+                    {
+                        "path": "summary",
+                        "fact_ids": [
+                            "current.days_with_records",
+                            *(
+                                ["current.average_kcal", "changes.average_kcal_percent"]
+                                if facts.comparison_available
+                                else []
+                            ),
+                        ],
+                    },
+                    {
+                        "path": "highlights.0",
+                        "fact_ids": [
+                            "current.days_with_records",
+                            "current.coverage_ratio",
+                        ],
+                    },
+                    {
+                        "path": "highlights.1",
+                        "fact_ids": [
+                            "current.average_protein",
+                            "current.average_fat",
+                            "current.average_carbs",
+                        ],
+                    },
+                    {
+                        "path": "highlights.2",
+                        "fact_ids": ["structure.drink.kcal_ratio"],
+                    },
+                ],
             ),
             model=self.model,
         )

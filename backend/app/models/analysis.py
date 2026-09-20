@@ -33,6 +33,11 @@ class AnalysisJob(TimestampMixin, Base):
         ),
         CheckConstraint("input_type IN ('text', 'image')", name="input_type_allowed"),
         CheckConstraint(
+            "(input_type = 'text' AND upload_id IS NULL) OR "
+            "(input_type = 'image' AND upload_id IS NOT NULL)",
+            name="input_upload_consistent",
+        ),
+        CheckConstraint(
             "status IN ('queued', 'running', 'retry_wait', 'succeeded', 'failed', "
             "'unknown', 'cancelled')",
             name="status_allowed",
@@ -46,6 +51,7 @@ class AnalysisJob(TimestampMixin, Base):
         ),
         Index("ix_analysis_jobs_claim", "status", "next_attempt_at", "created_at", "id"),
         Index("ix_analysis_jobs_user_created", "user_id", "created_at"),
+        Index("ix_analysis_jobs_upload_id", "upload_id"),
     )
 
     id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True, default=uuid4)
@@ -53,6 +59,10 @@ class AnalysisJob(TimestampMixin, Base):
         Uuid(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
+    )
+    upload_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True),
+        ForeignKey("uploads.id", ondelete="RESTRICT"),
     )
     client_request_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
     request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -262,7 +272,7 @@ class AnalysisConfirmation(Base):
     client_confirmation_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
     request_hash: Mapped[str] = mapped_column(String(64), nullable=False)
     confirmed_draft_version: Mapped[int] = mapped_column(Integer, nullable=False)
-    log_ids: Mapped[list[dict[str, str]]] = mapped_column(JSON, nullable=False)
+    log_ids: Mapped[list[dict[str, str | None]]] = mapped_column(JSON, nullable=False)
     result_snapshot: Mapped[dict[str, object]] = mapped_column(JSON, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

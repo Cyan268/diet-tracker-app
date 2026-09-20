@@ -11,6 +11,7 @@ from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.core.config import Settings
 from app.core.logging import bind_request_id, reset_request_id
+from app.core.runtime_metrics import record_safely, runtime_metrics
 
 REQUEST_ID_HEADER: Final = b"x-request-id"
 REQUEST_ID_PATTERN: Final = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{7,127}$")
@@ -83,6 +84,14 @@ class RequestObservabilityMiddleware:
             await self.app(scope, receive, send_with_request_id)
         finally:
             duration_ms = max(round((perf_counter() - started_at) * 1000), 0)
+            endpoint = _endpoint_name(scope)
+            record_safely(
+                runtime_metrics.record_http,
+                scope.get("method", "unknown"),
+                endpoint,
+                status_code,
+                duration_ms,
+            )
             logger.log(
                 _log_level(status_code),
                 "request.completed",
@@ -91,7 +100,7 @@ class RequestObservabilityMiddleware:
                     "request_id": request_id,
                     "environment": self.environment,
                     "method": scope.get("method", "unknown"),
-                    "endpoint": _endpoint_name(scope),
+                    "endpoint": endpoint,
                     "status_code": status_code,
                     "duration_ms": duration_ms,
                 },

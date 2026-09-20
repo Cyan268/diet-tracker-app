@@ -1,5 +1,7 @@
 import type { WeeklyReportResponse } from "@/api/types";
 
+type WeeklyFacts = WeeklyReportResponse["facts"];
+
 export function getWeeklyReportProviderLabel(
   report: Pick<WeeklyReportResponse, "provider" | "fallback_used">
 ): string {
@@ -16,4 +18,24 @@ export function formatWeeklyChange(value: number | null): string {
 
 export function formatCoverage(daysWithRecords: number): string {
   return `${daysWithRecords}/7 天`;
+}
+
+export function formatWeeklyMealShare(
+  facts: WeeklyFacts,
+  mealType: WeeklyFacts["meal_structure"][number]["meal_type"]
+): string {
+  const item = facts.meal_structure.find((candidate) => candidate.meal_type === mealType);
+  const percentage = (item?.kcal_ratio ?? 0) * 100;
+  return `${percentage.toFixed(1)}%`;
+}
+
+export function formatTargetAdherence(facts: WeeklyFacts): string {
+  const adherence = facts.target_adherence;
+  if (!adherence.available || adherence.kcal_within_target_days === null) {
+    return "资料或记录不足，暂不判断目标达标天数";
+  }
+  return (
+    `热量目标范围内 ${adherence.kcal_within_target_days}/` +
+    `${adherence.assessment_days} 个记录日（产品规则：目标 ±${adherence.tolerance_percent}%）`
+  );
 }

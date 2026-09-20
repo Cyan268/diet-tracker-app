@@ -21,6 +21,41 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/ai/analyses": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Analysis */
+    post: operations["create_analysis_api_v1_ai_analyses_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/ai/analyses/{job_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Read Analysis Status */
+    get: operations["read_analysis_status_api_v1_ai_analyses__job_id__get"];
+    put?: never;
+    post?: never;
+    /** Cancel Analysis */
+    delete: operations["cancel_analysis_api_v1_ai_analyses__job_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/ai/assistant/conversations": {
     parameters: {
       query?: never;
@@ -110,6 +145,42 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/ai/drafts/{draft_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Read Analysis Draft */
+    get: operations["read_analysis_draft_api_v1_ai_drafts__draft_id__get"];
+    /** Update Draft */
+    put: operations["update_draft_api_v1_ai_drafts__draft_id__put"];
+    post?: never;
+    /** Discard Draft */
+    delete: operations["discard_draft_api_v1_ai_drafts__draft_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/ai/drafts/{draft_id}/confirm": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Confirm Draft */
+    post: operations["confirm_draft_api_v1_ai_drafts__draft_id__confirm_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/ai/food-text:analyze": {
     parameters: {
       query?: never;
@@ -121,6 +192,23 @@ export interface paths {
     put?: never;
     /** Analyze Text */
     post: operations["analyze_text_api_v1_ai_food_text_analyze_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/ai/image-analyses": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Create Image Analysis */
+    post: operations["create_image_analysis_api_v1_ai_image_analyses_post"];
     delete?: never;
     options?: never;
     head?: never;
@@ -386,6 +474,75 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/api/v1/uploads/presign": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Presign Upload */
+    post: operations["presign_upload_api_v1_uploads_presign_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/uploads/{upload_id}": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    /** Read Upload */
+    get: operations["read_upload_api_v1_uploads__upload_id__get"];
+    put?: never;
+    post?: never;
+    /** Remove Upload */
+    delete: operations["remove_upload_api_v1_uploads__upload_id__delete"];
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/uploads/{upload_id}/complete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** Finish Upload */
+    post: operations["finish_upload_api_v1_uploads__upload_id__complete_post"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/api/v1/uploads/{upload_id}/content": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    /** Put Upload Content */
+    put: operations["put_upload_content_api_v1_uploads__upload_id__content_put"];
+    post?: never;
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/api/v1/users/me": {
     parameters: {
       query?: never;
@@ -495,6 +652,290 @@ export interface components {
        * @default 0
        */
       total_tokens: number;
+    };
+    /** AnalysisAcceptedResponse */
+    AnalysisAcceptedResponse: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Job Id
+       * Format: uuid
+       */
+      job_id: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status:
+        "queued" | "running" | "retry_wait" | "succeeded" | "failed" | "unknown" | "cancelled";
+      /** Status Url */
+      status_url: string;
+    };
+    /** AnalysisConfirmRequest */
+    AnalysisConfirmRequest: {
+      /**
+       * Client Confirmation Id
+       * Format: uuid
+       */
+      client_confirmation_id: string;
+      /** Entities */
+      entities: components["schemas"]["AnalysisConfirmationEntity"][];
+      /** Expected Draft Version */
+      expected_draft_version: number;
+    };
+    /** AnalysisConfirmationEntity */
+    AnalysisConfirmationEntity: {
+      /** Amount */
+      amount: number;
+      /** Catalog Revision */
+      catalog_revision: string;
+      /**
+       * Client Id
+       * Format: uuid
+       */
+      client_id: string;
+      /**
+       * Food Item Id
+       * Format: uuid
+       */
+      food_item_id: string;
+      meal_type: components["schemas"]["MealType"];
+      /** Source Entity Id */
+      source_entity_id?: string | null;
+      /** Unit */
+      unit: string;
+    };
+    /** AnalysisConfirmationResponse */
+    AnalysisConfirmationResponse: {
+      /**
+       * Confirmation Id
+       * Format: uuid
+       */
+      confirmation_id: string;
+      /** Confirmed Draft Version */
+      confirmed_draft_version: number;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /**
+       * Draft Id
+       * Format: uuid
+       */
+      draft_id: string;
+      /** Log Identities */
+      log_identities: components["schemas"]["AnalysisLogIdentity"][];
+      /** Logs */
+      logs: components["schemas"]["LogResponse"][];
+    };
+    /** AnalysisCreateRequest */
+    AnalysisCreateRequest: {
+      /**
+       * Client Request Id
+       * Format: uuid
+       */
+      client_request_id: string;
+      /**
+       * Locale
+       * @default zh-CN
+       * @constant
+       */
+      locale: "zh-CN";
+      /**
+       * Log Date
+       * Format: date
+       */
+      log_date: string;
+      meal_type_hint?: components["schemas"]["MealType"] | null;
+      /** Text */
+      text: string;
+    };
+    /** AnalysisDraftEntityResponse */
+    AnalysisDraftEntityResponse: {
+      /** Amount */
+      amount: number;
+      /** Candidates */
+      candidates: components["schemas"]["FoodMatchCandidateResponse"][];
+      /** Catalog Revision */
+      catalog_revision: string | null;
+      /** Confidence */
+      confidence: number | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Matched Food Id */
+      matched_food_id: string | null;
+      meal_type: components["schemas"]["MealType"];
+      /** Needs Review */
+      needs_review: boolean;
+      /** Normalized Name */
+      normalized_name: string;
+      /** Position */
+      position: number;
+      /** Raw Name */
+      raw_name: string;
+      /** Unit */
+      unit: string;
+    };
+    /** AnalysisDraftEntityUpdate */
+    AnalysisDraftEntityUpdate: {
+      /** Amount */
+      amount: number;
+      /** Catalog Revision */
+      catalog_revision?: string | null;
+      /**
+       * Entity Id
+       * Format: uuid
+       */
+      entity_id: string;
+      /** Matched Food Id */
+      matched_food_id: string | null;
+      meal_type: components["schemas"]["MealType"];
+      /** Normalized Name */
+      normalized_name: string;
+      /** Unit */
+      unit: string;
+    };
+    /** AnalysisDraftResponse */
+    AnalysisDraftResponse: {
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Entities */
+      entities: components["schemas"]["AnalysisDraftEntityResponse"][];
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /**
+       * Job Id
+       * Format: uuid
+       */
+      job_id: string;
+      /**
+       * Log Date
+       * Format: date
+       */
+      log_date: string;
+      /** Result Schema Version */
+      result_schema_version: string;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "review" | "confirmed" | "expired" | "cancelled";
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /** Version */
+      version: number;
+    };
+    /** AnalysisDraftUpdateRequest */
+    AnalysisDraftUpdateRequest: {
+      /** Entities */
+      entities: components["schemas"]["AnalysisDraftEntityUpdate"][];
+      /** Expected Version */
+      expected_version: number;
+      /**
+       * Log Date
+       * Format: date
+       */
+      log_date: string;
+    };
+    /** AnalysisImageCreateRequest */
+    AnalysisImageCreateRequest: {
+      /**
+       * Client Request Id
+       * Format: uuid
+       */
+      client_request_id: string;
+      /**
+       * Consent To Provider
+       * @constant
+       */
+      consent_to_provider: true;
+      /**
+       * Locale
+       * @default zh-CN
+       * @constant
+       */
+      locale: "zh-CN";
+      /**
+       * Log Date
+       * Format: date
+       */
+      log_date: string;
+      meal_type_hint?: components["schemas"]["MealType"] | null;
+      /**
+       * Upload Id
+       * Format: uuid
+       */
+      upload_id: string;
+    };
+    /** AnalysisLogIdentity */
+    AnalysisLogIdentity: {
+      /**
+       * Client Id
+       * Format: uuid
+       */
+      client_id: string;
+      /** Entity Id */
+      entity_id: string | null;
+      /**
+       * Log Id
+       * Format: uuid
+       */
+      log_id: string;
+    };
+    /** AnalysisStatusResponse */
+    AnalysisStatusResponse: {
+      /** Attempt Count */
+      attempt_count: number;
+      /** Completed At */
+      completed_at: string | null;
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Draft Id */
+      draft_id: string | null;
+      /** Failure Code */
+      failure_code: string | null;
+      /**
+       * Job Id
+       * Format: uuid
+       */
+      job_id: string;
+      /** Retryable */
+      retryable: boolean;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status:
+        "queued" | "running" | "retry_wait" | "succeeded" | "failed" | "unknown" | "cancelled";
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
     };
     /** AssistantAnswerResponse */
     AssistantAnswerResponse: {
@@ -1255,6 +1696,99 @@ export interface components {
        */
       token_type: string;
     };
+    /** UploadPresignRequest */
+    UploadPresignRequest: {
+      /**
+       * Content Type
+       * @enum {string}
+       */
+      content_type: "image/jpeg" | "image/png" | "image/webp";
+      /** Sha256 */
+      sha256: string;
+      /** Size */
+      size: number;
+    };
+    /** UploadPresignResponse */
+    UploadPresignResponse: {
+      /**
+       * Method
+       * @default PUT
+       * @constant
+       */
+      method: "PUT";
+      /**
+       * Required Content Type
+       * @enum {string}
+       */
+      required_content_type: "image/jpeg" | "image/png" | "image/webp";
+      /** Required Size */
+      required_size: number;
+      /**
+       * Status
+       * @constant
+       */
+      status: "pending";
+      /**
+       * Upload Expires At
+       * Format: date-time
+       */
+      upload_expires_at: string;
+      /**
+       * Upload Id
+       * Format: uuid
+       */
+      upload_id: string;
+      /** Upload Url */
+      upload_url: string;
+      /**
+       * Upload Url Expires At
+       * Format: date-time
+       */
+      upload_url_expires_at: string;
+    };
+    /** UploadResponse */
+    UploadResponse: {
+      /**
+       * Content Type
+       * @enum {string}
+       */
+      content_type: "image/jpeg" | "image/png" | "image/webp";
+      /**
+       * Created At
+       * Format: date-time
+       */
+      created_at: string;
+      /** Declared Size */
+      declared_size: number;
+      /**
+       * Expires At
+       * Format: date-time
+       */
+      expires_at: string;
+      /** Height */
+      height: number | null;
+      /**
+       * Id
+       * Format: uuid
+       */
+      id: string;
+      /** Sha256 */
+      sha256: string | null;
+      /**
+       * Status
+       * @enum {string}
+       */
+      status: "pending" | "ready" | "failed" | "delete_pending" | "deleted";
+      /**
+       * Updated At
+       * Format: date-time
+       */
+      updated_at: string;
+      /** Verified Size */
+      verified_size: number | null;
+      /** Width */
+      width: number | null;
+    };
     /** UserResponse */
     UserResponse: {
       /**
@@ -1290,6 +1824,32 @@ export interface components {
       /** Error Type */
       type: string;
     };
+    /** WeeklyFactReference */
+    WeeklyFactReference: {
+      /** Calculation */
+      calculation: string;
+      /** Display Value */
+      display_value: string;
+      /** Id */
+      id: string;
+      /** Label */
+      label: string;
+      /**
+       * Source
+       * @enum {string}
+       */
+      source: "food_log_snapshots" | "user_profile" | "derived";
+    };
+    /** WeeklyMealStructureItem */
+    WeeklyMealStructureItem: {
+      /** Kcal Ratio */
+      kcal_ratio: number;
+      /** Log Count */
+      log_count: number;
+      meal_type: components["schemas"]["MealType"];
+      /** Total Kcal */
+      total_kcal: number;
+    };
     /** WeeklyMetricChanges */
     WeeklyMetricChanges: {
       /** Average Caffeine Percent */
@@ -1307,8 +1867,24 @@ export interface components {
       /** Average Sugar Percent */
       average_sugar_percent: number | null;
     };
+    /** WeeklyNarrativeCitation */
+    WeeklyNarrativeCitation: {
+      /** Fact Ids */
+      fact_ids: string[];
+      /**
+       * Path
+       * @enum {string}
+       */
+      path: "headline" | "summary" | "highlights.0" | "highlights.1" | "highlights.2";
+    };
     /** WeeklyPeriodSummary */
     WeeklyPeriodSummary: {
+      /**
+       * Average Basis
+       * @default calendar_days
+       * @constant
+       */
+      average_basis: "calendar_days";
       /** Average Caffeine */
       average_caffeine: number;
       /** Average Carbs */
@@ -1323,6 +1899,12 @@ export interface components {
       average_sodium: number;
       /** Average Sugar */
       average_sugar: number;
+      /**
+       * Calendar Days
+       * @default 7
+       * @constant
+       */
+      calendar_days: 7;
       /** Coverage Ratio */
       coverage_ratio: number;
       /** Days With Records */
@@ -1332,6 +1914,20 @@ export interface components {
        * Format: date
        */
       end_date: string;
+      /** Recorded Day Average Caffeine */
+      recorded_day_average_caffeine: number;
+      /** Recorded Day Average Carbs */
+      recorded_day_average_carbs: number;
+      /** Recorded Day Average Fat */
+      recorded_day_average_fat: number;
+      /** Recorded Day Average Kcal */
+      recorded_day_average_kcal: number;
+      /** Recorded Day Average Protein */
+      recorded_day_average_protein: number;
+      /** Recorded Day Average Sodium */
+      recorded_day_average_sodium: number;
+      /** Recorded Day Average Sugar */
+      recorded_day_average_sugar: number;
       /**
        * Start Date
        * Format: date
@@ -1342,17 +1938,42 @@ export interface components {
     };
     /** WeeklyReportFacts */
     WeeklyReportFacts: {
+      /**
+       * Business Date Basis
+       * @default user_supplied_log_date
+       * @constant
+       */
+      business_date_basis: "user_supplied_log_date";
       changes: components["schemas"]["WeeklyMetricChanges"];
       /** Comparison Available */
       comparison_available: boolean;
+      /**
+       * Completeness Threshold Days
+       * @default 4
+       * @constant
+       */
+      completeness_threshold_days: 4;
       current: components["schemas"]["WeeklyPeriodSummary"];
+      /** Fact References */
+      fact_references: components["schemas"]["WeeklyFactReference"][];
+      /** Meal Structure */
+      meal_structure: components["schemas"]["WeeklyMealStructureItem"][];
       previous: components["schemas"]["WeeklyPeriodSummary"];
+      /**
+       * Rounding Policy
+       * @default python_round_half_even_2dp
+       * @constant
+       */
+      rounding_policy: "python_round_half_even_2dp";
+      target_adherence: components["schemas"]["WeeklyTargetAdherence"];
       targets: components["schemas"]["DailyTargetsResponse"] | null;
     };
     /** WeeklyReportNarrative */
     WeeklyReportNarrative: {
       /** Actions */
       actions: string[];
+      /** Citations */
+      citations: components["schemas"]["WeeklyNarrativeCitation"][];
       /** Headline */
       headline: string;
       /** Highlights */
@@ -1397,15 +2018,36 @@ export interface components {
       provider: string;
       /**
        * Schema Version
-       * @default 1.0
+       * @default 2.0
        * @constant
        */
-      schema_version: "1.0";
+      schema_version: "2.0";
       /** Trace Id */
       trace_id?: string | null;
       usage: components["schemas"]["AiUsage"];
       /** Warnings */
       warnings?: string[];
+    };
+    /** WeeklyTargetAdherence */
+    WeeklyTargetAdherence: {
+      /** Assessment Days */
+      assessment_days: number;
+      /** Available */
+      available: boolean;
+      /** Kcal Within Target Days */
+      kcal_within_target_days?: number | null;
+      /**
+       * Rule
+       * @default recorded_day_kcal_within_target_plus_or_minus_10_percent
+       * @constant
+       */
+      rule: "recorded_day_kcal_within_target_plus_or_minus_10_percent";
+      /**
+       * Tolerance Percent
+       * @default 10
+       * @constant
+       */
+      tolerance_percent: 10;
     };
   };
   responses: never;
@@ -1434,6 +2076,129 @@ export interface operations {
           "application/json": {
             [key: string]: string;
           };
+        };
+      };
+    };
+  };
+  create_analysis_api_v1_ai_analyses_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AnalysisCreateRequest"];
+      };
+    };
+    responses: {
+      /** @description Idempotent replay */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AnalysisAcceptedResponse"];
+        };
+      };
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AnalysisAcceptedResponse"];
+        };
+      };
+      /** @description Idempotency key conflict */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Pending analysis capacity reached */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Analysis intake is paused */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+    };
+  };
+  read_analysis_status_api_v1_ai_analyses__job_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AnalysisStatusResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  cancel_analysis_api_v1_ai_analyses__job_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        job_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
         };
       };
     };
@@ -1701,6 +2466,145 @@ export interface operations {
       };
     };
   };
+  read_analysis_draft_api_v1_ai_drafts__draft_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        draft_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AnalysisDraftResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  update_draft_api_v1_ai_drafts__draft_id__put: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        draft_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AnalysisDraftUpdateRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AnalysisDraftResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  discard_draft_api_v1_ai_drafts__draft_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        draft_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  confirm_draft_api_v1_ai_drafts__draft_id__confirm_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        draft_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AnalysisConfirmRequest"];
+      };
+    };
+    responses: {
+      /** @description Idempotent replay */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AnalysisConfirmationResponse"];
+        };
+      };
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AnalysisConfirmationResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
   analyze_text_api_v1_ai_food_text_analyze_post: {
     parameters: {
       query?: never;
@@ -1731,6 +2635,76 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["HTTPValidationError"];
         };
+      };
+    };
+  };
+  create_image_analysis_api_v1_ai_image_analyses_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AnalysisImageCreateRequest"];
+      };
+    };
+    responses: {
+      /** @description Idempotent replay */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AnalysisAcceptedResponse"];
+        };
+      };
+      /** @description Successful Response */
+      202: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["AnalysisAcceptedResponse"];
+        };
+      };
+      /** @description Image analysis is unavailable to demo accounts */
+      403: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Upload or credential is not ready */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+      /** @description Pending analysis capacity reached */
+      429: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Analysis intake is paused */
+      503: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };
@@ -2304,6 +3278,164 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["SyncPageResponse"];
         };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  presign_upload_api_v1_uploads_presign_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UploadPresignRequest"];
+      };
+    };
+    responses: {
+      /** @description Successful Response */
+      201: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UploadPresignResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  read_upload_api_v1_uploads__upload_id__get: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        upload_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UploadResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  remove_upload_api_v1_uploads__upload_id__delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        upload_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  finish_upload_api_v1_uploads__upload_id__complete_post: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path: {
+        upload_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["UploadResponse"];
+        };
+      };
+      /** @description Validation Error */
+      422: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["HTTPValidationError"];
+        };
+      };
+    };
+  };
+  put_upload_content_api_v1_uploads__upload_id__content_put: {
+    parameters: {
+      query: {
+        token: string;
+      };
+      header?: {
+        "Content-Type"?: string | null;
+        "Content-Length"?: number | null;
+      };
+      path: {
+        upload_id: string;
+      };
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      /** @description Successful Response */
+      204: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
       /** @description Validation Error */
       422: {

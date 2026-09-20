@@ -5,6 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query, Response, status
 
 from app.api.dependencies import CurrentUserDep, DemoGuardDep, SessionDep, WriteSessionDep
+from app.core.runtime_metrics import record_safely, runtime_metrics
 from app.repositories.diet import (
     get_log,
     get_log_by_client_id,
@@ -156,6 +157,7 @@ async def read_sync_changes(
     rows = await list_sync_changes(session, current_user.id, after, limit + 1)
     has_more = len(rows) > limit
     page = rows[:limit]
+    record_safely(runtime_metrics.record_sync_page, len(page))
     changes = [
         SyncChangeResponse(
             cursor=row.id,
@@ -207,6 +209,7 @@ async def update_log(
     except ResourceNotFoundError as error:
         raise _not_found() from error
     except VersionConflictError as error:
+        record_safely(runtime_metrics.record_sync_conflict)
         raise _version_conflict() from error
     except InvalidLogContentError as error:
         raise HTTPException(status_code=422, detail=str(error)) from error
@@ -227,6 +230,7 @@ async def remove_log(
     except ResourceNotFoundError as error:
         raise _not_found() from error
     except VersionConflictError as error:
+        record_safely(runtime_metrics.record_sync_conflict)
         raise _version_conflict() from error
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 

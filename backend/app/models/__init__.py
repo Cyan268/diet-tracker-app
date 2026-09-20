@@ -16,6 +16,7 @@ from app.models.food_log import FoodLog
 from app.models.profile import UserProfile
 from app.models.refresh_token import RefreshToken
 from app.models.sync_change import SyncChange
+from app.models.upload import Upload
 from app.models.user import User
 from app.models.user_sync_state import UserSyncState
 
@@ -40,4 +41,5 @@ __all__ = [
     "User",
     "UserProfile",
     "UserSyncState",
+    "Upload",
 ]

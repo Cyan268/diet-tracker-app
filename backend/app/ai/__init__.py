@@ -4,6 +4,7 @@ from app.ai.assistant import (
     OpenAIResponsesAssistantProvider,
     RuleBasedAssistantProvider,
 )
+from app.ai.openai_image_responses import OpenAIResponsesFoodImageProvider
 from app.ai.openai_responses import OpenAIResponsesFoodTextProvider
 from app.ai.provider import FoodTextProvider, ProviderError, ProviderResult
 from app.ai.rule_based import RuleBasedFoodTextProvider
@@ -19,6 +20,7 @@ __all__ = [
     "AssistantProviderResult",
     "FoodTextProvider",
     "OpenAIResponsesFoodTextProvider",
+    "OpenAIResponsesFoodImageProvider",
     "OpenAIResponsesAssistantProvider",
     "ProviderError",
     "ProviderResult",

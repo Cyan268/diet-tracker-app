@@ -28,6 +28,8 @@ import type { WeeklyReportResponse } from "../../src/api/types";
 import { getToday } from "../../src/utils/date";
 import {
   formatCoverage,
+  formatTargetAdherence,
+  formatWeeklyMealShare,
   formatWeeklyChange,
   getWeeklyReportProviderLabel,
 } from "../../src/features/stats/weeklyReportPresentation";
@@ -137,10 +139,20 @@ export default function StatsScreen() {
                 </Text>
                 <Text style={styles.reportMetricLabel}>日均 kcal（按 7 天）</Text>
               </View>
+              <View style={styles.reportMetric}>
+                <Text style={styles.reportMetricValue}>
+                  {Math.round(report.facts.current.recorded_day_average_kcal)}
+                </Text>
+                <Text style={styles.reportMetricLabel}>日均 kcal（记录日）</Text>
+              </View>
             </View>
             <Text style={styles.comparisonText}>
               {formatWeeklyChange(report.facts.changes.average_kcal_percent)}
             </Text>
+            <Text style={styles.reportFactLine}>
+              本周饮品占已记录热量 {formatWeeklyMealShare(report.facts, "drink")}
+            </Text>
+            <Text style={styles.reportFactLine}>{formatTargetAdherence(report.facts)}</Text>
 
             <Text style={styles.reportSectionTitle}>本周要点</Text>
             {report.narrative.highlights.map((item) => (
@@ -161,7 +173,8 @@ export default function StatsScreen() {
             ))}
             <Text style={styles.reportMeta}>
               {report.model} · {report.latency_ms} ms · {report.usage.total_tokens} tokens ·
-              数据指纹 {report.data_fingerprint.slice(0, 8)}
+              事实引用 {report.facts.fact_references.length} 条 · 数据指纹{" "}
+              {report.data_fingerprint.slice(0, 8)}
             </Text>
             <Text style={styles.disclaimer}>{report.disclaimer}</Text>
           </View>
@@ -369,6 +382,7 @@ const styles = StyleSheet.create({
   reportMetricValue: { fontSize: 18, fontWeight: "800", color: "#2E7D32" },
   reportMetricLabel: { color: "#78909C", fontSize: 10, marginTop: 3 },
   comparisonText: { color: "#33691E", fontWeight: "600", fontSize: 12, marginTop: 9 },
+  reportFactLine: { color: "#546E7A", fontSize: 11, lineHeight: 17, marginTop: 4 },
   reportSectionTitle: { color: "#37474F", fontWeight: "700", fontSize: 13, marginTop: 14 },
   reportListItem: { color: "#546E7A", fontSize: 12, lineHeight: 19, marginTop: 3 },
   reportWarning: {

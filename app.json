@@ -39,7 +39,13 @@
         }
       ],
       "expo-web-browser",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "允许 NutriPilot 选择饮食图片，用于你主动发起的 AI 食物识别。"
+        }
+      ]
     ]
   }
 }

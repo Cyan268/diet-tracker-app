@@ -6,9 +6,12 @@ import pytest
 
 from app.ai import OpenAIResponsesWeeklyReportProvider, ProviderError
 from app.schemas.weekly_report import (
+    WeeklyFactReference,
+    WeeklyMealStructureItem,
     WeeklyMetricChanges,
     WeeklyPeriodSummary,
     WeeklyReportFacts,
+    WeeklyTargetAdherence,
 )
 
 
@@ -26,6 +29,13 @@ def facts() -> WeeklyReportFacts:
         average_sugar=30,
         average_sodium=1800,
         average_caffeine=120,
+        recorded_day_average_kcal=1800,
+        recorded_day_average_protein=90,
+        recorded_day_average_fat=55,
+        recorded_day_average_carbs=220,
+        recorded_day_average_sugar=30,
+        recorded_day_average_sodium=1800,
+        recorded_day_average_caffeine=120,
     )
     previous = current.model_copy(
         update={
@@ -49,6 +59,36 @@ def facts() -> WeeklyReportFacts:
             average_sodium_percent=0,
             average_caffeine_percent=0,
         ),
+        meal_structure=[
+            WeeklyMealStructureItem(
+                meal_type=meal_type,
+                log_count=1 if meal_type == "lunch" else 0,
+                total_kcal=12600 if meal_type == "lunch" else 0,
+                kcal_ratio=1 if meal_type == "lunch" else 0,
+            )
+            for meal_type in ("breakfast", "lunch", "dinner", "snack", "drink")
+        ],
+        target_adherence=WeeklyTargetAdherence(
+            available=False,
+            assessment_days=7,
+            kcal_within_target_days=None,
+        ),
+        fact_references=[
+            WeeklyFactReference(
+                id="current.average_kcal",
+                label="本周自然日日均热量",
+                display_value="1800.00 kcal/自然日",
+                source="derived",
+                calculation="总热量 / 7",
+            ),
+            WeeklyFactReference(
+                id="current.days_with_records",
+                label="本周有效记录天数",
+                display_value="7/7 天",
+                source="derived",
+                calculation="有记录日期数 / 7",
+            ),
+        ],
     )
 
 
@@ -71,11 +111,17 @@ async def test_weekly_report_provider_uses_strict_schema_and_parses_usage() -> N
         assert body["text"]["format"]["strict"] is True
         assert body["text"]["format"]["schema"]["additionalProperties"] is False
         assert json.loads(body["input"])["current"]["average_kcal"] == 1800
+        assert json.loads(body["input"])["fact_references"][0]["id"] == "current.average_kcal"
         narrative = {
             "headline": "本周摄入整体平稳",
             "summary": "本周记录完整，可结合连续趋势进行观察。",
             "highlights": ["日均热量 1800 kcal"],
             "actions": ["继续完整记录饮品和零食。"],
+            "citations": [
+                {"path": "headline", "fact_ids": ["current.average_kcal"]},
+                {"path": "summary", "fact_ids": ["current.days_with_records"]},
+                {"path": "highlights.0", "fact_ids": ["current.average_kcal"]},
+            ],
         }
         return httpx2.Response(
             200,

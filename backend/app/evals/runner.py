@@ -1,3 +1,4 @@
+import hashlib
 import json
 import math
 import time
@@ -14,6 +15,7 @@ from app.evals.schemas import (
     EvaluationDataset,
     EvaluationMetrics,
     EvaluationReport,
+    EvaluationSliceMetrics,
     FieldMatch,
 )
 from app.schemas.ai import FoodTextAnalyzeRequest, ParsedFoodEntity
@@ -23,6 +25,37 @@ SCHEMA_ERROR_CODES = {"schema_validation_failed", "empty_response", "invalid_res
 
 def load_dataset(path: Path) -> EvaluationDataset:
     return EvaluationDataset.model_validate_json(path.read_text(encoding="utf-8"))
+
+
+def dataset_fingerprint(dataset: EvaluationDataset) -> str:
+    canonical = json.dumps(
+        dataset.model_dump(mode="json"),
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+    return hashlib.sha256(canonical).hexdigest()
+
+
+def validate_dataset_partition(
+    development: EvaluationDataset,
+    test: EvaluationDataset,
+) -> None:
+    """Reject unsafe development/test layouts before an evaluation is trusted."""
+    if development.split != "development" or development.frozen:
+        raise ValueError("development dataset must use split=development and frozen=false")
+    if test.split != "test" or not test.frozen:
+        raise ValueError("test dataset must use split=test and frozen=true")
+    if development.contains_personal_data or test.contains_personal_data:
+        raise ValueError("evaluation datasets must not contain personal data")
+
+    development_groups = {case.group_id or case.id for case in development.cases}
+    test_groups = {case.group_id or case.id for case in test.cases}
+    leaked_groups = sorted(development_groups & test_groups)
+    if leaked_groups:
+        raise ValueError(
+            "semantic groups must not cross development/test splits: " + ", ".join(leaked_groups)
+        )
 
 
 def _normalized_name(value: str) -> str:
@@ -47,6 +80,8 @@ def _percentile(values: Sequence[float], percentile: float) -> float:
 def _match_case(
     case: EvaluationCase,
     actual: list[ParsedFoodEntity],
+    *,
+    amount_absolute_tolerance: float,
 ) -> tuple[list[FieldMatch], list[str], list[str], bool]:
     unmatched_actual = set(range(len(actual)))
     matches: list[FieldMatch] = []
@@ -67,10 +102,21 @@ def _match_case(
             continue
         unmatched_actual.remove(matched_index)
         prediction = actual[matched_index]
+        amount_matches = (
+            expected.acceptable_amount_min <= prediction.amount <= expected.acceptable_amount_max
+            if expected.acceptable_amount_min is not None
+            and expected.acceptable_amount_max is not None
+            else math.isclose(
+                prediction.amount,
+                expected.amount,
+                rel_tol=0,
+                abs_tol=amount_absolute_tolerance,
+            )
+        )
         matches.append(
             FieldMatch(
                 normalized_name=expected.normalized_name,
-                amount=math.isclose(prediction.amount, expected.amount, abs_tol=1e-6),
+                amount=amount_matches,
                 unit=_normalized_name(prediction.unit) == _normalized_name(expected.unit),
                 meal_type=prediction.meal_type == expected.meal_type,
             )
@@ -140,7 +186,11 @@ async def _evaluate_case(
         )
 
     latency_ms = round((time.perf_counter() - started_at) * 1000, 2)
-    matches, false_positives, false_negatives, exact_match = _match_case(case, result.entities)
+    matches, false_positives, false_negatives, exact_match = _match_case(
+        case,
+        result.entities,
+        amount_absolute_tolerance=dataset.amount_absolute_tolerance,
+    )
     return EvaluationCaseResult(
         case_id=case.id,
         text=case.text,
@@ -222,7 +272,26 @@ def _metrics(
         average_tokens_per_case=round((total_input_tokens + total_output_tokens) / sample_count, 2),
         estimated_total_cost_usd=total_cost,
         estimated_average_cost_usd=average_cost,
+        cost_status="known" if total_cost is not None else "unknown",
     )
+
+
+def _tag_metrics(
+    dataset: EvaluationDataset,
+    results: list[EvaluationCaseResult],
+) -> dict[str, EvaluationSliceMetrics]:
+    result_by_id = {result.case_id: result for result in results}
+    metrics: dict[str, EvaluationSliceMetrics] = {}
+    for tag in sorted({tag for case in dataset.cases for tag in case.tags}):
+        tagged = [result_by_id[case.id] for case in dataset.cases if tag in case.tags]
+        successful = sum(result.success for result in tagged)
+        metrics[tag] = EvaluationSliceMetrics(
+            sample_count=len(tagged),
+            successful_cases=successful,
+            request_success_rate=_ratio(successful, len(tagged)),
+            case_exact_match_rate=_ratio(sum(result.exact_match for result in tagged), len(tagged)),
+        )
+    return metrics
 
 
 async def evaluate_dataset(
@@ -231,6 +300,7 @@ async def evaluate_dataset(
     *,
     input_price_per_million_usd: Decimal | None = None,
     output_price_per_million_usd: Decimal | None = None,
+    code_revision: str = "unknown",
 ) -> EvaluationReport:
     results = [await _evaluate_case(case, dataset, provider) for case in dataset.cases]
     observed_models = sorted({result.model for result in results if result.model is not None})
@@ -240,15 +310,36 @@ async def evaluate_dataset(
     if not isinstance(provider_model, str):
         provider_model = "unknown"
     return EvaluationReport(
+        dataset_schema_version=dataset.dataset_schema_version,
         dataset_version=dataset.dataset_version,
+        dataset_split=dataset.split,
+        dataset_fingerprint_sha256=dataset_fingerprint(dataset),
+        code_revision=code_revision,
         provider=provider.name,
         model=provider_model,
         prompt_version=getattr(provider, "prompt_version", "unknown"),
         generated_at=datetime.now(UTC),
+        evaluation_config={
+            "locale": dataset.locale,
+            "evaluation_date": dataset.evaluation_date.isoformat(),
+            "amount_absolute_tolerance": dataset.amount_absolute_tolerance,
+            "prices_configured": (
+                input_price_per_million_usd is not None and output_price_per_million_usd is not None
+            ),
+        },
         metrics=_metrics(
             results,
             input_price_per_million_usd=input_price_per_million_usd,
             output_price_per_million_usd=output_price_per_million_usd,
+        ),
+        tag_metrics=_tag_metrics(dataset, results),
+        failure_counts=dict(
+            sorted(
+                {
+                    code: sum(result.error_code == code for result in results)
+                    for code in {result.error_code for result in results if result.error_code}
+                }.items()
+            )
         ),
         cases=results,
     )

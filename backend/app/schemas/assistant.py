@@ -135,6 +135,7 @@ class SearchFoodArguments(BaseModel):
 
 class DailyNutritionPoint(BaseModel):
     date: date
+    has_records: bool = False
     kcal: float = Field(ge=0)
     protein: float = Field(ge=0)
     fat: float = Field(ge=0)

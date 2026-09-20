@@ -1,3 +1,4 @@
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -11,6 +12,8 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
+
+PRODUCTION_UPLOAD_ROOT = Path(Path.cwd().anchor) / "nutripilot-test-uploads"
 
 
 async def test_password_is_hashed_with_argon2_and_can_be_verified() -> None:
@@ -99,6 +102,26 @@ def test_production_rejects_default_rate_limit_secret() -> None:
         )
 
 
+def test_production_requires_private_upload_secret_and_absolute_root() -> None:
+    common = {
+        "_env_file": None,
+        "environment": "production",
+        "jwt_secret": "production-jwt-secret-that-is-at-least-32-bytes",
+        "credential_encryption_key": "production-encryption-key-that-is-at-least-32-bytes",
+        "demo_protection_enabled": False,
+        "auth_protection_enabled": False,
+        "allowed_hosts": ["api.example.com"],
+    }
+    with pytest.raises(ValidationError, match="production upload signing secret must be changed"):
+        Settings(**common)
+    with pytest.raises(ValidationError, match="production upload root must be an absolute path"):
+        Settings(
+            **common,
+            upload_signing_secret="production-upload-signing-key-that-is-at-least-32-bytes",
+            upload_root="relative/uploads",
+        )
+
+
 def test_production_rejects_documented_secret_placeholders() -> None:
     with pytest.raises(ValidationError, match="production JWT secret must be changed"):
         Settings(
@@ -121,8 +144,39 @@ def test_production_requires_explicit_allowed_hosts() -> None:
             credential_encryption_key="production-encryption-key-that-is-at-least-32-bytes",
             demo_protection_enabled=False,
             auth_protection_enabled=False,
+            upload_signing_secret="production-upload-signing-key-that-is-at-least-32-bytes",
+            upload_root=PRODUCTION_UPLOAD_ROOT,
             allowed_hosts=["*"],
         )
+
+
+def test_production_metrics_require_an_independent_token() -> None:
+    common = {
+        "_env_file": None,
+        "environment": "production",
+        "jwt_secret": "production-jwt-secret-that-is-at-least-32-bytes",
+        "credential_encryption_key": "production-encryption-key-that-is-at-least-32-bytes",
+        "upload_signing_secret": "production-upload-signing-key-that-is-at-least-32-bytes",
+        "upload_root": PRODUCTION_UPLOAD_ROOT,
+        "demo_protection_enabled": False,
+        "auth_protection_enabled": False,
+        "allowed_hosts": ["api.example.com"],
+        "operations_metrics_enabled": True,
+    }
+    with pytest.raises(ValidationError, match="operations metrics token is required"):
+        Settings(**common)
+    with pytest.raises(ValidationError, match="host snapshot path must be absolute"):
+        Settings(
+            **common,
+            operations_metrics_token="independent-operations-token-at-least-32-characters",
+            operations_host_snapshot_path="relative/host-snapshot.json",
+        )
+
+    settings = Settings(
+        **common,
+        operations_metrics_token="independent-operations-token-at-least-32-characters",
+    )
+    assert settings.operations_metrics_enabled is True
 
 
 def test_trusted_proxy_cidrs_are_validated_and_normalized() -> None:
@@ -153,6 +207,8 @@ def test_platform_host_extends_the_production_allowlist() -> None:
         jwt_secret="production-jwt-secret-that-is-at-least-32-bytes",
         credential_encryption_key="production-encryption-key-that-is-at-least-32-bytes",
         rate_limit_hmac_secret="production-rate-limit-key-that-is-at-least-32-bytes",
+        upload_signing_secret="production-upload-signing-key-that-is-at-least-32-bytes",
+        upload_root=PRODUCTION_UPLOAD_ROOT,
         auth_protection_fail_closed=True,
         demo_protection_fail_closed=True,
         allowed_hosts=[],

@@ -7,10 +7,15 @@ from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from app.ai import OpenAIResponsesFoodTextProvider, ProviderError, RuleBasedFoodTextProvider
+from app.ai import (
+    OpenAIResponsesFoodImageProvider,
+    OpenAIResponsesFoodTextProvider,
+    ProviderError,
+    RuleBasedFoodTextProvider,
+)
 from app.ai.provider import FoodTextProvider, ProviderResult
 from app.core.config import Settings
-from app.models import AiCredential, User
+from app.models import AiCredential, Upload, User
 from app.repositories.analysis_jobs import (
     ClaimedAnalysisJob,
     claim_next_job,
@@ -20,12 +25,15 @@ from app.repositories.analysis_jobs import (
     renew_lease,
 )
 from app.schemas.ai import FoodTextAnalyzeRequest
+from app.schemas.analysis import AnalysisImageWorkerRequest
 from app.services.analysis_input_encryption import (
     AnalysisInputDecryptionError,
     decrypt_analysis_input,
 )
 from app.services.analysis_worker import complete_job_failure, complete_job_success
 from app.services.credential_encryption import CredentialDecryptionError, decrypt_api_key
+from app.services.upload_storage import LocalPrivateUploadStore
+from app.services.uploads import cleanup_expired_uploads
 
 logger = logging.getLogger("nutripilot.analysis_worker")
 
@@ -50,8 +58,11 @@ class WorkerCycleResult:
     outcome: str | None = None
 
 
-def _decode_request(claimed: ClaimedAnalysisJob, settings: Settings) -> FoodTextAnalyzeRequest:
-    if claimed.job.input_type != "text" or claimed.job.input_key_version != 1:
+WorkerRequest = FoodTextAnalyzeRequest | AnalysisImageWorkerRequest
+
+
+def _decode_request(claimed: ClaimedAnalysisJob, settings: Settings) -> WorkerRequest:
+    if claimed.job.input_type not in {"text", "image"} or claimed.job.input_key_version != 1:
         raise WorkerPreparationError("unsupported_analysis_input")
     try:
         payload = decrypt_analysis_input(
@@ -60,7 +71,12 @@ def _decode_request(claimed: ClaimedAnalysisJob, settings: Settings) -> FoodText
             claimed.job.id,
             settings.credential_encryption_key.get_secret_value(),
         )
-        return FoodTextAnalyzeRequest.model_validate(payload)
+        model = (
+            FoodTextAnalyzeRequest
+            if claimed.job.input_type == "text"
+            else AnalysisImageWorkerRequest
+        )
+        return model.model_validate(payload)
     except (AnalysisInputDecryptionError, ValidationError) as error:
         raise WorkerPreparationError("invalid_analysis_input") from error
 
@@ -114,6 +130,68 @@ async def _default_provider_factory(
     return provider
 
 
+async def _api_key_for_job(
+    claimed: ClaimedAnalysisJob,
+    *,
+    session_factory: async_sessionmaker[AsyncSession],
+    settings: Settings,
+) -> str:
+    async with session_factory() as session:
+        user = await session.get(User, claimed.job.user_id)
+        credential = await session.get(AiCredential, claimed.job.user_id)
+    if user is None or user.is_demo:
+        raise WorkerPreparationError("openai_not_allowed")
+    if credential is not None:
+        try:
+            return decrypt_api_key(
+                credential.encrypted_api_key,
+                claimed.job.user_id,
+                settings.credential_encryption_key.get_secret_value(),
+            )
+        except CredentialDecryptionError as error:
+            raise WorkerPreparationError("credential_decryption_failed") from error
+    if settings.ai_provider == "openai" and settings.openai_api_key is not None:
+        return settings.openai_api_key.get_secret_value()
+    raise WorkerPreparationError("credential_missing")
+
+
+async def _prepare_image_provider(
+    claimed: ClaimedAnalysisJob,
+    request: AnalysisImageWorkerRequest,
+    *,
+    session_factory: async_sessionmaker[AsyncSession],
+    settings: Settings,
+) -> tuple[OpenAIResponsesFoodImageProvider, bytes, str]:
+    if (
+        claimed.job.provider != OpenAIResponsesFoodImageProvider.name
+        or claimed.job.prompt_version != OpenAIResponsesFoodImageProvider.prompt_version
+        or claimed.job.upload_id != request.upload_id
+    ):
+        raise WorkerPreparationError("provider_snapshot_unavailable")
+    async with session_factory() as session:
+        upload = await session.get(Upload, request.upload_id)
+    if (
+        upload is None
+        or upload.user_id != claimed.job.user_id
+        or upload.status != "ready"
+        or upload.sealed_object_key is None
+    ):
+        raise WorkerPreparationError("verified_upload_unavailable")
+    try:
+        image_bytes = await LocalPrivateUploadStore(settings.upload_root).read(
+            upload.sealed_object_key
+        )
+    except Exception as error:
+        raise WorkerPreparationError("verified_upload_unavailable", retryable=True) from error
+    provider = OpenAIResponsesFoodImageProvider(
+        api_key=await _api_key_for_job(claimed, session_factory=session_factory, settings=settings),
+        model=claimed.job.model,
+        base_url=settings.openai_base_url,
+        timeout_seconds=settings.ai_timeout_seconds,
+    )
+    return provider, image_bytes, upload.content_type
+
+
 async def _record_failure(
     session_factory: async_sessionmaker[AsyncSession],
     settings: Settings,
@@ -162,14 +240,20 @@ async def _heartbeat(
                 lease_lost.set()
                 return
         except Exception:
-            logger.exception("analysis_worker_heartbeat_failed job_id=%s", claimed.job.id)
+            logger.exception(
+                "analysis_worker_heartbeat_failed",
+                extra={
+                    "event": "analysis_worker.heartbeat_failed",
+                    "job_id": str(claimed.job.id),
+                },
+            )
 
 
 async def _persist_result(
     session_factory: async_sessionmaker[AsyncSession],
     settings: Settings,
     claimed: ClaimedAnalysisJob,
-    request: FoodTextAnalyzeRequest,
+    request: WorkerRequest,
     result: ProviderResult,
 ) -> bool:
     # Retry only the database write with the in-memory provider result. Never
@@ -190,9 +274,13 @@ async def _persist_result(
             return draft is not None
         except SQLAlchemyError:
             logger.exception(
-                "analysis_worker_result_persistence_failed job_id=%s attempt=%s",
-                claimed.job.id,
-                persistence_attempt + 1,
+                "analysis_worker_result_persistence_failed",
+                extra={
+                    "event": "analysis_worker.result_persistence_failed",
+                    "job_id": str(claimed.job.id),
+                    "attempt_number": persistence_attempt + 1,
+                    "error_code": "database_write_failed",
+                },
             )
             if persistence_attempt < 2:
                 await asyncio.sleep(0.1 * (2**persistence_attempt))
@@ -208,16 +296,26 @@ async def process_claimed_job(
 ) -> str | None:
     try:
         request = _decode_request(claimed, settings)
-        provider = (
-            await provider_factory(claimed, request)
-            if provider_factory is not None
-            else await _default_provider_factory(
+        provider = None
+        image_context = None
+        if isinstance(request, FoodTextAnalyzeRequest):
+            provider = (
+                await provider_factory(claimed, request)
+                if provider_factory is not None
+                else await _default_provider_factory(
+                    claimed,
+                    request,
+                    session_factory=session_factory,
+                    settings=settings,
+                )
+            )
+        else:
+            image_context = await _prepare_image_provider(
                 claimed,
                 request,
                 session_factory=session_factory,
                 settings=settings,
             )
-        )
     except WorkerPreparationError as error:
         return await _record_failure(
             session_factory,
@@ -243,15 +341,23 @@ async def process_claimed_job(
     try:
         try:
             async with asyncio.timeout(settings.ai_timeout_seconds):
-                result = await provider.extract(request)
+                result = (
+                    await provider.extract(request)
+                    if provider is not None and isinstance(request, FoodTextAnalyzeRequest)
+                    else await image_context[0].extract(
+                        request,
+                        image_context[1],
+                        image_context[2],
+                    )
+                )
         except TimeoutError:
             return await _record_failure(
                 session_factory,
                 settings,
                 claimed,
                 error_code="provider_timeout",
-                retryable=provider.name == "rule_based_v1",
-                outcome_unknown=provider.name != "rule_based_v1",
+                retryable=provider is not None and provider.name == "rule_based_v1",
+                outcome_unknown=provider is None or provider.name != "rule_based_v1",
             )
         except ProviderError as error:
             return await _record_failure(
@@ -259,18 +365,29 @@ async def process_claimed_job(
                 settings,
                 claimed,
                 error_code=error.code,
-                retryable=error.retryable and provider.name == "rule_based_v1",
-                outcome_unknown=provider.name != "rule_based_v1" and error.retryable,
+                retryable=(
+                    error.retryable and provider is not None and provider.name == "rule_based_v1"
+                ),
+                outcome_unknown=(
+                    (provider is None or provider.name != "rule_based_v1") and error.retryable
+                ),
             )
         except Exception:
-            logger.exception("analysis_worker_provider_failed job_id=%s", claimed.job.id)
+            logger.exception(
+                "analysis_worker_provider_failed",
+                extra={
+                    "event": "analysis_worker.provider_failed",
+                    "job_id": str(claimed.job.id),
+                    "error_code": "provider_unexpected_error",
+                },
+            )
             return await _record_failure(
                 session_factory,
                 settings,
                 claimed,
                 error_code="provider_unexpected_error",
-                retryable=provider.name == "rule_based_v1",
-                outcome_unknown=provider.name != "rule_based_v1",
+                retryable=provider is not None and provider.name == "rule_based_v1",
+                outcome_unknown=provider is None or provider.name != "rule_based_v1",
             )
         if lease_lost.is_set():
             return None
@@ -324,9 +441,22 @@ async def run_worker_forever(
     if not settings.analysis_worker_enabled:
         raise RuntimeError("analysis Worker is disabled by configuration")
     stop = stop_event or asyncio.Event()
+    upload_store = LocalPrivateUploadStore(settings.upload_root)
+    next_upload_cleanup = 0.0
     logger.info("analysis_worker_started")
     while not stop.is_set():
         try:
+            loop_time = asyncio.get_running_loop().time()
+            if loop_time >= next_upload_cleanup:
+                async with session_factory() as session:
+                    cleanup = await cleanup_expired_uploads(session, upload_store)
+                logger.info(
+                    "upload_cleanup_cycle selected=%s deleted=%s failed=%s",
+                    cleanup.selected,
+                    cleanup.deleted,
+                    cleanup.failed,
+                )
+                next_upload_cleanup = loop_time + settings.upload_cleanup_interval_seconds
             cycle = await run_worker_cycle(session_factory, settings)
             if not cycle.claimed:
                 try:

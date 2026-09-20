@@ -9,6 +9,7 @@ from app.ai.provider import ProviderResult
 from app.models import AnalysisDraft, AnalysisEntity
 from app.repositories.analysis_jobs import database_now, lock_valid_lease
 from app.schemas.ai import FoodTextAnalyzeRequest
+from app.schemas.analysis import AnalysisImageWorkerRequest
 from app.services.ai import estimate_cost
 from app.services.food_matching import match_visible_foods
 
@@ -24,7 +25,7 @@ async def complete_job_success(
     *,
     job_id: UUID,
     lease_token: UUID,
-    request: FoodTextAnalyzeRequest,
+    request: FoodTextAnalyzeRequest | AnalysisImageWorkerRequest,
     result: ProviderResult,
     draft_ttl_minutes: int,
     input_price_per_million: Decimal | None = None,

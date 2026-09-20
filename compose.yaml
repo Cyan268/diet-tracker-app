@@ -42,6 +42,11 @@ services:
       NUTRIPILOT_CREDENTIAL_ENCRYPTION_KEY: ${NUTRIPILOT_CREDENTIAL_ENCRYPTION_KEY:-development-only-encryption-key-change-me-at-least-32-bytes}
       NUTRIPILOT_OPENAI_API_KEY: ${NUTRIPILOT_OPENAI_API_KEY:-}
       NUTRIPILOT_OPENAI_MODEL: ${NUTRIPILOT_OPENAI_MODEL:-gpt-5.6-luna}
+      NUTRIPILOT_UPLOAD_ROOT: /data/uploads
+      NUTRIPILOT_UPLOAD_SIGNING_SECRET: ${NUTRIPILOT_UPLOAD_SIGNING_SECRET:-development-only-upload-signing-secret}
+      NUTRIPILOT_UPLOAD_CLEANUP_INTERVAL_SECONDS: ${NUTRIPILOT_UPLOAD_CLEANUP_INTERVAL_SECONDS:-300}
+    volumes:
+      - upload_data:/data/uploads
     ports:
       - "8000:8000"
     depends_on:
@@ -78,8 +83,13 @@ services:
       NUTRIPILOT_CREDENTIAL_ENCRYPTION_KEY: ${NUTRIPILOT_CREDENTIAL_ENCRYPTION_KEY:-development-only-encryption-key-change-me-at-least-32-bytes}
       NUTRIPILOT_ANALYSIS_WORKER_ENABLED: "true"
       NUTRIPILOT_ANALYSIS_GLOBAL_CONCURRENCY: ${NUTRIPILOT_ANALYSIS_GLOBAL_CONCURRENCY:-1}
+      NUTRIPILOT_UPLOAD_ROOT: /data/uploads
+      NUTRIPILOT_UPLOAD_SIGNING_SECRET: ${NUTRIPILOT_UPLOAD_SIGNING_SECRET:-development-only-upload-signing-secret}
+      NUTRIPILOT_UPLOAD_CLEANUP_INTERVAL_SECONDS: ${NUTRIPILOT_UPLOAD_CLEANUP_INTERVAL_SECONDS:-300}
+    volumes:
+      - upload_data:/data/uploads
     depends_on:
-      postgres:
+      api:
         condition: service_healthy
 
   postgres:
@@ -111,3 +121,4 @@ services:
 
 volumes:
   postgres_data:
+  upload_data:

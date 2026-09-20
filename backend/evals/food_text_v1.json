@@ -1,8 +1,18 @@
 {
-  "dataset_version": "food-text-zh-cn-v1.0.0",
+  "dataset_schema_version": "2.0",
+  "dataset_version": "food-text-zh-cn-v1.2.0",
   "description": "脱敏的中文饮食实体抽取评测集，覆盖多实体、中文数量、单位换算、餐次提示、未知食品、否定与非饮食意图。",
+  "split": "test",
+  "frozen": true,
+  "source": "项目作者人工编写的合成饮食描述，不来自真实用户日志",
+  "authorization": "作者自有合成数据，可用于本项目离线评测与公开复现",
+  "annotators": ["project_author"],
+  "annotation_protocol": "按文本显式内容标注实体、数量、单位和餐次；缺失数量使用自然份量并标记对应场景标签；争议标签在冻结前人工复核",
+  "contains_personal_data": false,
+  "grouping_policy": "同义改写或同一语义变体必须使用相同 group_id，且不得跨 development/test 切分；当前样本均为独立语义组",
   "evaluation_date": "2026-07-19",
   "locale": "zh-CN",
+  "amount_absolute_tolerance": 0.000001,
   "cases": [
     {
       "id": "breakfast_eggs_milk",
@@ -215,6 +225,128 @@
       "id": "future_plan_not_consumption",
       "text": "计划明天早餐吃一个苹果",
       "tags": ["future_intent", "non_consumption", "no_food"],
+      "expected": []
+    },
+    {
+      "id": "holdout_semicolon_three_foods",
+      "group_id": "test_g27_semicolon_three_foods",
+      "text": "午餐；米饭一碗；西兰花一份；瘦牛肉80克",
+      "tags": ["multi_entity", "three_entities", "punctuation", "lunch"],
+      "expected": [
+        {"normalized_name": "白米饭", "amount": 1, "unit": "碗", "meal_type": "lunch"},
+        {"normalized_name": "西兰花", "amount": 1, "unit": "份", "meal_type": "lunch"},
+        {"normalized_name": "牛肉（瘦）", "amount": 80, "unit": "g", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "holdout_colloquial_eggs",
+      "group_id": "test_g28_colloquial_eggs",
+      "text": "早上吃了俩水煮蛋",
+      "tags": ["single_entity", "colloquial_quantity", "breakfast"],
+      "expected": [
+        {"normalized_name": "鸡蛋（煮）", "amount": 2, "unit": "个", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "holdout_unknown_congee",
+      "group_id": "test_g29_unknown_congee",
+      "text": "早餐一碗皮蛋瘦肉粥",
+      "tags": ["unknown_catalog_food", "mixed_dish", "breakfast"],
+      "expected": [
+        {"normalized_name": "皮蛋瘦肉粥", "amount": 1, "unit": "碗", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "holdout_recommendation_question",
+      "group_id": "test_g30_recommendation_question",
+      "text": "减脂晚餐推荐米饭还是面条？",
+      "tags": ["question", "non_consumption", "no_food"],
+      "expected": []
+    },
+    {
+      "id": "holdout_correction_bread",
+      "group_id": "test_g31_correction_bread",
+      "text": "更正一下，没吃馒头，早餐是两片全麦面包",
+      "tags": ["correction", "negation", "breakfast"],
+      "expected": [
+        {"normalized_name": "全麦面包", "amount": 2, "unit": "片", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "holdout_future_drink",
+      "group_id": "test_g32_future_drink",
+      "text": "明天下午打算喝一杯酸奶",
+      "tags": ["future_intent", "non_consumption", "no_food"],
+      "expected": []
+    },
+    {
+      "id": "holdout_family_consumption",
+      "group_id": "test_g33_family_consumption",
+      "text": "妈妈中午吃了一个苹果",
+      "tags": ["other_person", "non_consumption", "no_food"],
+      "expected": []
+    },
+    {
+      "id": "holdout_partial_noodles",
+      "group_id": "test_g34_partial_noodles",
+      "text": "晚饭的一碗面只吃了四分之一",
+      "tags": ["partial_consumption", "fraction", "dinner"],
+      "expected": [
+        {"normalized_name": "面条（煮熟）", "amount": 0.25, "unit": "碗", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "holdout_duplicate_milk_aggregate",
+      "group_id": "test_g35_duplicate_milk",
+      "text": "上午喝半杯牛奶，下午又喝半杯牛奶",
+      "tags": ["duplicate_mentions", "aggregation", "drink"],
+      "expected": [
+        {"normalized_name": "牛奶（全脂）", "amount": 1, "unit": "杯", "meal_type": "drink"}
+      ]
+    },
+    {
+      "id": "holdout_yogurt_milliliters",
+      "group_id": "test_g36_yogurt_ml",
+      "text": "加餐喝原味酸奶200ml",
+      "tags": ["single_entity", "milliliters", "snack"],
+      "expected": [
+        {"normalized_name": "酸奶（原味）", "amount": 200, "unit": "ml", "meal_type": "snack"}
+      ]
+    },
+    {
+      "id": "holdout_uncertain_tofu",
+      "group_id": "test_g37_uncertain_tofu",
+      "text": "晚餐大约两块豆腐",
+      "tags": ["uncertain_quantity", "estimated_amount", "dinner"],
+      "expected": [
+        {"normalized_name": "豆腐", "amount": 2, "unit": "块", "meal_type": "dinner", "acceptable_amount_min": 1.5, "acceptable_amount_max": 2.5}
+      ]
+    },
+    {
+      "id": "holdout_markdown_list",
+      "group_id": "test_g38_markdown_list",
+      "text": "晚餐记录：\n- 黄瓜1根\n- 番茄2个",
+      "tags": ["multi_entity", "multiline", "list_style", "dinner"],
+      "expected": [
+        {"normalized_name": "黄瓜", "amount": 1, "unit": "根", "meal_type": "dinner"},
+        {"normalized_name": "番茄", "amount": 2, "unit": "个", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "holdout_brand_fruit_tea",
+      "group_id": "test_g39_brand_fruit_tea",
+      "text": "喝了一杯喜茶多肉葡萄",
+      "meal_type_hint": "drink",
+      "tags": ["unknown_catalog_food", "brand", "drink"],
+      "expected": [
+        {"normalized_name": "喜茶多肉葡萄", "amount": 1, "unit": "杯", "meal_type": "drink"}
+      ]
+    },
+    {
+      "id": "holdout_conditional_snack",
+      "group_id": "test_g40_conditional_snack",
+      "text": "要是晚上饿就吃一小把坚果",
+      "tags": ["hypothetical", "non_consumption", "no_food"],
       "expected": []
     }
   ]

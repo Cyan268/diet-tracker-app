@@ -86,7 +86,7 @@ async def pg_session_factory() -> AsyncIterator[async_sessionmaker[AsyncSession]
             assert (await connection.scalar(text("SELECT version()"))).startswith("PostgreSQL")
             assert (
                 await connection.scalar(text("SELECT version_num FROM alembic_version"))
-                == "20260909_0012"
+                == "20260916_0014"
             )
         yield async_sessionmaker(engine, expire_on_commit=False)
     finally:

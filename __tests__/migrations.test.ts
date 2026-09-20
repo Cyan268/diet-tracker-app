@@ -16,8 +16,10 @@ function createMockDatabase(currentVersion: number): {
 
 describe("database migrations", () => {
   it("为全新或旧版数据库返回按顺序排列的待执行迁移", () => {
-    expect(getPendingMigrations(0).map((migration) => migration.version)).toEqual([1, 2, 3, 4]);
-    expect(getPendingMigrations(1).map((migration) => migration.version)).toEqual([2, 3, 4]);
+    expect(getPendingMigrations(0).map((migration) => migration.version)).toEqual([
+      1, 2, 3, 4, 5, 6,
+    ]);
+    expect(getPendingMigrations(1).map((migration) => migration.version)).toEqual([2, 3, 4, 5, 6]);
     expect(getPendingMigrations(LATEST_SCHEMA_VERSION)).toEqual([]);
   });
 
@@ -41,6 +43,9 @@ describe("database migrations", () => {
     expect(statements.some((sql) => sql.includes("owner_user_id"))).toBe(true);
     expect(statements.some((sql) => sql.includes("CREATE TABLE sync_cursors"))).toBe(true);
     expect(statements.some((sql) => sql.includes("CREATE TABLE sync_conflicts"))).toBe(true);
+    expect(statements.some((sql) => sql.includes("CREATE TABLE analysis_workflows"))).toBe(true);
+    expect(statements.some((sql) => sql.includes("ADD COLUMN source_type"))).toBe(true);
+    expect(statements.some((sql) => sql.includes("ADD COLUMN upload_id"))).toBe(true);
     expect(statements.at(-1)).toBe("COMMIT;");
   });
 

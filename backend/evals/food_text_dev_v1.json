@@ -1,0 +1,554 @@
+{
+  "dataset_schema_version": "2.0",
+  "dataset_version": "food-text-zh-cn-dev-v1.0.0",
+  "description": "用于提示词和解析逻辑迭代的中文饮食实体抽取开发集，不参与最终回归指标。",
+  "split": "development",
+  "frozen": false,
+  "source": "项目作者人工编写的合成饮食描述，不来自真实用户日志",
+  "authorization": "作者自有合成数据，可用于本项目离线开发与公开复现",
+  "annotators": ["project_author"],
+  "annotation_protocol": "按文本显式信息标注实体、数量、单位和餐次；合理估算允许范围必须显式记录上下界；每次修改都人工复核",
+  "contains_personal_data": false,
+  "grouping_policy": "同义改写和相同语义模板共享 group_id；所有组必须与冻结测试集隔离",
+  "evaluation_date": "2026-09-16",
+  "locale": "zh-CN",
+  "amount_absolute_tolerance": 0.000001,
+  "cases": [
+    {
+      "id": "dev_breakfast_boiled_egg",
+      "group_id": "dev_g01_egg_explicit",
+      "text": "早餐：水煮蛋1个。",
+      "tags": ["single_entity", "punctuation", "breakfast"],
+      "expected": [
+        {"normalized_name": "鸡蛋（煮）", "amount": 1, "unit": "个", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dev_lunch_rice_grams",
+      "group_id": "dev_g02_rice_grams",
+      "text": "中午米饭 180g",
+      "tags": ["single_entity", "grams", "whitespace", "lunch"],
+      "expected": [
+        {"normalized_name": "白米饭", "amount": 180, "unit": "g", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dev_dinner_beef_kg",
+      "group_id": "dev_g03_beef_unit_conversion",
+      "text": "晚饭吃了0.2kg牛肉",
+      "tags": ["single_entity", "unit_conversion", "dinner"],
+      "expected": [
+        {"normalized_name": "牛肉（瘦）", "amount": 200, "unit": "g", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "dev_snack_apple_range",
+      "group_id": "dev_g04_apple_estimate",
+      "text": "加餐吃了一个苹果",
+      "tags": ["single_entity", "estimated_amount", "snack"],
+      "expected": [
+        {"normalized_name": "苹果", "amount": 1, "unit": "个", "meal_type": "snack", "acceptable_amount_min": 0.8, "acceptable_amount_max": 1.2}
+      ]
+    },
+    {
+      "id": "dev_drink_milk_hint",
+      "group_id": "dev_g05_milk_hint",
+      "text": "全脂牛奶250克",
+      "meal_type_hint": "drink",
+      "tags": ["single_entity", "meal_hint", "drink"],
+      "expected": [
+        {"normalized_name": "牛奶（全脂）", "amount": 250, "unit": "g", "meal_type": "drink"}
+      ]
+    },
+    {
+      "id": "dev_breakfast_bread_egg",
+      "group_id": "dev_g06_bread_egg",
+      "text": "早上吃全麦面包2片、水煮鸡蛋1个",
+      "tags": ["multi_entity", "punctuation", "breakfast"],
+      "expected": [
+        {"normalized_name": "全麦面包", "amount": 2, "unit": "片", "meal_type": "breakfast"},
+        {"normalized_name": "鸡蛋（煮）", "amount": 1, "unit": "个", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dev_lunch_tofu_tomato",
+      "group_id": "dev_g07_tofu_tomato",
+      "text": "午餐一块豆腐，番茄一个",
+      "tags": ["multi_entity", "chinese_quantity", "lunch"],
+      "expected": [
+        {"normalized_name": "豆腐", "amount": 1, "unit": "块", "meal_type": "lunch"},
+        {"normalized_name": "番茄", "amount": 1, "unit": "个", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dev_dinner_pork_cucumber",
+      "group_id": "dev_g08_pork_cucumber",
+      "text": "晚上瘦猪肉100克加黄瓜1根",
+      "tags": ["multi_entity", "grams", "dinner"],
+      "expected": [
+        {"normalized_name": "猪肉（瘦）", "amount": 100, "unit": "g", "meal_type": "dinner"},
+        {"normalized_name": "黄瓜", "amount": 1, "unit": "根", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "dev_snack_nuts_chocolate",
+      "group_id": "dev_g09_nuts_chocolate",
+      "text": "零食是一小把混合坚果和一块巧克力",
+      "tags": ["multi_entity", "chinese_quantity", "snack"],
+      "expected": [
+        {"normalized_name": "坚果（混合）", "amount": 1, "unit": "小把", "meal_type": "snack"},
+        {"normalized_name": "巧克力", "amount": 1, "unit": "块", "meal_type": "snack"}
+      ]
+    },
+    {
+      "id": "dev_hint_banana",
+      "group_id": "dev_g10_banana_hint",
+      "text": "香蕉1根",
+      "meal_type_hint": "breakfast",
+      "tags": ["single_entity", "meal_hint", "breakfast"],
+      "expected": [
+        {"normalized_name": "香蕉", "amount": 1, "unit": "根", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dev_no_food_sleep",
+      "group_id": "dev_g11_no_food_sleep",
+      "text": "昨晚睡了八个小时",
+      "tags": ["no_food", "out_of_scope"],
+      "expected": []
+    },
+    {
+      "id": "dev_no_food_question",
+      "group_id": "dev_g12_no_food_question",
+      "text": "今天晚饭应该吃什么？",
+      "tags": ["no_food", "question", "out_of_scope"],
+      "expected": []
+    },
+    {
+      "id": "dev_unknown_oatmeal",
+      "group_id": "dev_g13_unknown_oatmeal",
+      "text": "早餐喝了一碗燕麦粥",
+      "tags": ["unknown_catalog_food", "breakfast"],
+      "expected": [
+        {"normalized_name": "燕麦粥", "amount": 1, "unit": "碗", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dev_unknown_dumpling",
+      "group_id": "dev_g14_unknown_wonton",
+      "text": "午饭吃了10个鲜肉馄饨",
+      "tags": ["unknown_catalog_food", "lunch"],
+      "expected": [
+        {"normalized_name": "鲜肉馄饨", "amount": 10, "unit": "个", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dev_negated_chips",
+      "group_id": "dev_g15_negation_chips",
+      "text": "今天没有吃薯片",
+      "tags": ["negation", "snack"],
+      "expected": []
+    },
+    {
+      "id": "dev_replacement_rice_noodles",
+      "group_id": "dev_g16_replacement",
+      "text": "晚饭没吃米饭，改吃了一碗面条",
+      "tags": ["negation", "replacement", "dinner"],
+      "expected": [
+        {"normalized_name": "面条（煮熟）", "amount": 1, "unit": "碗", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "dev_orange_explicit",
+      "group_id": "dev_g17_orange_explicit",
+      "text": "下午吃橙子2个",
+      "tags": ["single_entity", "explicit_quantity", "snack"],
+      "expected": [
+        {"normalized_name": "橙子", "amount": 2, "unit": "个", "meal_type": "snack"}
+      ]
+    },
+    {
+      "id": "dev_yogurt_decimal",
+      "group_id": "dev_g18_yogurt_decimal",
+      "text": "加餐喝了0.5杯酸奶",
+      "tags": ["single_entity", "decimal_quantity", "snack"],
+      "expected": [
+        {"normalized_name": "酸奶（原味）", "amount": 0.5, "unit": "杯", "meal_type": "snack"}
+      ]
+    },
+    {
+      "id": "dev_chicken_grams_suffix",
+      "group_id": "dev_g19_chicken_grams_suffix",
+      "text": "午餐鸡胸肉200克",
+      "tags": ["single_entity", "grams", "quantity_after_food", "lunch"],
+      "expected": [
+        {"normalized_name": "鸡胸肉（水煮）", "amount": 200, "unit": "g", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dev_broccoli_grams",
+      "group_id": "dev_g20_broccoli_grams",
+      "text": "晚餐西兰花 150 g",
+      "tags": ["single_entity", "grams", "whitespace", "dinner"],
+      "expected": [
+        {"normalized_name": "西兰花", "amount": 150, "unit": "g", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "dev_mantou_chinese_quantity",
+      "group_id": "dev_g21_mantou_quantity",
+      "text": "早饭两个馒头",
+      "tags": ["single_entity", "chinese_quantity", "breakfast"],
+      "expected": [
+        {"normalized_name": "馒头", "amount": 2, "unit": "个", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dev_tomato_alias",
+      "group_id": "dev_g22_tomato_alias",
+      "text": "午饭吃西红柿1个",
+      "tags": ["single_entity", "alias", "lunch"],
+      "expected": [
+        {"normalized_name": "番茄", "amount": 1, "unit": "个", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dev_rice_half_bowl",
+      "group_id": "dev_g23_rice_fraction",
+      "text": "晚餐只吃了半碗白米饭",
+      "tags": ["single_entity", "decimal_quantity", "dinner"],
+      "expected": [
+        {"normalized_name": "白米饭", "amount": 0.5, "unit": "碗", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "dev_three_food_lunch",
+      "group_id": "dev_g24_three_food_lunch",
+      "text": "中午一碗米饭、100克鸡胸肉、一个番茄",
+      "tags": ["multi_entity", "three_entities", "punctuation", "lunch"],
+      "expected": [
+        {"normalized_name": "白米饭", "amount": 1, "unit": "碗", "meal_type": "lunch"},
+        {"normalized_name": "鸡胸肉（水煮）", "amount": 100, "unit": "g", "meal_type": "lunch"},
+        {"normalized_name": "番茄", "amount": 1, "unit": "个", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dev_three_food_breakfast",
+      "group_id": "dev_g25_three_food_breakfast",
+      "text": "早餐：牛奶1杯+全麦面包2片+鸡蛋1个",
+      "tags": ["multi_entity", "three_entities", "symbols", "breakfast"],
+      "expected": [
+        {"normalized_name": "牛奶（全脂）", "amount": 1, "unit": "杯", "meal_type": "breakfast"},
+        {"normalized_name": "全麦面包", "amount": 2, "unit": "片", "meal_type": "breakfast"},
+        {"normalized_name": "鸡蛋（煮）", "amount": 1, "unit": "个", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dev_no_food_medicine",
+      "group_id": "dev_g26_no_food_medicine",
+      "text": "今天按时吃药了",
+      "tags": ["no_food", "out_of_scope"],
+      "expected": []
+    },
+    {
+      "id": "dev_desire_not_consumption",
+      "group_id": "dev_g27_desire",
+      "text": "现在很想吃巧克力",
+      "tags": ["non_consumption", "desire", "no_food"],
+      "expected": []
+    },
+    {
+      "id": "dev_question_not_consumption",
+      "group_id": "dev_g28_question",
+      "text": "香蕉和苹果哪个热量低？",
+      "tags": ["non_consumption", "question", "no_food"],
+      "expected": []
+    },
+    {
+      "id": "dev_other_person_consumption",
+      "group_id": "dev_g29_other_person",
+      "text": "室友晚饭吃了两碗米饭",
+      "tags": ["other_person", "non_consumption", "no_food"],
+      "expected": []
+    },
+    {
+      "id": "dev_quoted_example",
+      "group_id": "dev_g30_quoted_example",
+      "text": "示例句是“早餐吃一个苹果”",
+      "tags": ["quoted_text", "non_consumption", "no_food"],
+      "expected": []
+    },
+    {
+      "id": "dev_correction_fruit",
+      "group_id": "dev_g31_correction_fruit",
+      "text": "刚才说错了，不是苹果，是吃了一根香蕉",
+      "tags": ["correction", "negation", "snack"],
+      "expected": [
+        {"normalized_name": "香蕉", "amount": 1, "unit": "根", "meal_type": "snack"}
+      ]
+    },
+    {
+      "id": "dev_replacement_milk_yogurt",
+      "group_id": "dev_g32_replacement_drink",
+      "text": "没有喝牛奶，改喝了一杯酸奶",
+      "meal_type_hint": "drink",
+      "tags": ["replacement", "negation", "drink"],
+      "expected": [
+        {"normalized_name": "酸奶（原味）", "amount": 1, "unit": "杯", "meal_type": "drink"}
+      ]
+    },
+    {
+      "id": "dev_uncertain_rice_range",
+      "group_id": "dev_g33_uncertain_rice",
+      "text": "午饭大概吃了一碗米饭",
+      "tags": ["uncertain_quantity", "estimated_amount", "lunch"],
+      "expected": [
+        {"normalized_name": "白米饭", "amount": 1, "unit": "碗", "meal_type": "lunch", "acceptable_amount_min": 0.8, "acceptable_amount_max": 1.2}
+      ]
+    },
+    {
+      "id": "dev_uncertain_nuts_range",
+      "group_id": "dev_g34_uncertain_nuts",
+      "text": "下午大约一小把坚果",
+      "tags": ["uncertain_quantity", "estimated_amount", "snack"],
+      "expected": [
+        {"normalized_name": "坚果（混合）", "amount": 1, "unit": "小把", "meal_type": "snack", "acceptable_amount_min": 0.5, "acceptable_amount_max": 1.5}
+      ]
+    },
+    {
+      "id": "dev_tofu_grams",
+      "group_id": "dev_g35_tofu_grams",
+      "text": "午餐豆腐250克",
+      "tags": ["single_entity", "grams", "lunch"],
+      "expected": [
+        {"normalized_name": "豆腐", "amount": 250, "unit": "g", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dev_pork_kg",
+      "group_id": "dev_g36_pork_kg",
+      "text": "晚餐0.15千克瘦猪肉",
+      "tags": ["single_entity", "unit_conversion", "dinner"],
+      "expected": [
+        {"normalized_name": "猪肉（瘦）", "amount": 150, "unit": "g", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "dev_milk_milliliters",
+      "group_id": "dev_g37_milk_ml",
+      "text": "早餐喝了250毫升牛奶",
+      "tags": ["single_entity", "milliliters", "breakfast"],
+      "expected": [
+        {"normalized_name": "牛奶（全脂）", "amount": 250, "unit": "ml", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dev_uppercase_unit",
+      "group_id": "dev_g38_uppercase_unit",
+      "text": "中午鸡胸肉120G",
+      "tags": ["single_entity", "unit_case", "lunch"],
+      "expected": [
+        {"normalized_name": "鸡胸肉（水煮）", "amount": 120, "unit": "g", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dev_fullwidth_digits",
+      "group_id": "dev_g39_fullwidth_digits",
+      "text": "晚饭吃了２碗米饭",
+      "tags": ["single_entity", "unicode", "dinner"],
+      "expected": [
+        {"normalized_name": "白米饭", "amount": 2, "unit": "碗", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "dev_multiline_breakfast",
+      "group_id": "dev_g40_multiline",
+      "text": "早餐\n鸡蛋1个\n牛奶1杯",
+      "tags": ["multi_entity", "multiline", "breakfast"],
+      "expected": [
+        {"normalized_name": "鸡蛋（煮）", "amount": 1, "unit": "个", "meal_type": "breakfast"},
+        {"normalized_name": "牛奶（全脂）", "amount": 1, "unit": "杯", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dev_emoji_snack",
+      "group_id": "dev_g41_emoji_snack",
+      "text": "加餐🍎苹果1个",
+      "tags": ["single_entity", "emoji", "snack"],
+      "expected": [
+        {"normalized_name": "苹果", "amount": 1, "unit": "个", "meal_type": "snack"}
+      ]
+    },
+    {
+      "id": "dev_hint_no_meal_words",
+      "group_id": "dev_g42_hint_no_words",
+      "text": "一碗面条",
+      "meal_type_hint": "dinner",
+      "tags": ["single_entity", "meal_hint", "dinner"],
+      "expected": [
+        {"normalized_name": "面条（煮熟）", "amount": 1, "unit": "碗", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "dev_no_hint_defaults_snack",
+      "group_id": "dev_g43_default_meal",
+      "text": "吃了一个橙子",
+      "tags": ["single_entity", "default_meal", "snack"],
+      "expected": [
+        {"normalized_name": "橙子", "amount": 1, "unit": "个", "meal_type": "snack"}
+      ]
+    },
+    {
+      "id": "dev_unknown_hotpot",
+      "group_id": "dev_g44_unknown_hotpot",
+      "text": "晚餐吃了一份麻辣香锅",
+      "tags": ["unknown_catalog_food", "mixed_dish", "dinner"],
+      "expected": [
+        {"normalized_name": "麻辣香锅", "amount": 1, "unit": "份", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "dev_unknown_milk_tea",
+      "group_id": "dev_g45_unknown_milk_tea",
+      "text": "下午喝了一杯珍珠奶茶",
+      "meal_type_hint": "drink",
+      "tags": ["unknown_catalog_food", "drink"],
+      "expected": [
+        {"normalized_name": "珍珠奶茶", "amount": 1, "unit": "杯", "meal_type": "drink"}
+      ]
+    },
+    {
+      "id": "dev_unknown_salad",
+      "group_id": "dev_g46_unknown_salad",
+      "text": "午餐一份鸡肉沙拉",
+      "tags": ["unknown_catalog_food", "mixed_dish", "lunch"],
+      "expected": [
+        {"normalized_name": "鸡肉沙拉", "amount": 1, "unit": "份", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dev_hypothetical_food",
+      "group_id": "dev_g47_hypothetical",
+      "text": "如果饿了就吃一个苹果",
+      "tags": ["hypothetical", "non_consumption", "no_food"],
+      "expected": []
+    },
+    {
+      "id": "dev_future_dinner",
+      "group_id": "dev_g48_future_dinner",
+      "text": "今晚准备吃一碗面条",
+      "tags": ["future_intent", "non_consumption", "no_food"],
+      "expected": []
+    },
+    {
+      "id": "dev_negated_then_consumed",
+      "group_id": "dev_g49_negated_then_consumed",
+      "text": "早上没吃面包，但吃了两个鸡蛋",
+      "tags": ["negation", "contrast", "breakfast"],
+      "expected": [
+        {"normalized_name": "鸡蛋（煮）", "amount": 2, "unit": "个", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dev_partial_consumption",
+      "group_id": "dev_g50_partial_consumption",
+      "text": "一碗米饭只吃了一半",
+      "meal_type_hint": "lunch",
+      "tags": ["partial_consumption", "meal_hint", "lunch"],
+      "expected": [
+        {"normalized_name": "白米饭", "amount": 0.5, "unit": "碗", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dev_duplicate_egg_aggregate",
+      "group_id": "dev_g51_duplicate_aggregate",
+      "text": "早餐先吃了1个鸡蛋，后来又吃了1个鸡蛋",
+      "tags": ["duplicate_mentions", "aggregation", "breakfast"],
+      "expected": [
+        {"normalized_name": "鸡蛋（煮）", "amount": 2, "unit": "个", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dev_serving_chicken",
+      "group_id": "dev_g52_chicken_serving",
+      "text": "午饭一份水煮鸡胸肉",
+      "tags": ["single_entity", "natural_serving", "lunch"],
+      "expected": [
+        {"normalized_name": "鸡胸肉（水煮）", "amount": 1, "unit": "份", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dev_chips_unit_alias",
+      "group_id": "dev_g53_chips_alias",
+      "text": "夜宵一包薯片",
+      "tags": ["single_entity", "unit_alias", "snack"],
+      "expected": [
+        {"normalized_name": "薯片", "amount": 1, "unit": "小包", "meal_type": "snack"}
+      ]
+    },
+    {
+      "id": "dev_brand_coffee",
+      "group_id": "dev_g54_brand_coffee",
+      "text": "喝了一杯瑞幸生椰拿铁",
+      "meal_type_hint": "drink",
+      "tags": ["unknown_catalog_food", "brand", "drink"],
+      "expected": [
+        {"normalized_name": "瑞幸生椰拿铁", "amount": 1, "unit": "杯", "meal_type": "drink"}
+      ]
+    },
+    {
+      "id": "dev_brand_tea",
+      "group_id": "dev_g55_brand_tea",
+      "text": "下午一杯霸王茶姬伯牙绝弦",
+      "meal_type_hint": "drink",
+      "tags": ["unknown_catalog_food", "brand", "drink"],
+      "expected": [
+        {"normalized_name": "霸王茶姬伯牙绝弦", "amount": 1, "unit": "杯", "meal_type": "drink"}
+      ]
+    },
+    {
+      "id": "dev_list_style_dinner",
+      "group_id": "dev_g56_list_style",
+      "text": "晚餐｜米饭1碗｜豆腐2块｜黄瓜1根",
+      "tags": ["multi_entity", "list_style", "dinner"],
+      "expected": [
+        {"normalized_name": "白米饭", "amount": 1, "unit": "碗", "meal_type": "dinner"},
+        {"normalized_name": "豆腐", "amount": 2, "unit": "块", "meal_type": "dinner"},
+        {"normalized_name": "黄瓜", "amount": 1, "unit": "根", "meal_type": "dinner"}
+      ]
+    },
+    {
+      "id": "dev_parenthetical_note",
+      "group_id": "dev_g57_parenthetical",
+      "text": "早餐牛奶（全脂）1杯",
+      "tags": ["single_entity", "parentheses", "breakfast"],
+      "expected": [
+        {"normalized_name": "牛奶（全脂）", "amount": 1, "unit": "杯", "meal_type": "breakfast"}
+      ]
+    },
+    {
+      "id": "dev_extra_whitespace",
+      "group_id": "dev_g58_extra_whitespace",
+      "text": "午饭   米饭  1 碗   牛肉 100 克",
+      "tags": ["multi_entity", "whitespace", "lunch"],
+      "expected": [
+        {"normalized_name": "白米饭", "amount": 1, "unit": "碗", "meal_type": "lunch"},
+        {"normalized_name": "牛肉（瘦）", "amount": 100, "unit": "g", "meal_type": "lunch"}
+      ]
+    },
+    {
+      "id": "dev_only_water",
+      "group_id": "dev_g59_only_water",
+      "text": "今天只喝了白开水",
+      "tags": ["no_food", "water_only"],
+      "expected": []
+    },
+    {
+      "id": "dev_empty_meal_statement",
+      "group_id": "dev_g60_empty_meal",
+      "text": "今天没有吃晚饭",
+      "tags": ["negation", "skipped_meal", "no_food"],
+      "expected": []
+    }
+  ]
+}

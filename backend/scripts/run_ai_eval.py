@@ -2,6 +2,7 @@ import argparse
 import asyncio
 import json
 import os
+import subprocess
 import sys
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -29,6 +30,32 @@ def _optional_decimal(environment_name: str) -> Decimal | None:
     return value
 
 
+def _code_revision(explicit: str | None) -> str:
+    if explicit:
+        return explicit
+    ci_revision = os.getenv("GITHUB_SHA")
+    if ci_revision:
+        return ci_revision
+    try:
+        revision = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=BACKEND_DIR,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+        working_tree = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=BACKEND_DIR,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+        return f"{revision}-dirty" if working_tree.strip() else revision
+    except (OSError, subprocess.CalledProcessError):
+        return "unknown"
+
+
 def _provider(arguments: argparse.Namespace):
     if arguments.provider == "rule_based":
         return RuleBasedFoodTextProvider()
@@ -51,13 +78,20 @@ def _provider(arguments: argparse.Namespace):
 def _check_baseline(report: EvaluationReport, path: Path) -> list[str]:
     baseline = json.loads(path.read_text(encoding="utf-8"))
     failures: list[str] = []
-    if baseline.get("dataset_version") != report.dataset_version:
-        failures.append(
-            f"dataset_version expected {baseline.get('dataset_version')}, "
-            f"received {report.dataset_version}"
-        )
-    if baseline.get("provider") != report.provider:
-        failures.append(f"provider expected {baseline.get('provider')}, received {report.provider}")
+    identities = {
+        "report_schema_version": report.report_schema_version,
+        "dataset_schema_version": report.dataset_schema_version,
+        "dataset_version": report.dataset_version,
+        "dataset_split": report.dataset_split,
+        "dataset_fingerprint_sha256": report.dataset_fingerprint_sha256,
+        "provider": report.provider,
+        "model": report.model,
+        "prompt_version": report.prompt_version,
+    }
+    for field_name, actual in identities.items():
+        expected = baseline.get(field_name)
+        if expected is not None and expected != actual:
+            failures.append(f"{field_name} expected {expected}, received {actual}")
     metrics = report.metrics.model_dump(mode="python")
     for metric_name, minimum in baseline.get("minimums", {}).items():
         actual = metrics.get(metric_name)
@@ -68,6 +102,10 @@ def _check_baseline(report: EvaluationReport, path: Path) -> list[str]:
 
 async def _run(arguments: argparse.Namespace) -> int:
     dataset = load_dataset(arguments.dataset)
+    if dataset.contains_personal_data:
+        raise SystemExit("offline evaluation refuses datasets marked as containing personal data")
+    if arguments.baseline is not None and (dataset.split != "test" or not dataset.frozen):
+        raise SystemExit("regression baselines require a frozen test dataset")
     if arguments.max_cases is not None:
         dataset = dataset.model_copy(update={"cases": dataset.cases[: arguments.max_cases]})
     provider = _provider(arguments)
@@ -78,6 +116,7 @@ async def _run(arguments: argparse.Namespace) -> int:
         output_price_per_million_usd=_optional_decimal(
             "NUTRIPILOT_AI_OUTPUT_PRICE_PER_MILLION_USD"
         ),
+        code_revision=_code_revision(arguments.code_revision),
     )
     if arguments.output is not None:
         write_report(report, arguments.output)
@@ -111,6 +150,10 @@ def _arguments() -> argparse.Namespace:
     parser.add_argument("--output", type=Path)
     parser.add_argument("--baseline", type=Path)
     parser.add_argument("--max-cases", type=int, choices=range(1, 1001))
+    parser.add_argument(
+        "--code-revision",
+        help="code revision recorded in the report; defaults to GITHUB_SHA or git HEAD",
+    )
     parser.add_argument(
         "--allow-paid-api",
         action="store_true",

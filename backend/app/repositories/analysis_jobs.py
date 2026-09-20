@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 from sqlalchemy import func, or_, select, update
@@ -15,6 +15,8 @@ class ClaimedAnalysisJob:
 
 
 async def database_now(session: AsyncSession) -> datetime:
+    if session.get_bind().dialect.name != "postgresql":
+        return datetime.now(UTC)
     return await session.scalar(select(func.clock_timestamp()))
 
 

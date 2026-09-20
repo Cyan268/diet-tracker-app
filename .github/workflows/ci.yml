@@ -57,5 +57,12 @@ jobs:
           alembic upgrade head
           python -m pytest --cov=app --cov-fail-under=70
       - run: |
+          python scripts/validate_eval_datasets.py
+          python scripts/run_ai_eval.py \
+            --provider rule_based \
+            --dataset evals/food_text_v1.json \
+            --baseline evals/baselines/rule_based_v1.json \
+            --output /tmp/nutripilot-ci-rule-based.json
+      - run: |
           python scripts/export_openapi.py openapi.generated.json
           diff -u openapi.json openapi.generated.json

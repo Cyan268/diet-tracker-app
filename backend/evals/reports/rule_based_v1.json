@@ -28,12 +28,16 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 2.0,
           "meal_type": "breakfast",
           "normalized_name": "鸡蛋（煮）",
           "unit": "个"
         },
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "breakfast",
           "normalized_name": "牛奶（全脂）",
@@ -43,7 +47,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.92,
+      "latency_ms": 0.82,
       "matched_fields": [
         {
           "amount": true,
@@ -92,12 +96,16 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 200.0,
           "meal_type": "lunch",
           "normalized_name": "鸡胸肉（水煮）",
           "unit": "g"
         },
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "lunch",
           "normalized_name": "白米饭",
@@ -107,7 +115,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.93,
+      "latency_ms": 0.42,
       "matched_fields": [
         {
           "amount": true,
@@ -156,12 +164,16 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 0.5,
           "meal_type": "dinner",
           "normalized_name": "面条（煮熟）",
           "unit": "碗"
         },
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "dinner",
           "normalized_name": "番茄",
@@ -171,7 +183,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.5,
+      "latency_ms": 0.4,
       "matched_fields": [
         {
           "amount": true,
@@ -210,6 +222,8 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "snack",
           "normalized_name": "香蕉",
@@ -219,7 +233,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.25,
+      "latency_ms": 0.21,
       "matched_fields": [
         {
           "amount": true,
@@ -252,6 +266,8 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 0.5,
           "meal_type": "drink",
           "normalized_name": "酸奶（原味）",
@@ -261,7 +277,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.26,
+      "latency_ms": 0.22,
       "matched_fields": [
         {
           "amount": true,
@@ -304,12 +320,16 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 250.0,
           "meal_type": "lunch",
           "normalized_name": "牛肉（瘦）",
           "unit": "g"
         },
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "lunch",
           "normalized_name": "西兰花",
@@ -319,7 +339,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.47,
+      "latency_ms": 0.4,
       "matched_fields": [
         {
           "amount": true,
@@ -368,12 +388,16 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 2.0,
           "meal_type": "breakfast",
           "normalized_name": "全麦面包",
           "unit": "片"
         },
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 0.5,
           "meal_type": "breakfast",
           "normalized_name": "牛奶（全脂）",
@@ -383,7 +407,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.57,
+      "latency_ms": 0.5,
       "matched_fields": [
         {
           "amount": true,
@@ -432,12 +456,16 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 2.0,
           "meal_type": "dinner",
           "normalized_name": "豆腐",
           "unit": "块"
         },
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "dinner",
           "normalized_name": "黄瓜",
@@ -447,7 +475,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.6,
+      "latency_ms": 0.49,
       "matched_fields": [
         {
           "amount": true,
@@ -496,12 +524,16 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "snack",
           "normalized_name": "薯片",
           "unit": "小包"
         },
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 2.0,
           "meal_type": "snack",
           "normalized_name": "巧克力",
@@ -511,7 +543,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.62,
+      "latency_ms": 0.5,
       "matched_fields": [
         {
           "amount": true,
@@ -560,12 +592,16 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "breakfast",
           "normalized_name": "苹果",
           "unit": "个"
         },
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "breakfast",
           "normalized_name": "橙子",
@@ -575,7 +611,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.46,
+      "latency_ms": 0.47,
       "matched_fields": [
         {
           "amount": true,
@@ -624,12 +660,16 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 150.0,
           "meal_type": "dinner",
           "normalized_name": "猪肉（瘦）",
           "unit": "g"
         },
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 2.0,
           "meal_type": "dinner",
           "normalized_name": "白米饭",
@@ -639,7 +679,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.45,
+      "latency_ms": 0.48,
       "matched_fields": [
         {
           "amount": true,
@@ -678,6 +718,8 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 200.0,
           "meal_type": "lunch",
           "normalized_name": "番茄",
@@ -687,7 +729,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.25,
+      "latency_ms": 0.26,
       "matched_fields": [
         {
           "amount": true,
@@ -728,7 +770,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.03,
+      "latency_ms": 0.04,
       "matched_fields": [],
       "model": "rule-based-v1",
       "output_tokens": 0,
@@ -754,6 +796,8 @@
       "exact_match": false,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 12.0,
           "meal_type": "lunch",
           "normalized_name": "猪肉饺子",
@@ -767,7 +811,7 @@
         "猪肉（瘦）"
       ],
       "input_tokens": 0,
-      "latency_ms": 0.26,
+      "latency_ms": 0.52,
       "matched_fields": [],
       "model": "rule-based-v1",
       "output_tokens": 0,
@@ -782,6 +826,8 @@
       "exact_match": false,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "drink",
           "normalized_name": "伯牙绝弦",
@@ -793,7 +839,7 @@
       ],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.11,
+      "latency_ms": 0.05,
       "matched_fields": [],
       "model": "rule-based-v1",
       "output_tokens": 0,
@@ -808,6 +854,8 @@
       "exact_match": false,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "dinner",
           "normalized_name": "炸鸡",
@@ -819,7 +867,7 @@
       ],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.09,
+      "latency_ms": 0.04,
       "matched_fields": [],
       "model": "rule-based-v1",
       "output_tokens": 0,
@@ -855,12 +903,16 @@
       "exact_match": false,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "lunch",
           "normalized_name": "白米饭",
           "unit": "碗"
         },
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "lunch",
           "normalized_name": "麻婆豆腐",
@@ -874,7 +926,7 @@
         "豆腐"
       ],
       "input_tokens": 0,
-      "latency_ms": 0.1,
+      "latency_ms": 0.06,
       "matched_fields": [
         {
           "amount": true,
@@ -907,6 +959,8 @@
       "exact_match": false,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "dinner",
           "normalized_name": "普通面包",
@@ -920,7 +974,7 @@
         "全麦面包"
       ],
       "input_tokens": 0,
-      "latency_ms": 0.41,
+      "latency_ms": 0.26,
       "matched_fields": [],
       "model": "rule-based-v1",
       "output_tokens": 0,
@@ -946,6 +1000,8 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 300.0,
           "meal_type": "dinner",
           "normalized_name": "鸡胸肉（水煮）",
@@ -955,7 +1011,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.55,
+      "latency_ms": 0.25,
       "matched_fields": [
         {
           "amount": true,
@@ -998,12 +1054,16 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 2.0,
           "meal_type": "snack",
           "normalized_name": "香蕉",
           "unit": "根"
         },
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "snack",
           "normalized_name": "苹果",
@@ -1013,7 +1073,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.11,
+      "latency_ms": 0.06,
       "matched_fields": [
         {
           "amount": true,
@@ -1041,6 +1101,8 @@
       "exact_match": false,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "drink",
           "normalized_name": "冰美式咖啡",
@@ -1078,6 +1140,8 @@
       "exact_match": true,
       "expected": [
         {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
           "amount": 1.0,
           "meal_type": "dinner",
           "normalized_name": "牛肉（瘦）",
@@ -1087,7 +1151,7 @@
       "false_negative_names": [],
       "false_positive_names": [],
       "input_tokens": 0,
-      "latency_ms": 0.39,
+      "latency_ms": 0.26,
       "matched_fields": [
         {
           "amount": true,
@@ -1191,37 +1255,914 @@
       "schema_valid": true,
       "success": true,
       "text": "计划明天早餐吃一个苹果"
+    },
+    {
+      "actual": [
+        {
+          "amount": 80.0,
+          "confidence": 0.94,
+          "evidence": "识别到“瘦牛肉”及其相邻数量",
+          "meal_type": "lunch",
+          "needs_review": false,
+          "normalized_name": "牛肉（瘦）",
+          "raw_name": "瘦牛肉",
+          "unit": "g"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“西兰花”及其相邻数量",
+          "meal_type": "lunch",
+          "needs_review": false,
+          "normalized_name": "西兰花",
+          "raw_name": "西兰花",
+          "unit": "份"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“米饭”及其相邻数量",
+          "meal_type": "lunch",
+          "needs_review": false,
+          "normalized_name": "白米饭",
+          "raw_name": "米饭",
+          "unit": "碗"
+        }
+      ],
+      "case_id": "holdout_semicolon_three_foods",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
+          "amount": 1.0,
+          "meal_type": "lunch",
+          "normalized_name": "白米饭",
+          "unit": "碗"
+        },
+        {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
+          "amount": 1.0,
+          "meal_type": "lunch",
+          "normalized_name": "西兰花",
+          "unit": "份"
+        },
+        {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
+          "amount": 80.0,
+          "meal_type": "lunch",
+          "normalized_name": "牛肉（瘦）",
+          "unit": "g"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.06,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "白米饭",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "西兰花",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "牛肉（瘦）",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "午餐；米饭一碗；西兰花一份；瘦牛肉80克"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“水煮蛋”，未检测到数量，暂按 1个",
+          "meal_type": "breakfast",
+          "needs_review": true,
+          "normalized_name": "鸡蛋（煮）",
+          "raw_name": "水煮蛋",
+          "unit": "个"
+        }
+      ],
+      "case_id": "holdout_colloquial_eggs",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
+          "amount": 2.0,
+          "meal_type": "breakfast",
+          "normalized_name": "鸡蛋（煮）",
+          "unit": "个"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.25,
+      "matched_fields": [
+        {
+          "amount": false,
+          "meal_type": true,
+          "normalized_name": "鸡蛋（煮）",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "早上吃了俩水煮蛋"
+    },
+    {
+      "actual": [],
+      "case_id": "holdout_unknown_congee",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
+          "amount": 1.0,
+          "meal_type": "breakfast",
+          "normalized_name": "皮蛋瘦肉粥",
+          "unit": "碗"
+        }
+      ],
+      "false_negative_names": [
+        "皮蛋瘦肉粥"
+      ],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.04,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "早餐一碗皮蛋瘦肉粥"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“米饭”，未检测到数量，暂按 1碗",
+          "meal_type": "dinner",
+          "needs_review": true,
+          "normalized_name": "白米饭",
+          "raw_name": "米饭",
+          "unit": "碗"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“面条”，未检测到数量，暂按 1碗",
+          "meal_type": "dinner",
+          "needs_review": true,
+          "normalized_name": "面条（煮熟）",
+          "raw_name": "面条",
+          "unit": "碗"
+        }
+      ],
+      "case_id": "holdout_recommendation_question",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [],
+      "false_negative_names": [],
+      "false_positive_names": [
+        "白米饭",
+        "面条（煮熟）"
+      ],
+      "input_tokens": 0,
+      "latency_ms": 0.05,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "减脂晚餐推荐米饭还是面条？"
+    },
+    {
+      "actual": [
+        {
+          "amount": 2.0,
+          "confidence": 0.94,
+          "evidence": "识别到“全麦面包”及其相邻数量",
+          "meal_type": "breakfast",
+          "needs_review": false,
+          "normalized_name": "全麦面包",
+          "raw_name": "全麦面包",
+          "unit": "片"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.68,
+          "evidence": "识别到“馒头”，未检测到数量，暂按 1个",
+          "meal_type": "breakfast",
+          "needs_review": true,
+          "normalized_name": "馒头",
+          "raw_name": "馒头",
+          "unit": "个"
+        }
+      ],
+      "case_id": "holdout_correction_bread",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
+          "amount": 2.0,
+          "meal_type": "breakfast",
+          "normalized_name": "全麦面包",
+          "unit": "片"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [
+        "馒头"
+      ],
+      "input_tokens": 0,
+      "latency_ms": 0.25,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "全麦面包",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "更正一下，没吃馒头，早餐是两片全麦面包"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“酸奶”及其相邻数量",
+          "meal_type": "snack",
+          "needs_review": false,
+          "normalized_name": "酸奶（原味）",
+          "raw_name": "酸奶",
+          "unit": "杯"
+        }
+      ],
+      "case_id": "holdout_future_drink",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [],
+      "false_negative_names": [],
+      "false_positive_names": [
+        "酸奶（原味）"
+      ],
+      "input_tokens": 0,
+      "latency_ms": 0.23,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "明天下午打算喝一杯酸奶"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“苹果”及其相邻数量",
+          "meal_type": "lunch",
+          "needs_review": false,
+          "normalized_name": "苹果",
+          "raw_name": "苹果",
+          "unit": "个"
+        }
+      ],
+      "case_id": "holdout_family_consumption",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [],
+      "false_negative_names": [],
+      "false_positive_names": [
+        "苹果"
+      ],
+      "input_tokens": 0,
+      "latency_ms": 0.04,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "妈妈中午吃了一个苹果"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“面”及其相邻数量",
+          "meal_type": "dinner",
+          "needs_review": false,
+          "normalized_name": "面条（煮熟）",
+          "raw_name": "面",
+          "unit": "碗"
+        }
+      ],
+      "case_id": "holdout_partial_noodles",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
+          "amount": 0.25,
+          "meal_type": "dinner",
+          "normalized_name": "面条（煮熟）",
+          "unit": "碗"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.23,
+      "matched_fields": [
+        {
+          "amount": false,
+          "meal_type": true,
+          "normalized_name": "面条（煮熟）",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "晚饭的一碗面只吃了四分之一"
+    },
+    {
+      "actual": [
+        {
+          "amount": 0.5,
+          "confidence": 0.94,
+          "evidence": "识别到“牛奶”及其相邻数量",
+          "meal_type": "snack",
+          "needs_review": false,
+          "normalized_name": "牛奶（全脂）",
+          "raw_name": "牛奶",
+          "unit": "杯"
+        }
+      ],
+      "case_id": "holdout_duplicate_milk_aggregate",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
+          "amount": 1.0,
+          "meal_type": "drink",
+          "normalized_name": "牛奶（全脂）",
+          "unit": "杯"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.04,
+      "matched_fields": [
+        {
+          "amount": false,
+          "meal_type": false,
+          "normalized_name": "牛奶（全脂）",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "上午喝半杯牛奶，下午又喝半杯牛奶"
+    },
+    {
+      "actual": [
+        {
+          "amount": 200.0,
+          "confidence": 0.94,
+          "evidence": "识别到“原味酸奶”及其相邻数量",
+          "meal_type": "snack",
+          "needs_review": false,
+          "normalized_name": "酸奶（原味）",
+          "raw_name": "原味酸奶",
+          "unit": "杯"
+        }
+      ],
+      "case_id": "holdout_yogurt_milliliters",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
+          "amount": 200.0,
+          "meal_type": "snack",
+          "normalized_name": "酸奶（原味）",
+          "unit": "ml"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.04,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "酸奶（原味）",
+          "unit": false
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "加餐喝原味酸奶200ml"
+    },
+    {
+      "actual": [
+        {
+          "amount": 2.0,
+          "confidence": 0.94,
+          "evidence": "识别到“豆腐”及其相邻数量",
+          "meal_type": "dinner",
+          "needs_review": false,
+          "normalized_name": "豆腐",
+          "raw_name": "豆腐",
+          "unit": "块"
+        }
+      ],
+      "case_id": "holdout_uncertain_tofu",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "acceptable_amount_max": 2.5,
+          "acceptable_amount_min": 1.5,
+          "amount": 2.0,
+          "meal_type": "dinner",
+          "normalized_name": "豆腐",
+          "unit": "块"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.04,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "豆腐",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "晚餐大约两块豆腐"
+    },
+    {
+      "actual": [
+        {
+          "amount": 2.0,
+          "confidence": 0.94,
+          "evidence": "识别到“番茄”及其相邻数量",
+          "meal_type": "dinner",
+          "needs_review": false,
+          "normalized_name": "番茄",
+          "raw_name": "番茄",
+          "unit": "个"
+        },
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“黄瓜”及其相邻数量",
+          "meal_type": "dinner",
+          "needs_review": false,
+          "normalized_name": "黄瓜",
+          "raw_name": "黄瓜",
+          "unit": "根"
+        }
+      ],
+      "case_id": "holdout_markdown_list",
+      "error_code": null,
+      "exact_match": true,
+      "expected": [
+        {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
+          "amount": 1.0,
+          "meal_type": "dinner",
+          "normalized_name": "黄瓜",
+          "unit": "根"
+        },
+        {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
+          "amount": 2.0,
+          "meal_type": "dinner",
+          "normalized_name": "番茄",
+          "unit": "个"
+        }
+      ],
+      "false_negative_names": [],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.05,
+      "matched_fields": [
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "黄瓜",
+          "unit": true
+        },
+        {
+          "amount": true,
+          "meal_type": true,
+          "normalized_name": "番茄",
+          "unit": true
+        }
+      ],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "晚餐记录：\n- 黄瓜1根\n- 番茄2个"
+    },
+    {
+      "actual": [],
+      "case_id": "holdout_brand_fruit_tea",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [
+        {
+          "acceptable_amount_max": null,
+          "acceptable_amount_min": null,
+          "amount": 1.0,
+          "meal_type": "drink",
+          "normalized_name": "喜茶多肉葡萄",
+          "unit": "杯"
+        }
+      ],
+      "false_negative_names": [
+        "喜茶多肉葡萄"
+      ],
+      "false_positive_names": [],
+      "input_tokens": 0,
+      "latency_ms": 0.03,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "喝了一杯喜茶多肉葡萄"
+    },
+    {
+      "actual": [
+        {
+          "amount": 1.0,
+          "confidence": 0.94,
+          "evidence": "识别到“坚果”及其相邻数量",
+          "meal_type": "dinner",
+          "needs_review": false,
+          "normalized_name": "坚果（混合）",
+          "raw_name": "坚果",
+          "unit": "小把"
+        }
+      ],
+      "case_id": "holdout_conditional_snack",
+      "error_code": null,
+      "exact_match": false,
+      "expected": [],
+      "false_negative_names": [],
+      "false_positive_names": [
+        "坚果（混合）"
+      ],
+      "input_tokens": 0,
+      "latency_ms": 0.24,
+      "matched_fields": [],
+      "model": "rule-based-v1",
+      "output_tokens": 0,
+      "schema_valid": true,
+      "success": true,
+      "text": "要是晚上饿就吃一小把坚果"
     }
   ],
-  "dataset_version": "food-text-zh-cn-v1.0.0",
-  "generated_at": "2026-07-18T16:40:56.179084Z",
+  "code_revision": "e787a100fe9d7139a0768d6e13dc3d86a8d27bde-dirty",
+  "dataset_fingerprint_sha256": "28200ee610cff9c6344c4c3734e461cd501057ef33c0852e6d3e848191db0249",
+  "dataset_schema_version": "2.0",
+  "dataset_split": "test",
+  "dataset_version": "food-text-zh-cn-v1.2.0",
+  "evaluation_config": {
+    "amount_absolute_tolerance": 1e-06,
+    "evaluation_date": "2026-07-19",
+    "locale": "zh-CN",
+    "prices_configured": false
+  },
+  "failure_counts": {},
+  "generated_at": "2026-09-16T10:32:09.294845Z",
   "metrics": {
-    "amount_accuracy": 1.0,
+    "amount_accuracy": 0.9189,
     "average_tokens_per_case": 0.0,
-    "case_exact_match_rate": 0.6538,
-    "entity_f1": 0.8125,
-    "entity_precision": 0.8125,
-    "entity_recall": 0.8125,
+    "case_exact_match_rate": 0.5,
+    "cost_status": "unknown",
+    "entity_f1": 0.7872,
+    "entity_precision": 0.7551,
+    "entity_recall": 0.8222,
     "estimated_average_cost_usd": null,
     "estimated_total_cost_usd": null,
     "failed_cases": 0,
-    "false_negative_entities": 6,
-    "false_positive_entities": 6,
-    "meal_type_accuracy": 1.0,
-    "p50_latency_ms": 0.26,
-    "p95_latency_ms": 0.92,
+    "false_negative_entities": 8,
+    "false_positive_entities": 12,
+    "meal_type_accuracy": 0.973,
+    "p50_latency_ms": 0.21,
+    "p95_latency_ms": 0.5,
     "request_success_rate": 1.0,
-    "sample_count": 26,
-    "schema_evaluated_cases": 26,
+    "sample_count": 40,
+    "schema_evaluated_cases": 40,
     "schema_validity_rate": 1.0,
-    "successful_cases": 26,
+    "successful_cases": 40,
     "total_input_tokens": 0,
     "total_output_tokens": 0,
-    "true_positive_entities": 26,
-    "unit_accuracy": 1.0
+    "true_positive_entities": 37,
+    "unit_accuracy": 0.973
   },
   "model": "rule-based-v1",
   "prompt_version": "rule-food-text-v1.0.0",
   "provider": "rule_based_v1",
-  "report_schema_version": "1.0"
+  "report_schema_version": "2.0",
+  "tag_metrics": {
+    "aggregation": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "alias": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "brand": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 2,
+      "successful_cases": 2
+    },
+    "breakfast": {
+      "case_exact_match_rate": 0.5,
+      "request_success_rate": 1.0,
+      "sample_count": 6,
+      "successful_cases": 6
+    },
+    "chinese_quantity": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 3,
+      "successful_cases": 3
+    },
+    "colloquial_quantity": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "correction": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "decimal_quantity": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "dinner": {
+      "case_exact_match_rate": 0.7,
+      "request_success_rate": 1.0,
+      "sample_count": 10,
+      "successful_cases": 10
+    },
+    "drink": {
+      "case_exact_match_rate": 0.2,
+      "request_success_rate": 1.0,
+      "sample_count": 5,
+      "successful_cases": 5
+    },
+    "duplicate_mentions": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "estimated_amount": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "fraction": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "future_intent": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 2,
+      "successful_cases": 2
+    },
+    "grams": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 3,
+      "successful_cases": 3
+    },
+    "hypothetical": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "list_style": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "lunch": {
+      "case_exact_match_rate": 0.6,
+      "request_success_rate": 1.0,
+      "sample_count": 5,
+      "successful_cases": 5
+    },
+    "meal_hint": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 2,
+      "successful_cases": 2
+    },
+    "milliliters": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "missing_quantity": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 4,
+      "successful_cases": 4
+    },
+    "mixed_dish": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "multi_entity": {
+      "case_exact_match_rate": 0.9167,
+      "request_success_rate": 1.0,
+      "sample_count": 12,
+      "successful_cases": 12
+    },
+    "multiline": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "negation": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 3,
+      "successful_cases": 3
+    },
+    "no_food": {
+      "case_exact_match_rate": 0.2222,
+      "request_success_rate": 1.0,
+      "sample_count": 9,
+      "successful_cases": 9
+    },
+    "non_consumption": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 6,
+      "successful_cases": 6
+    },
+    "other_person": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "out_of_scope": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 2,
+      "successful_cases": 2
+    },
+    "partial_consumption": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "punctuation": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "question": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "semantic_boundary": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 2,
+      "successful_cases": 2
+    },
+    "single_entity": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 2,
+      "successful_cases": 2
+    },
+    "snack": {
+      "case_exact_match_rate": 0.75,
+      "request_success_rate": 1.0,
+      "sample_count": 4,
+      "successful_cases": 4
+    },
+    "three_entities": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "uncertain_quantity": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "unit_alias": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 1,
+      "successful_cases": 1
+    },
+    "unit_conversion": {
+      "case_exact_match_rate": 1.0,
+      "request_success_rate": 1.0,
+      "sample_count": 2,
+      "successful_cases": 2
+    },
+    "unknown_catalog_food": {
+      "case_exact_match_rate": 0.0,
+      "request_success_rate": 1.0,
+      "sample_count": 6,
+      "successful_cases": 6
+    }
+  }
 }

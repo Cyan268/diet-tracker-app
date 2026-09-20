@@ -63,6 +63,7 @@ def test_json_formatter_only_serializes_allowlisted_fields() -> None:
     )
     record.event = "safe.event"
     record.request_id = "request-12345678"
+    record.job_id = "job-12345678"
     record.authorization = "Bearer token-secret"
     record.api_key = "sk-secret"
 
@@ -70,6 +71,7 @@ def test_json_formatter_only_serializes_allowlisted_fields() -> None:
 
     assert payload["event"] == "safe.event"
     assert payload["request_id"] == "request-12345678"
+    assert payload["job_id"] == "job-12345678"
     assert "authorization" not in payload
     assert "api_key" not in payload
     assert "secret" not in json.dumps(payload)
@@ -135,6 +137,20 @@ def test_request_id_rejects_log_injection_characters() -> None:
     generated = normalize_request_id("valid-looking\nforged-log")
     assert len(generated) == 32
     assert generated.isalnum()
+
+
+def test_metrics_failure_does_not_break_business_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        "app.core.observability.runtime_metrics.record_http",
+        lambda *_: (_ for _ in ()).throw(RuntimeError("metrics unavailable")),
+    )
+
+    with TestClient(observed_app()) as client:
+        response = client.get("/items/public")
+
+    assert response.status_code == 200
 
 
 def test_sentry_scrubber_removes_request_and_user_data() -> None:

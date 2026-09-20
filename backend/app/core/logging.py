@@ -18,6 +18,10 @@ LOG_RECORD_FIELDS: Final = {
     "duration_ms",
     "error_type",
     "sentry_enabled",
+    "job_id",
+    "confirmation_id",
+    "attempt_number",
+    "error_code",
 }
 
 

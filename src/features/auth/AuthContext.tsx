@@ -1,6 +1,11 @@
 import type { AuthUser } from "@/api/types";
 import { ApiError } from "@/api/http";
-import { AuthSession, SessionChangedError, type SessionStatus } from "./authSession";
+import {
+  AuthSession,
+  SessionChangedError,
+  type AuthRequestScope,
+  type SessionStatus,
+} from "./authSession";
 import { SecureSessionStorage } from "./secureSessionStorage";
 import { syncPendingEvents, type SyncResult } from "@/features/sync/outboxSyncService";
 import { activateLocalAccount, clearLocalAccount } from "@/db/accountScope";
@@ -24,6 +29,7 @@ interface AuthContextValue {
   register(email: string, password: string): Promise<void>;
   logout(): Promise<void>;
   apiRequest<T>(path: string, init?: RequestInit): Promise<T>;
+  captureRequestScope(): AuthRequestScope;
   syncNow(): Promise<SyncResult>;
   syncing: boolean;
   lastSyncAt: number | null;
@@ -106,6 +112,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     <T,>(path: string, init?: RequestInit) => session.request<T>(path, init),
     [session]
   );
+  const captureRequestScope = useCallback(() => session.capture(), [session]);
   const syncNow = useCallback(async () => {
     const operation = viewEpoch.current;
     setSyncing(true);
@@ -153,6 +160,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         register,
         logout,
         apiRequest,
+        captureRequestScope,
         syncNow,
         syncing,
         lastSyncAt,

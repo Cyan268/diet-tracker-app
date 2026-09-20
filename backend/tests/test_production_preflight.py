@@ -12,6 +12,7 @@ from app.core.config import Settings
 
 WEB_FIXTURE = Path(__file__).parent / "fixtures" / "web-dist"
 MISSING_WEB_FIXTURE = Path(__file__).parent / "fixtures" / "missing-web-dist"
+PRODUCTION_UPLOAD_ROOT = Path(Path.cwd().anchor) / "nutripilot-test-uploads"
 
 
 def production_settings(**overrides) -> Settings:
@@ -25,6 +26,8 @@ def production_settings(**overrides) -> Settings:
         "jwt_secret": "production-jwt-secret-that-is-at-least-32-bytes",
         "credential_encryption_key": "production-encryption-key-that-is-at-least-32-bytes",
         "rate_limit_hmac_secret": "production-rate-limit-key-that-is-at-least-32-bytes",
+        "upload_signing_secret": "production-upload-signing-key-that-is-at-least-32-bytes",
+        "upload_root": PRODUCTION_UPLOAD_ROOT,
         "allowed_hosts": ["api.example.com"],
         "cors_origins": ["https://app.example.com"],
         "public_registration_enabled": False,

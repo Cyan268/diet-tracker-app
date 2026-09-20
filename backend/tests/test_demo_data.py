@@ -4,6 +4,7 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from app.ai import RuleBasedWeeklyReportProvider
 from app.cli.seed_demo import validate_seed_environment
 from app.models import FoodItem, FoodLog, SyncChange, User, UserProfile
 from app.services.demo_data import (
@@ -11,7 +12,7 @@ from app.services.demo_data import (
     DemoResetRequiredError,
     seed_demo_account,
 )
-from app.services.weekly_report import build_weekly_report_facts
+from app.services.weekly_report import build_weekly_report_facts, validate_narrative_facts
 
 
 async def test_demo_seed_creates_complete_two_week_story_and_resets_atomically(
@@ -51,6 +52,8 @@ async def test_demo_seed_creates_complete_two_week_story_and_resets_atomically(
         assert facts.previous.days_with_records == 7
         assert facts.comparison_available is True
         assert facts.targets is not None
+        rule_result = await RuleBasedWeeklyReportProvider().generate(facts)
+        validate_narrative_facts(facts, rule_result)
 
         with pytest.raises(DemoResetRequiredError):
             await seed_demo_account(

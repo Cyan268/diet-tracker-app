@@ -73,6 +73,11 @@ class Settings(BaseSettings):
     log_format: Literal["json", "console"] = "json"
     sentry_dsn: SecretStr | None = None
     sentry_traces_sample_rate: float = Field(default=0, ge=0, le=1)
+    operations_metrics_enabled: bool = False
+    operations_metrics_token: SecretStr | None = Field(default=None, min_length=32)
+    operations_host_snapshot_path: Path | None = None
+    ai_global_monthly_budget_usd: Decimal | None = Field(default=None, gt=0)
+    ai_per_user_monthly_budget_usd: Decimal | None = Field(default=None, gt=0)
     release: str | None = Field(
         default_factory=lambda: os.getenv("RENDER_GIT_COMMIT"),
         min_length=1,
@@ -110,6 +115,18 @@ class Settings(BaseSettings):
     analysis_max_pending_per_user: int = Field(default=3, ge=1, le=100)
     analysis_job_ttl_minutes: int = Field(default=10, ge=2, le=1440)
     analysis_draft_ttl_minutes: int = Field(default=60, ge=5, le=10080)
+    upload_root: Path = Path(".data/uploads")
+    upload_signing_secret: SecretStr = Field(
+        default=SecretStr("development-only-upload-signing-secret"),
+        min_length=32,
+    )
+    upload_max_bytes: int = Field(default=10 * 1024 * 1024, ge=1024, le=50 * 1024 * 1024)
+    upload_max_pixels: int = Field(default=25_000_000, ge=1_000_000, le=100_000_000)
+    upload_url_ttl_minutes: int = Field(default=10, ge=1, le=60)
+    upload_pending_ttl_minutes: int = Field(default=60, ge=5, le=1440)
+    upload_ready_ttl_minutes: int = Field(default=1440, ge=60, le=10080)
+    upload_max_pending_per_user: int = Field(default=5, ge=1, le=100)
+    upload_cleanup_interval_seconds: int = Field(default=300, ge=30, le=86400)
 
     @field_validator(
         "sentry_dsn",
@@ -117,6 +134,8 @@ class Settings(BaseSettings):
         "demo_reset_password",
         "platform_external_host",
         "web_dist_dir",
+        "operations_metrics_token",
+        "operations_host_snapshot_path",
         mode="before",
     )
     @classmethod
@@ -178,6 +197,17 @@ class Settings(BaseSettings):
             )
             if self.auth_protection_enabled and uses_development_rate_secret:
                 raise ValueError("production rate-limit HMAC secret must be changed")
+            if _is_placeholder_secret(self.upload_signing_secret.get_secret_value()):
+                raise ValueError("production upload signing secret must be changed")
+            if not self.upload_root.is_absolute():
+                raise ValueError("production upload root must be an absolute path")
+            if self.operations_metrics_enabled and self.operations_metrics_token is None:
+                raise ValueError("operations metrics token is required when metrics are enabled")
+            if (
+                self.operations_host_snapshot_path is not None
+                and not self.operations_host_snapshot_path.is_absolute()
+            ):
+                raise ValueError("production host snapshot path must be absolute")
             effective_allowed_hosts = {
                 *self.allowed_hosts,
                 *([self.platform_external_host] if self.platform_external_host else []),

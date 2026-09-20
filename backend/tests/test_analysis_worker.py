@@ -4,9 +4,18 @@ from uuid import UUID, uuid4
 import pytest
 from sqlalchemy import func, select, update
 
+from app.ai.openai_image_responses import OpenAIResponsesFoodImageProvider
 from app.ai.provider import ProviderError, ProviderResult
 from app.core.config import Settings
-from app.models import AnalysisAttempt, AnalysisDraft, AnalysisEntity, AnalysisJob, User
+from app.models import (
+    AiCredential,
+    AnalysisAttempt,
+    AnalysisDraft,
+    AnalysisEntity,
+    AnalysisJob,
+    Upload,
+    User,
+)
 from app.repositories.analysis_jobs import (
     cancel_job,
     claim_next_job,
@@ -15,11 +24,15 @@ from app.repositories.analysis_jobs import (
     renew_lease,
 )
 from app.schemas.ai import FoodTextAnalyzeRequest, ParsedFoodEntity
+from app.schemas.analysis import AnalysisImageCreateRequest
 from app.schemas.diet import MealType
+from app.services.analysis import create_image_analysis_job
 from app.services.analysis_input_encryption import encrypt_analysis_input
 from app.services.analysis_worker import complete_job_failure, complete_job_success
 from app.services.analysis_worker_runtime import process_claimed_job
 from app.services.catalog_seed import seed_global_catalog
+from app.services.credential_encryption import encrypt_api_key
+from app.services.upload_storage import LocalPrivateUploadStore
 
 
 async def create_job(pg_session_factory, *, label: str) -> UUID:
@@ -479,3 +492,104 @@ async def test_runtime_does_not_retry_uncertain_external_dispatch(
         )
         assert stored_job is not None and stored_job.status == "unknown"
         assert attempt is not None and attempt.error_code == "network_error"
+
+
+async def test_image_runtime_reads_verified_private_object_and_reuses_draft_pipeline(
+    pg_session_factory,
+    tmp_path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    settings = Settings(
+        _env_file=None,
+        credential_encryption_key="worker-image-encryption-secret-at-least-32-bytes",
+        upload_root=tmp_path,
+    )
+    user_id = uuid4()
+    upload_id = uuid4()
+    sealed_key = f"sealed/{user_id}/{upload_id}/normalized.png"
+    normalized_image = b"verified-normalized-image-bytes"
+    await LocalPrivateUploadStore(tmp_path).seal(sealed_key, normalized_image)
+    async with pg_session_factory() as session:
+        session.add(
+            User(
+                id=user_id,
+                email=f"worker-image-{user_id}@example.test",
+                password_hash="test-only",
+            )
+        )
+        await session.flush()
+        session.add(
+            Upload(
+                id=upload_id,
+                user_id=user_id,
+                object_key=f"staging/{user_id}/{upload_id}/source.upload",
+                status="ready",
+                declared_size=100,
+                declared_sha256="a" * 64,
+                verified_size=100,
+                content_type="image/png",
+                sha256="a" * 64,
+                width=20,
+                height=10,
+                sealed_object_key=sealed_key,
+                sealed_object_version="b" * 64,
+                upload_url_expires_at=datetime.now(UTC) + timedelta(minutes=10),
+                expires_at=datetime.now(UTC) + timedelta(hours=1),
+            )
+        )
+        session.add(
+            AiCredential(
+                user_id=user_id,
+                provider="openai",
+                encrypted_api_key=encrypt_api_key(
+                    "sk-worker-image-test-key-123456",
+                    user_id,
+                    settings.credential_encryption_key.get_secret_value(),
+                ),
+                key_last_four="3456",
+            )
+        )
+        await session.commit()
+        job, _ = await create_image_analysis_job(
+            session,
+            user_id=user_id,
+            request=AnalysisImageCreateRequest(
+                client_request_id=uuid4(),
+                upload_id=upload_id,
+                log_date=date(2026, 9, 16),
+                meal_type_hint=MealType.LUNCH,
+                consent_to_provider=True,
+            ),
+            master_secret=settings.credential_encryption_key.get_secret_value(),
+            openai_model="test-image-model",
+            input_ttl_minutes=10,
+            max_pending_per_user=3,
+        )
+        job_id = job.id
+
+    captured: dict[str, object] = {}
+
+    async def extract_image(_self, analysis_request, image_bytes, content_type):
+        captured.update(
+            request=analysis_request,
+            image_bytes=image_bytes,
+            content_type=content_type,
+        )
+        return apple_result()
+
+    monkeypatch.setattr(OpenAIResponsesFoodImageProvider, "extract", extract_image)
+    claimed = await claim(pg_session_factory, job_id)
+    assert await process_claimed_job(pg_session_factory, settings, claimed) == "succeeded"
+    assert captured["image_bytes"] == normalized_image
+    assert captured["content_type"] == "image/png"
+
+    async with pg_session_factory() as session:
+        stored_job = await session.get(AnalysisJob, job_id)
+        draft = await session.scalar(select(AnalysisDraft).where(AnalysisDraft.job_id == job_id))
+        assert draft is not None
+        entity = await session.scalar(
+            select(AnalysisEntity).where(AnalysisEntity.draft_id == draft.id)
+        )
+        assert stored_job is not None and stored_job.status == "succeeded"
+        assert draft.log_date == date(2026, 9, 16)
+        assert entity is not None and entity.normalized_name == "苹果"

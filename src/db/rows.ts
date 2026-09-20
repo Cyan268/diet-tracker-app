@@ -111,6 +111,34 @@ export interface ReminderRuleRow {
   enabled: number;
 }
 
+export interface AnalysisWorkflowRow {
+  id: string;
+  owner_user_id: string;
+  source_type: "text" | "image";
+  source_text: string;
+  source_image_uri: string | null;
+  upload_id: string | null;
+  log_date: string;
+  phase:
+    | "submitting"
+    | "processing"
+    | "review"
+    | "confirming"
+    | "confirmed_pending_local"
+    | "failed"
+    | "unknown"
+    | "cancelled";
+  job_id: string | null;
+  draft_id: string | null;
+  confirmation_id: string;
+  draft_snapshot: string | null;
+  confirmation_request: string | null;
+  confirmation_snapshot: string | null;
+  last_error: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface NutritionTotalsRow {
   total_kcal: number;
   total_protein: number;

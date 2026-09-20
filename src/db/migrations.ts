@@ -144,6 +144,53 @@ const migrations: readonly Migration[] = [
       `);
     },
   },
+  {
+    version: 5,
+    name: "add_analysis_workflow_recovery",
+    up: async (db) => {
+      await db.execAsync(`
+        CREATE TABLE analysis_workflows (
+          id TEXT PRIMARY KEY NOT NULL,
+          owner_user_id TEXT NOT NULL,
+          source_text TEXT NOT NULL,
+          log_date TEXT NOT NULL,
+          phase TEXT NOT NULL CHECK (
+            phase IN (
+              'submitting', 'processing', 'review', 'confirming',
+              'confirmed_pending_local', 'failed', 'unknown', 'cancelled'
+            )
+          ),
+          job_id TEXT,
+          draft_id TEXT,
+          confirmation_id TEXT NOT NULL,
+          draft_snapshot TEXT,
+          confirmation_request TEXT,
+          confirmation_snapshot TEXT,
+          last_error TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
+
+        CREATE INDEX idx_analysis_workflows_owner_updated
+          ON analysis_workflows(owner_user_id, updated_at DESC);
+      `);
+    },
+  },
+  {
+    version: 6,
+    name: "add_image_analysis_workflow",
+    up: async (db) => {
+      await db.execAsync(`
+        ALTER TABLE analysis_workflows ADD COLUMN source_type TEXT NOT NULL DEFAULT 'text'
+          CHECK (source_type IN ('text', 'image'));
+        ALTER TABLE analysis_workflows ADD COLUMN source_image_uri TEXT;
+        ALTER TABLE analysis_workflows ADD COLUMN upload_id TEXT;
+        CREATE INDEX idx_analysis_workflows_upload
+          ON analysis_workflows(owner_user_id, upload_id)
+          WHERE upload_id IS NOT NULL;
+      `);
+    },
+  },
 ];
 
 export const LATEST_SCHEMA_VERSION = migrations.at(-1)?.version ?? 0;

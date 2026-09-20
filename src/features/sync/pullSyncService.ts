@@ -127,7 +127,7 @@ export async function upsertRemoteLog(
     change.version,
     log.log_date,
     log.meal_type,
-    log.custom_name ?? "云端食品记录",
+    log.display_name ?? log.custom_name ?? "云端食品记录",
     log.amount,
     log.unit,
     log.kcal,

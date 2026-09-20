@@ -64,6 +64,7 @@ async def get_nutrition_points(
     by_date = {
         row[0]: DailyNutritionPoint(
             date=row[0],
+            has_records=True,
             kcal=float(row[1]),
             protein=float(row[2]),
             fat=float(row[3]),
@@ -82,6 +83,7 @@ async def get_nutrition_points(
                 current_date,
                 DailyNutritionPoint(
                     date=current_date,
+                    has_records=False,
                     kcal=0,
                     protein=0,
                     fat=0,

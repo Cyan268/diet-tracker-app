@@ -15,7 +15,13 @@ from app.ai import (
     RuleBasedWeeklyReportProvider,
     WeeklyReportProvider,
 )
-from app.api.dependencies import CurrentUserDep, DemoGuardDep, SessionDep, SettingsDep
+from app.api.dependencies import (
+    CurrentUserDep,
+    DemoGuardDep,
+    SessionDep,
+    SettingsDep,
+    WriteSessionDep,
+)
 from app.models import AiCredential
 from app.repositories.ai import (
     delete_ai_credential,
@@ -24,6 +30,7 @@ from app.repositories.ai import (
     record_ai_call,
     save_ai_credential,
 )
+from app.repositories.analysis_jobs import cancel_job
 from app.repositories.assistant_conversations import (
     ConversationAppendConflictError,
     ConversationNotFoundError,
@@ -44,6 +51,16 @@ from app.schemas.ai import (
     FoodTextAnalyzeRequest,
     FoodTextAnalyzeResponse,
 )
+from app.schemas.analysis import (
+    AnalysisAcceptedResponse,
+    AnalysisConfirmationResponse,
+    AnalysisConfirmRequest,
+    AnalysisCreateRequest,
+    AnalysisDraftResponse,
+    AnalysisDraftUpdateRequest,
+    AnalysisImageCreateRequest,
+    AnalysisStatusResponse,
+)
 from app.schemas.assistant import (
     AssistantAnswerResponse,
     AssistantConversationCreateRequest,
@@ -56,6 +73,21 @@ from app.schemas.assistant import (
 )
 from app.schemas.weekly_report import WeeklyReportRequest, WeeklyReportResponse
 from app.services.ai import AiCallTelemetry, analyze_food_text
+from app.services.analysis import (
+    AnalysisCapacityError,
+    AnalysisConflictError,
+    AnalysisNotFoundError,
+    AnalysisValidationError,
+    confirm_analysis_draft,
+    create_analysis_job,
+    create_image_analysis_job,
+    discard_analysis_draft,
+    draft_response,
+    get_job_draft_id,
+    get_owned_draft,
+    get_owned_job,
+    update_analysis_draft,
+)
 from app.services.assistant import answer_assistant_question
 from app.services.credential_encryption import (
     CredentialDecryptionError,
@@ -65,6 +97,14 @@ from app.services.credential_encryption import (
 from app.services.weekly_report import generate_weekly_report
 
 router = APIRouter()
+
+
+def _analysis_not_found() -> HTTPException:
+    return HTTPException(status_code=404, detail="analysis resource not found")
+
+
+def _analysis_conflict(error: Exception) -> HTTPException:
+    return HTTPException(status_code=409, detail=str(error))
 
 
 async def _conversation_detail_response(
@@ -176,6 +216,253 @@ def _credential_status(credential: AiCredential | None) -> AiCredentialStatusRes
         key_hint=f"••••{credential.key_last_four}",
         updated_at=credential.updated_at,
     )
+
+
+@router.post(
+    "/analyses",
+    response_model=AnalysisAcceptedResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        200: {
+            "description": "Idempotent replay",
+            "model": AnalysisAcceptedResponse,
+        },
+        409: {"description": "Idempotency key conflict"},
+        429: {"description": "Pending analysis capacity reached"},
+        503: {"description": "Analysis intake is paused"},
+    },
+)
+async def create_analysis(
+    request: AnalysisCreateRequest,
+    response: Response,
+    current_user: CurrentUserDep,
+    write_session: WriteSessionDep,
+    settings: SettingsDep,
+    demo_guard: DemoGuardDep,
+) -> AnalysisAcceptedResponse:
+    await demo_guard.enforce_rate(current_user, "ai")
+    if not settings.analysis_accepting_enabled:
+        raise HTTPException(status_code=503, detail="analysis intake is temporarily paused")
+    credential = await get_ai_credential(write_session, current_user.id)
+    use_openai = not current_user.is_demo and (
+        credential is not None or settings.ai_provider == "openai"
+    )
+    try:
+        job, created = await create_analysis_job(
+            write_session,
+            user_id=current_user.id,
+            request=request,
+            master_secret=settings.credential_encryption_key.get_secret_value(),
+            use_openai=use_openai,
+            openai_model=settings.openai_model,
+            input_ttl_minutes=settings.analysis_job_ttl_minutes,
+            max_pending_per_user=settings.analysis_max_pending_per_user,
+        )
+    except AnalysisConflictError as error:
+        raise _analysis_conflict(error) from error
+    except AnalysisCapacityError as error:
+        raise HTTPException(status_code=429, detail=str(error)) from error
+    if not created:
+        response.status_code = status.HTTP_200_OK
+    return AnalysisAcceptedResponse(
+        job_id=job.id,
+        status=job.status,
+        status_url=f"/api/v1/ai/analyses/{job.id}",
+        created_at=job.created_at,
+    )
+
+
+@router.post(
+    "/image-analyses",
+    response_model=AnalysisAcceptedResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    responses={
+        200: {"description": "Idempotent replay", "model": AnalysisAcceptedResponse},
+        403: {"description": "Image analysis is unavailable to demo accounts"},
+        409: {"description": "Upload or credential is not ready"},
+        429: {"description": "Pending analysis capacity reached"},
+        503: {"description": "Analysis intake is paused"},
+    },
+)
+async def create_image_analysis(
+    request: AnalysisImageCreateRequest,
+    response: Response,
+    current_user: CurrentUserDep,
+    write_session: WriteSessionDep,
+    settings: SettingsDep,
+    demo_guard: DemoGuardDep,
+) -> AnalysisAcceptedResponse:
+    await demo_guard.enforce_rate(current_user, "ai")
+    if not settings.analysis_accepting_enabled:
+        raise HTTPException(status_code=503, detail="analysis intake is temporarily paused")
+    if current_user.is_demo:
+        raise HTTPException(
+            status_code=403,
+            detail="demo accounts cannot send private images to an external AI provider",
+        )
+    credential = await get_ai_credential(write_session, current_user.id)
+    if credential is None and settings.ai_provider != "openai":
+        raise HTTPException(
+            status_code=409,
+            detail="configure an AI API key before image analysis",
+        )
+    try:
+        job, created = await create_image_analysis_job(
+            write_session,
+            user_id=current_user.id,
+            request=request,
+            master_secret=settings.credential_encryption_key.get_secret_value(),
+            openai_model=settings.openai_model,
+            input_ttl_minutes=settings.analysis_job_ttl_minutes,
+            max_pending_per_user=settings.analysis_max_pending_per_user,
+        )
+    except AnalysisNotFoundError as error:
+        raise _analysis_not_found() from error
+    except AnalysisConflictError as error:
+        raise _analysis_conflict(error) from error
+    except AnalysisCapacityError as error:
+        raise HTTPException(status_code=429, detail=str(error)) from error
+    if not created:
+        response.status_code = status.HTTP_200_OK
+    return AnalysisAcceptedResponse(
+        job_id=job.id,
+        status=job.status,
+        status_url=f"/api/v1/ai/analyses/{job.id}",
+        created_at=job.created_at,
+    )
+
+
+@router.get("/analyses/{job_id}", response_model=AnalysisStatusResponse)
+async def read_analysis_status(
+    job_id: UUID,
+    current_user: CurrentUserDep,
+    session: SessionDep,
+) -> AnalysisStatusResponse:
+    job = await get_owned_job(session, current_user.id, job_id)
+    if job is None:
+        raise _analysis_not_found()
+    return AnalysisStatusResponse(
+        job_id=job.id,
+        status=job.status,
+        retryable=job.status in {"queued", "running", "retry_wait"},
+        attempt_count=job.attempt_count,
+        draft_id=await get_job_draft_id(session, job.id),
+        failure_code=job.failure_code,
+        created_at=job.created_at,
+        updated_at=job.updated_at,
+        completed_at=job.completed_at,
+    )
+
+
+@router.delete("/analyses/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def cancel_analysis(
+    job_id: UUID,
+    current_user: CurrentUserDep,
+    write_session: WriteSessionDep,
+) -> Response:
+    job = await get_owned_job(write_session, current_user.id, job_id)
+    if job is None:
+        raise _analysis_not_found()
+    if not await cancel_job(write_session, job.id, current_user.id):
+        raise HTTPException(status_code=409, detail="analysis can no longer be cancelled")
+    await write_session.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get("/drafts/{draft_id}", response_model=AnalysisDraftResponse)
+async def read_analysis_draft(
+    draft_id: UUID,
+    current_user: CurrentUserDep,
+    session: SessionDep,
+) -> AnalysisDraftResponse:
+    draft = await get_owned_draft(session, current_user.id, draft_id)
+    if draft is None:
+        raise _analysis_not_found()
+    return await draft_response(session, draft)
+
+
+@router.put("/drafts/{draft_id}", response_model=AnalysisDraftResponse)
+async def update_draft(
+    draft_id: UUID,
+    request: AnalysisDraftUpdateRequest,
+    current_user: CurrentUserDep,
+    write_session: WriteSessionDep,
+    demo_guard: DemoGuardDep,
+) -> AnalysisDraftResponse:
+    await demo_guard.enforce_rate(current_user, "write")
+    try:
+        draft = await update_analysis_draft(
+            write_session,
+            user_id=current_user.id,
+            draft_id=draft_id,
+            request=request,
+        )
+    except AnalysisNotFoundError as error:
+        raise _analysis_not_found() from error
+    except AnalysisConflictError as error:
+        raise _analysis_conflict(error) from error
+    except AnalysisValidationError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    return await draft_response(write_session, draft)
+
+
+@router.post(
+    "/drafts/{draft_id}/confirm",
+    response_model=AnalysisConfirmationResponse,
+    status_code=status.HTTP_201_CREATED,
+    responses={
+        200: {
+            "description": "Idempotent replay",
+            "model": AnalysisConfirmationResponse,
+        }
+    },
+)
+async def confirm_draft(
+    draft_id: UUID,
+    request: AnalysisConfirmRequest,
+    response: Response,
+    current_user: CurrentUserDep,
+    write_session: WriteSessionDep,
+    demo_guard: DemoGuardDep,
+) -> AnalysisConfirmationResponse:
+    await demo_guard.enforce_rate(current_user, "write")
+    try:
+        result, created = await confirm_analysis_draft(
+            write_session,
+            user_id=current_user.id,
+            draft_id=draft_id,
+            request=request,
+        )
+    except AnalysisNotFoundError as error:
+        raise _analysis_not_found() from error
+    except AnalysisConflictError as error:
+        raise _analysis_conflict(error) from error
+    except AnalysisValidationError as error:
+        raise HTTPException(status_code=422, detail=str(error)) from error
+    if not created:
+        response.status_code = status.HTTP_200_OK
+    return result
+
+
+@router.delete("/drafts/{draft_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def discard_draft(
+    draft_id: UUID,
+    current_user: CurrentUserDep,
+    write_session: WriteSessionDep,
+    demo_guard: DemoGuardDep,
+) -> Response:
+    await demo_guard.enforce_rate(current_user, "write")
+    try:
+        await discard_analysis_draft(
+            write_session,
+            user_id=current_user.id,
+            draft_id=draft_id,
+        )
+    except AnalysisNotFoundError as error:
+        raise _analysis_not_found() from error
+    except AnalysisConflictError as error:
+        raise _analysis_conflict(error) from error
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.get("/credentials", response_model=AiCredentialStatusResponse)

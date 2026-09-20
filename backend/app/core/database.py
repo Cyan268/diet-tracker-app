@@ -1,4 +1,5 @@
 from collections.abc import AsyncIterator
+from time import perf_counter
 
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,6 +10,7 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.core.config import get_settings
+from app.core.runtime_metrics import record_safely, runtime_metrics
 
 settings = get_settings()
 
@@ -26,6 +28,12 @@ session_factory = async_sessionmaker(
 
 async def get_session() -> AsyncIterator[AsyncSession]:
     async with session_factory() as session:
+        started_at = perf_counter()
+        await session.connection()
+        record_safely(
+            runtime_metrics.record_db_pool_wait,
+            round((perf_counter() - started_at) * 1000),
+        )
         yield session
 
 
@@ -33,6 +41,12 @@ async def get_write_session() -> AsyncIterator[AsyncSession]:
     """Yield a session whose transaction is owned only by one write service."""
 
     async with session_factory() as session:
+        started_at = perf_counter()
+        await session.connection()
+        record_safely(
+            runtime_metrics.record_db_pool_wait,
+            round((perf_counter() - started_at) * 1000),
+        )
         yield session
 
 

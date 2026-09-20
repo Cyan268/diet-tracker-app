@@ -1,16 +1,22 @@
 {
-  "dataset_version": "food-text-zh-cn-v1.0.0",
+  "report_schema_version": "2.0",
+  "dataset_schema_version": "2.0",
+  "dataset_version": "food-text-zh-cn-v1.2.0",
+  "dataset_split": "test",
+  "dataset_fingerprint_sha256": "28200ee610cff9c6344c4c3734e461cd501057ef33c0852e6d3e848191db0249",
   "provider": "rule_based_v1",
+  "model": "rule-based-v1",
+  "prompt_version": "rule-food-text-v1.0.0",
   "minimums": {
-    "sample_count": 26,
+    "sample_count": 40,
     "request_success_rate": 1.0,
     "schema_validity_rate": 1.0,
-    "entity_precision": 0.8125,
-    "entity_recall": 0.8125,
-    "entity_f1": 0.8125,
-    "amount_accuracy": 1.0,
-    "unit_accuracy": 1.0,
-    "meal_type_accuracy": 1.0,
-    "case_exact_match_rate": 0.6538
+    "entity_precision": 0.7551,
+    "entity_recall": 0.8222,
+    "entity_f1": 0.7872,
+    "amount_accuracy": 0.9189,
+    "unit_accuracy": 0.973,
+    "meal_type_accuracy": 0.973,
+    "case_exact_match_rate": 0.5
   }
 }
