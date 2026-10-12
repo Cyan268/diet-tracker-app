@@ -1,6 +1,14 @@
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { View, Text, ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  Platform,
+  Linking,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { getDatabase } from "../src/db/database";
 import { migrateDatabase } from "../src/db/migrations";
@@ -74,13 +82,30 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
-        <AppNavigator />
+        <View style={{ flex: 1 }}>
+          <AppNavigator />
+        </View>
+        {Platform.OS === "web" && (
+          <TouchableOpacity
+            accessibilityRole="link"
+            onPress={() => Linking.openURL("https://beian.miit.gov.cn/")}
+            style={styles.filingFooter}
+          >
+            <Text style={styles.filingText}>豫ICP备2026049263号</Text>
+          </TouchableOpacity>
+        )}
       </AuthProvider>
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
+  filingFooter: {
+    paddingVertical: 8,
+    alignItems: "center",
+    backgroundColor: "#f5f5f5",
+  },
+  filingText: { fontSize: 12, color: "#777" },
   loading: {
     flex: 1,
     justifyContent: "center",
